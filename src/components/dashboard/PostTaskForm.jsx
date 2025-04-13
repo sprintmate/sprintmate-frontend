@@ -94,9 +94,24 @@ const PostTaskForm = () => {
 
   const fetchCompanyProfileFromStorage = () => {
     try {
-      const storedProfile = localStorage.getItem('company_profile');
+      // Check for userProfile in localStorage
+      const storedProfile = localStorage.getItem('userProfile');
+      console.log("Stored profile:", storedProfile);
+      
       if (storedProfile) {
         const parsedProfile = JSON.parse(storedProfile);
+        
+        // Extract companyId from companyProfiles array
+        if (parsedProfile.companyProfiles && parsedProfile.companyProfiles.length > 0) {
+          const companyExternalId = parsedProfile.companyProfiles[0].externalId;
+          if (companyExternalId) {
+            console.log("Found company externalId:", companyExternalId);
+            setCompanyId(companyExternalId);
+            return;
+          }
+        }
+        
+        // Fallback to other possible ID fields
         if (parsedProfile.externalId) {
           setCompanyId(parsedProfile.externalId);
         } else if (parsedProfile.companyId) {
@@ -113,10 +128,21 @@ const PostTaskForm = () => {
       fetchCompanyIdFromAPI();
     }
   };
-  
+
   const fetchCompanyIdFromAPI = async () => {
     try {
       const response = await axios.get('/v1/user-profiles/me');
+      console.log("API response for user profile:", response.data);
+      
+      if (response.data && response.data.companyProfiles && response.data.companyProfiles.length > 0) {
+        const companyExternalId = response.data.companyProfiles[0].externalId;
+        if (companyExternalId) {
+          setCompanyId(companyExternalId);
+          return;
+        }
+      }
+      
+      // Fallback to other ID fields in API response
       if (response.data && response.data.companyId) {
         setCompanyId(response.data.companyId);
       } else {
@@ -250,17 +276,37 @@ const PostTaskForm = () => {
     if (!validateStep(4)) {
       return;
     }
-    
-
-
 
     if (!companyId) {
-      toast({
-        title: "Submission Error",
-        description: "Company profile not found. Please try again later.",
-        variant: "destructive",
-      });
-      return;
+      console.error("Company ID is missing, attempting one more lookup");
+      
+      // One last attempt to get companyId from localStorage
+      try {
+        const storedProfile = localStorage.getItem('userProfile');
+        if (storedProfile) {
+          const parsedProfile = JSON.parse(storedProfile);
+          if (parsedProfile.companyProfiles && parsedProfile.companyProfiles.length > 0) {
+            const externalId = parsedProfile.companyProfiles[0].externalId;
+            if (externalId) {
+              setCompanyId(externalId);
+            } else {
+              throw new Error("No externalId found in company profiles");
+            }
+          } else {
+            throw new Error("No company profiles found");
+          }
+        } else {
+          throw new Error("No user profile found in localStorage");
+        }
+      } catch (error) {
+        console.error("Final attempt to get companyId failed:", error);
+        toast({
+          title: "Submission Error",
+          description: "Company profile not found. Please try again later.",
+          variant: "destructive",
+        });
+        return;
+      }
     }
     
     setLoading(true);
@@ -294,8 +340,10 @@ const PostTaskForm = () => {
         } : {}
       };
       
+      console.log("Using companyId for API call:", companyId);
+      
       // Make API request
-      const response = await axios.post(`/v1/company-profiles/${companyId}/tasks`, payload);
+      const response = await axios.post(`https://round-georgianna-sprintmate-8451e6d8.koyeb.app/v1/company-profiles/${companyId}/tasks`, payload);
       
       if (response.status === 200 || response.status === 201) {
         toast({

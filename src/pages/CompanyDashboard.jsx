@@ -938,6 +938,168 @@ const SettingsPage = () => (
   </div>
 );
 
+// Add UserProfile component
+const UserProfile = () => {
+  // This would typically come from a context or API call
+  // Using sample data based on your API response
+  const userData = {
+    name: "shashant kashyap",
+    email: "shashant2538@gmail.com",
+    role: "CORPORATE",
+    userId: "6b1227af-fe28-4f05-8ab3-f7d475383ca0",
+    verified: true,
+    companyProfiles: [
+      {
+        externalId: "7823fdcf-bb3b-47ea-a182-6853ab925ffc",
+        createdAt: "2025-04-07T16:02:14.000+00:00",
+        updatedAt: "2025-04-07T16:02:14.000+00:00",
+        createdBy: "system",
+        updatedBy: "system",
+        companyName: "Spire Technoligies",
+        industry: "Tech",
+        verificationStatus: true,
+        isDeleted: false,
+        attachments: {
+          LOGO: "5c935565-fa32-413b-b15a-a461fde83b18"
+        },
+        about: null
+      }
+    ],
+    developerProfiles: []
+  };
+
+  // Extract first letters of first and last name for avatar
+  const getInitials = (name) => {
+    return name
+      .split(' ')
+      .map(n => n[0])
+      .join('')
+      .toUpperCase();
+  };
+
+  return (
+    <div className="p-6 md:p-8 max-w-4xl mx-auto">
+      <motion.div 
+        className="bg-white rounded-xl shadow-sm border border-blue-100 overflow-hidden"
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+      >
+        {/* Header with gradient background */}
+        <div className="bg-gradient-to-r from-blue-600 to-blue-400 h-48 relative">
+          {/* Grid Pattern Overlay */}
+          <div className="absolute inset-0" style={{
+            backgroundImage: 'radial-gradient(circle at 1px 1px, rgba(255, 255, 255, 0.15) 1px, transparent 0)',
+            backgroundSize: '20px 20px'
+          }}></div>
+          
+          <div className="absolute -bottom-16 left-8 flex items-end">
+            <div className="w-32 h-32 rounded-full bg-white p-1 shadow-md">
+              <div className="w-full h-full rounded-full bg-gradient-to-r from-blue-600 to-blue-400 flex items-center justify-center">
+                <span className="text-white text-4xl font-semibold">
+                  {getInitials(userData.name)}
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        {/* Profile information */}
+        <div className="pt-20 pb-8 px-8">
+          <div className="flex flex-col md:flex-row justify-between md:items-center gap-4">
+            <div>
+              <h1 className="text-2xl font-bold text-gray-900">{userData.name}</h1>
+              <p className="text-gray-600 flex items-center gap-2 mt-1">
+                <span className="text-sm">{userData.email}</span>
+                {userData.verified && (
+                  <Badge variant="blue" className="capitalize" size="sm">
+                    Verified
+                  </Badge>
+                )}
+              </p>
+            </div>
+            
+            <div className="flex gap-3">
+              <Button variant="outline" size="sm" className="gap-2">
+                <FileText size={16} />
+                Edit Profile
+              </Button>
+              <Button variant="default" size="sm" className="gap-2 bg-blue-600 hover:bg-blue-700">
+                <Settings size={16} />
+                Settings
+              </Button>
+            </div>
+          </div>
+          
+          {/* Role & ID information */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-8">
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm text-gray-500 uppercase tracking-wider">User Information</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  <div>
+                    <p className="text-sm text-gray-500">Role</p>
+                    <p className="font-medium text-gray-900">{userData.role}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-500">User ID</p>
+                    <p className="font-medium text-gray-900 break-all">{userData.userId}</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+            
+            {/* Company Information */}
+            {userData.companyProfiles && userData.companyProfiles.length > 0 && (
+              <Card>
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm text-gray-500 uppercase tracking-wider">Company Information</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    <div>
+                      <p className="text-sm text-gray-500">Company Name</p>
+                      <p className="font-medium text-gray-900">{userData.companyProfiles[0].companyName}</p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-500">Industry</p>
+                      <p className="font-medium text-gray-900">{userData.companyProfiles[0].industry}</p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-500">Verification Status</p>
+                      <Badge variant={userData.companyProfiles[0].verificationStatus ? "green" : "yellow"} className="mt-1">
+                        {userData.companyProfiles[0].verificationStatus ? "Verified" : "Pending"}
+                      </Badge>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+          </div>
+          
+          {/* Activity section */}
+          <div className="mt-8">
+            <h2 className="text-xl font-semibold mb-4">Recent Activity</h2>
+            <Card>
+              <CardContent className="p-0">
+                <div className="p-6 text-center text-gray-500">
+                  <div className="mb-3 w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center mx-auto">
+                    <Calendar size={20} className="text-blue-600" />
+                  </div>
+                  <p>No recent activity to display</p>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+      </motion.div>
+    </div>
+  );
+};
+
+// Add the missing SidebarLink component definition before the CompanyDashboard component
 // Sidebar Link Component for better organization and styling
 const SidebarLink = ({ to, icon, label, isExpanded, isActive }) => {
   return (
@@ -1133,9 +1295,9 @@ const CompanyDashboard = () => {
         
         {/* User profile section */}
         <div className={`p-4 border-t border-blue-100 ${(isSidebarExpanded || isMobileMenuOpen) ? 'px-4' : 'px-3'}`}>
-          <div className={`flex items-center gap-3 ${(isSidebarExpanded || isMobileMenuOpen) ? '' : 'justify-center'}`}>
+          <Link to="/company/dashboard/profile" className={`flex items-center gap-3 ${(isSidebarExpanded || isMobileMenuOpen) ? '' : 'justify-center'} hover:bg-blue-50 p-2 rounded-lg transition-colors`}>
             <div className="w-10 h-10 rounded-full bg-gradient-to-r from-blue-600 to-blue-400 flex items-center justify-center text-white font-medium">
-              SC
+              SK
             </div>
             <AnimatePresence mode="wait">
               {(isSidebarExpanded || isMobileMenuOpen) && (
@@ -1147,13 +1309,13 @@ const CompanyDashboard = () => {
                   className="overflow-hidden"
                 >
                   <div className="whitespace-nowrap">
-                    <p className="font-medium text-gray-900">Sam Cooper</p>
-                    <p className="text-xs text-gray-500">sam@example.com</p>
+                    <p className="font-medium text-gray-900">shashant kashyap</p>
+                    <p className="text-xs text-gray-500">shashant2538@gmail.com</p>
                   </div>
                 </motion.div>
               )}
             </AnimatePresence>
-          </div>
+          </Link>
           
           {(isSidebarExpanded || isMobileMenuOpen) && (
             <motion.div
@@ -1229,6 +1391,7 @@ const CompanyDashboard = () => {
             <Route path="/post-task" element={<PostTask />} />
             <Route path="/applications" element={<Applications />} />
             <Route path="/settings" element={<SettingsPage />} />
+            <Route path="/profile" element={<UserProfile />} />
           </Routes>
         </div>
       </motion.main>

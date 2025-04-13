@@ -3,6 +3,7 @@ import { loginCompany } from '@/services/authService';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { FaEye, FaEyeSlash } from 'react-icons/fa';
+import axios from 'axios';
 
 export default function CompanyLogin() {
   const [email, setEmail] = useState('');
@@ -18,9 +19,27 @@ export default function CompanyLogin() {
     setError('');
 
     try {
-      const response = await loginCompany({ email, password });
+      // Pass email and password as separate parameters, not as an object
+      const response = await loginCompany(email, password);
       localStorage.setItem("authToken", response.token);
       localStorage.setItem("userType", "company"); 
+      
+      // Fetch user profile after successful login
+      try {
+        const profileResponse = await axios.get('https://round-georgianna-sprintmate-8451e6d8.koyeb.app/v1/users/profile', {
+          headers: {
+            'Authorization': response.token
+          }
+        });
+        
+        if (profileResponse.data) {
+          localStorage.setItem("userProfile", JSON.stringify(profileResponse.data));
+        }
+      } catch (profileErr) {
+        console.error("Error fetching profile:", profileErr);
+        // Continue even if profile fetch fails
+      }
+      
       navigate('/company/dashboard');
     } catch (err) {
       setError(err.message || 'Login failed');
@@ -90,6 +109,7 @@ export default function CompanyLogin() {
             <motion.p
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
+              transition={{ delay: 0.2 }}
               className="text-red-600 text-sm"
             >
               {error}

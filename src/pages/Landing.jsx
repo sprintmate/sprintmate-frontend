@@ -1,4 +1,4 @@
-import React, { useRef, useState } from "react";
+import React, { useRef, useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { Button } from "@/components/ui/button";
 import { Link } from 'react-router-dom';
@@ -45,7 +45,7 @@ import {
   Check,
   ArrowUp
 } from "lucide-react";
-import { motion, useScroll, useTransform } from "framer-motion";
+import { motion, useScroll, useTransform, AnimatePresence } from "framer-motion";
 import {
   FadeIn,
   SlideIn,
@@ -60,7 +60,7 @@ import image3 from "../assets/image3.webp";
 import image2 from "../assets/image2.webp";
 import image6 from "../assets/image6.webp";
 import image1 from "../assets/image1.webp";
-import image8 from "../assets/image9.webp";
+import image8 from "../assets/image8.webp";
 import image9 from "../assets/image9.webp";
 import CustomCursor from "@/components/ui/CustomCursor";
 import { useNavigate } from "react-router-dom";
@@ -72,6 +72,7 @@ function Landing() {
   const featuresRef = useRef(null);
   const ctaRef = useRef(null);
   const videoRef = useRef(null);
+  const [isMobile, setIsMobile] = useState(false);
 
   // Video state management
   const [isPlaying, setIsPlaying] = useState(false);
@@ -82,6 +83,20 @@ function Landing() {
 
   // Scroll progress animations
   const { scrollYProgress } = useScroll();
+  
+  // Check if device is mobile
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+    
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    
+    return () => {
+      window.removeEventListener('resize', checkMobile);
+    };
+  }, []);
 
   // Helper function to get avatar images
   const getAvatarImage = (index) => {
@@ -94,16 +109,13 @@ function Landing() {
     }
   };
 
-
-
-
   return (
-    <div className="min-h-screen overflow-x-hidden cursor-none">
-      <CustomCursor />
+    <div className="min-h-screen overflow-x-hidden bg-white">
+      {!isMobile && <CustomCursor />}
 
-      {/* Hero Section - Made more compact */}
-      <motion.div
-        className="hero-gradient relative overflow-hidden"
+      {/* Hero Section - Improved responsiveness */}
+      <motion.section
+        className="hero-gradient relative overflow-hidden py-16 md:py-28"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ duration: 0.8 }}
@@ -112,50 +124,69 @@ function Landing() {
         <div className="absolute top-20 left-10 w-64 h-64 bg-blue-400 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-pulse-slow"></div>
         <div className="absolute top-40 right-20 w-72 h-72 bg-blue-300 rounded-full mix-blend-multiply filter blur-3xl opacity-10 animate-pulse-slow" style={{ animationDelay: '1s' }}></div>
 
-        <div className="container mx-auto px-4 md:px-28 py-8 md:py-28 relative z-10">
-          <div className="flex flex-col md:flex-row items-center gap-8">
-            <motion.div className="md:w-1/2 space-y-2">
-              <Badge variant="blue" className="mb-1">✨ Connecting Talents Worldwide</Badge>
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8 xl:px-16 relative z-10">
+          <div className="flex flex-col md:flex-row items-center gap-8 md:gap-12">
+            <motion.div className="md:w-1/2 space-y-4 text-center md:text-left">
+              <motion.div 
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5 }}
+              >
+                <Badge variant="blue" className="mb-2 px-3 py-1.5 text-sm">✨ Connecting Talents Worldwide</Badge>
+              </motion.div>
 
-              <h1 className="text-3xl md:text-5xl lg:text-5xl font-bold leading-tight mb-4">
+              <motion.h1 
+                className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold leading-tight mb-4 bg-clip-text text-transparent bg-gradient-to-r from-gray-900 to-gray-700"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5, delay: 0.1 }}
+              >
                 Turn Sprint spillover into rapid solutions
-              </h1>
+              </motion.h1>
 
-              {/* <p className="text-base md:text-lg text-gray-600 md:pr-8">
-                Connect with pre-vetted developers who match your project needs. Our AI-driven platform finds the perfect talent for your tech challenges.
-              </p> */}
-
-              <div className="flex flex-col sm:flex-row gap-3 pt-2">
+              <motion.div 
+                className="flex flex-col sm:flex-row gap-3 pt-4 justify-center md:justify-start"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5, delay: 0.2 }}
+              >
                 <Button
                   variant="primary"
                   size="lg"
-                  className="group"
+                  className="group shadow-lg shadow-blue-500/20"
                   onClick={() => navigate('/company/login')}
                 >
-                  Hire Developers
-                  <ArrowUpRight className="ml-2 group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform" size={18} />
+                  <span className="mr-2">Hire Developers</span>
+                  <ArrowUpRight className="group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform" size={18} />
                 </Button>
                 <Link to="/developer/login">
                   <Button
                     variant="secondary"
                     size="lg"
+                    className="shadow-md hover:shadow-lg transition-shadow"
                   >
                     Join as Developer
                   </Button>
                 </Link>
-              </div>
+              </motion.div>
 
-              <div className="pt-3">
+              <motion.div 
+                className="pt-5 flex justify-center md:justify-start"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ duration: 0.6, delay: 0.3 }}
+              >
                 <div className="flex items-center gap-3">
                   <div className="flex -space-x-3">
                     {[1, 2, 3, 4].map((i) => (
                       <motion.div
                         key={i}
-                        className="w-9 h-9 rounded-full border-2 border-white bg-gray-200 ring-1 ring-white hover:ring-4 hover:ring-blue-500 hover:scale-110 transition-all duration-300 relative group"
+                        className="w-9 h-9 rounded-full border-2 border-white bg-gray-200 ring-2 ring-white hover:ring-4 hover:ring-blue-500 hover:scale-110 transition-all duration-300 relative overflow-hidden group"
                         style={{
                           backgroundImage: `url(${getAvatarImage(i)})`,
                           backgroundSize: 'cover',
                           backgroundPosition: 'center',
+                          zIndex: 10 - i
                         }}
                         whileHover={{ rotate: 10 }}
                       >
@@ -164,13 +195,8 @@ function Landing() {
                         ></motion.div>
                       </motion.div>
                     ))}
-
                   </div>
-                  <motion.div
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    transition={{ duration: 0.6, delay: 1.0 }}
-                  >
+                  <motion.div>
                     <div className="flex items-center">
                       <div className="text-yellow-500 flex">
                         {[1, 2, 3, 4, 5].map(i => <Star key={i} size={14} fill="currentColor" />)}
@@ -180,16 +206,16 @@ function Landing() {
                     <p className="text-xs text-gray-600">From <span className="font-bold text-blue-600">2,000+</span> satisfied clients</p>
                   </motion.div>
                 </div>
-              </div>
+              </motion.div>
             </motion.div>
 
             <motion.div
-              className="md:w-1/2 relative w-full"
+              className="md:w-1/2 relative w-full mt-8 md:mt-0"
               initial={{ opacity: 0, y: 50 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8, delay: 0.3 }}
             >
-              <div className="relative h-[250px] sm:h-[300px] md:h-[400px] w-full">
+              <div className="relative h-[280px] sm:h-[350px] md:h-[400px] w-full">
                 {/* Main image with enhanced animation */}
                 <div className="absolute inset-0 animate-float">
                   <div className="relative z-20 w-full h-full">
@@ -198,7 +224,6 @@ function Landing() {
                       alt="Developer working"
                       className="w-full h-full object-contain object-center"
                       loading="eager"
-                      priority="true"
                     />
                   </div>
 
@@ -207,55 +232,51 @@ function Landing() {
                 </div>
 
                 {/* Floating elements with glass effect */}
-                <motion.div
-                  className="absolute -left-4 bottom-16 glass-effect p-2.5 rounded-xl shadow-blue"
-                  animate={{ y: [0, -15, 0] }}
-                  transition={{ duration: 6, repeat: Infinity, delay: 1 }}
-                  initial={{ opacity: 0, x: -30 }}
-                  whileInView={{ opacity: 1, x: 0 }}
-                  viewport={{ once: true }}
-                >
-                  <div className="flex items-center gap-2">
+                <AnimatePresence>
+                  <motion.div
+                    className="absolute -left-4 bottom-16 glass-effect p-3 rounded-xl shadow-blue flex items-center gap-2"
+                    animate={{ y: [0, -15, 0] }}
+                    transition={{ duration: 6, repeat: Infinity, delay: 1 }}
+                    initial={{ opacity: 0, x: -30 }}
+                    whileInView={{ opacity: 1, x: 0 }}
+                    viewport={{ once: true }}
+                  >
                     <Code className="text-blue-600" size={18} />
-                    <span className="text-xs font-medium">25k+ Projects</span>
-                  </div>
-                </motion.div>
+                    <span className="text-sm font-medium">25k+ Projects</span>
+                  </motion.div>
 
-                <motion.div
-                  className="absolute top-16 -right-2 glass-effect p-2.5 rounded-xl shadow-blue"
-                  animate={{ y: [0, -15, 0] }}
-                  transition={{ duration: 6, repeat: Infinity, delay: 2 }}
-                  initial={{ opacity: 0, x: 30 }}
-                  whileInView={{ opacity: 1, x: 0 }}
-                  viewport={{ once: true }}
-                >
-                  <div className="flex items-center gap-2">
+                  <motion.div
+                    className="absolute top-16 -right-2 glass-effect p-3 rounded-xl shadow-blue flex items-center gap-2"
+                    animate={{ y: [0, -15, 0] }}
+                    transition={{ duration: 6, repeat: Infinity, delay: 2 }}
+                    initial={{ opacity: 0, x: 30 }}
+                    whileInView={{ opacity: 1, x: 0 }}
+                    viewport={{ once: true }}
+                  >
                     <Globe className="text-blue-600" size={18} />
-                    <span className="text-xs font-medium">100+ Countries</span>
-                  </div>
-                </motion.div>
+                    <span className="text-sm font-medium">100+ Countries</span>
+                  </motion.div>
 
-                <motion.div
-                  className="absolute top-1/2 left-0 glass-effect p-2.5 rounded-xl shadow-blue"
-                  animate={{ y: [0, -15, 0] }}
-                  transition={{ duration: 6, repeat: Infinity, delay: 1.5 }}
-                  initial={{ opacity: 0, x: -30 }}
-                  whileInView={{ opacity: 1, x: 0 }}
-                  viewport={{ once: true }}
-                >
-                  <div className="flex items-center gap-2">
+                  <motion.div
+                    className="absolute top-1/2 left-0 glass-effect p-3 rounded-xl shadow-blue flex items-center gap-2"
+                    animate={{ y: [0, -15, 0] }}
+                    transition={{ duration: 6, repeat: Infinity, delay: 1.5 }}
+                    initial={{ opacity: 0, x: -30 }}
+                    whileInView={{ opacity: 1, x: 0 }}
+                    viewport={{ once: true }}
+                  >
                     <Users className="text-blue-600" size={18} />
-                    <span className="text-xs font-medium">10k+ Developers</span>
-                  </div>
-                </motion.div>
+                    <span className="text-sm font-medium">10k+ Developers</span>
+                  </motion.div>
+                </AnimatePresence>
               </div>
             </motion.div>
           </div>
         </div>
-      </motion.div>
+      </motion.section>
 
-      {/* Feature Cards Section */}
-      <div className="relative -mt-24 z-20 px-4">
+      {/* Feature Cards Section - Improved visual design */}
+      <div className="relative -mt-12 sm:-mt-24 z-20 px-4">
         <div className="container mx-auto">
           <div className="grid md:grid-cols-3 gap-6 max-w-6xl mx-auto">
             {/* Card 1: Post Task */}
@@ -268,17 +289,16 @@ function Landing() {
               transition={{ duration: 0.3 }}
             >
               <div className="absolute inset-0 bg-gradient-to-r from-blue-500 to-cyan-500 rounded-xl blur-lg opacity-20 group-hover:opacity-30 transition-opacity"></div>
-              <div className="relative bg-white/90 backdrop-blur-sm rounded-xl p-5 shadow-lg border border-blue-100 h-full">
-                {/* Updated header layout */}
-                <div className="flex items-center gap-3 mb-3">
-                  <div className="w-10 h-10 flex-shrink-0">
-                    <div className="w-full h-full bg-gradient-to-r from-blue-500 to-cyan-500 rounded-lg flex items-center justify-center text-white">
-                      <ClipboardList size={20} />
+              <div className="relative bg-white backdrop-blur-sm rounded-xl p-6 shadow-xl border border-blue-100 h-full">
+                <div className="flex items-center gap-4 mb-4">
+                  <div className="w-12 h-12 flex-shrink-0">
+                    <div className="w-full h-full bg-gradient-to-r from-blue-500 to-cyan-500 rounded-lg flex items-center justify-center text-white shadow-lg shadow-blue-500/30">
+                      <ClipboardList size={22} />
                     </div>
                   </div>
                   <h3 className="text-lg font-bold text-gray-900">Post a Task & Get Matches</h3>
                 </div>
-                <p className="text-sm text-gray-600">Create your project and get instantly matched with pre-vetted developers who perfectly align with your needs.</p>
+                <p className="text-sm text-gray-600 leading-relaxed">Create your project and get instantly matched with pre-vetted developers who perfectly align with your needs.</p>
               </div>
             </motion.div>
 
@@ -292,17 +312,16 @@ function Landing() {
               transition={{ duration: 0.3, delay: 0.1 }}
             >
               <div className="absolute inset-0 bg-gradient-to-r from-purple-500 to-blue-500 rounded-xl blur-lg opacity-20 group-hover:opacity-30 transition-opacity"></div>
-              <div className="relative bg-white/90 backdrop-blur-sm rounded-xl p-5 shadow-lg border border-purple-100 h-full">
-                {/* Updated header layout */}
-                <div className="flex items-center gap-3 mb-3">
-                  <div className="w-10 h-10 flex-shrink-0">
-                    <div className="w-full h-full bg-gradient-to-r from-purple-500 to-blue-500 rounded-lg flex items-center justify-center text-white">
-                      <Shield size={20} />
+              <div className="relative bg-white backdrop-blur-sm rounded-xl p-6 shadow-xl border border-purple-100 h-full">
+                <div className="flex items-center gap-4 mb-4">
+                  <div className="w-12 h-12 flex-shrink-0">
+                    <div className="w-full h-full bg-gradient-to-r from-purple-500 to-blue-500 rounded-lg flex items-center justify-center text-white shadow-lg shadow-purple-500/30">
+                      <Shield size={22} />
                     </div>
                   </div>
                   <h3 className="text-lg font-bold text-gray-900">NDA Protected Environment</h3>
                 </div>
-                <p className="text-sm text-gray-600">Your intellectual property is safe with our legally binding NDAs and secure development environment.</p>
+                <p className="text-sm text-gray-600 leading-relaxed">Your intellectual property is safe with our legally binding NDAs and secure development environment.</p>
               </div>
             </motion.div>
 
@@ -316,25 +335,25 @@ function Landing() {
               transition={{ duration: 0.3, delay: 0.2 }}
             >
               <div className="absolute inset-0 bg-gradient-to-r from-emerald-500 to-blue-500 rounded-xl blur-lg opacity-20 group-hover:opacity-30 transition-opacity"></div>
-              <div className="relative bg-white/90 backdrop-blur-sm rounded-xl p-5 shadow-lg border border-emerald-100 h-full">
-                {/* Updated header layout */}
-                <div className="flex items-center gap-3 mb-3">
-                  <div className="w-10 h-10 flex-shrink-0">
-                    <div className="w-full h-full bg-gradient-to-r from-emerald-500 to-blue-500 rounded-lg flex items-center justify-center text-white">
-                      <Wallet size={20} />
+              <div className="relative bg-white backdrop-blur-sm rounded-xl p-6 shadow-xl border border-emerald-100 h-full">
+                <div className="flex items-center gap-4 mb-4">
+                  <div className="w-12 h-12 flex-shrink-0">
+                    <div className="w-full h-full bg-gradient-to-r from-emerald-500 to-blue-500 rounded-lg flex items-center justify-center text-white shadow-lg shadow-emerald-500/30">
+                      <Wallet size={22} />
                     </div>
                   </div>
                   <h3 className="text-lg font-bold text-gray-900">Escrow Payments</h3>
                 </div>
-                <p className="text-sm text-gray-600">Secure milestone-based payments with no delays. Funds are safely held in escrow until work is approved.</p>
+                <p className="text-sm text-gray-600 leading-relaxed">Secure milestone-based payments with no delays. Funds are safely held in escrow until work is approved.</p>
               </div>
             </motion.div>
           </div>
         </div>
       </div>
+
       {/* Modern CTA Section with Creative Design */}
-      <ScrollTrigger onEnter={() => console.log("CTA section in view")}>
-        <div ref={ctaRef} className="py-20 relative overflow-hidden">
+      <ScrollTrigger>
+        <section ref={ctaRef} className="py-20 mt-12 md:mt-24 relative overflow-hidden">
           {/* Dynamic background */}
           <div className="absolute inset-0 bg-gradient-to-br from-white to-blue-50">
             <div className="absolute inset-0" style={{
@@ -376,7 +395,7 @@ function Landing() {
             <div className="max-w-6xl mx-auto">
               <FadeIn>
                 {/* Modern Section Header with 3D effect */}
-                <div className="text-center mb-24 perspective-1000">
+                <div className="text-center mb-16 md:mb-24 perspective-1000">
                   <motion.div
                     initial={{ opacity: 0, y: 20, rotateX: -20 }}
                     whileInView={{ opacity: 1, y: 0, rotateX: 0 }}
@@ -435,7 +454,7 @@ function Landing() {
                     </motion.div>
 
                     {/* Animated Heading */}
-                    <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6 leading-tight">
+                    <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-gray-900 mb-6 leading-tight">
                       Experience the{' '}
                       <motion.span
                         className="relative inline-block"
@@ -453,12 +472,12 @@ function Landing() {
                           style={{ transformOrigin: 'left' }}
                         />
                       </motion.span>{' '}
-                      of<br />Freelance Collaboration
+                      of<br className="sm:hidden" /> Freelance Collaboration
                     </h2>
 
                     {/* Animated Description */}
                     <motion.p
-                      className="text-gray-600 max-w-2xl mx-auto text-lg"
+                      className="text-gray-600 max-w-2xl mx-auto text-base md:text-lg px-4"
                       initial={{ opacity: 0, y: 20 }}
                       whileInView={{ opacity: 1, y: 0 }}
                       viewport={{ once: true }}
@@ -477,7 +496,7 @@ function Landing() {
                 </div>
 
                 {/* Modern Timeline Flow with 3D Cards */}
-                <div className="relative space-y-18 px-18">
+                <div className="relative space-y-24 md:space-y-32 px-4">
                   {/* Animated connection line */}
                   <motion.div
                     className="absolute left-1/2 top-0 bottom-0 w-px hidden md:block"
@@ -496,7 +515,6 @@ function Landing() {
                     />
                   </motion.div>
 
-                  {/* Rest of the timeline steps will follow with existing structure */}
                   {/* Step 1: Company Search */}
                   <motion.div
                     className="relative"
@@ -505,24 +523,19 @@ function Landing() {
                     viewport={{ once: true }}
                     transition={{ duration: 0.8 }}
                   >
-                    <div className="flex flex-col md:flex-row items-center gap-8">
+                    <div className="flex flex-col md:flex-row items-center gap-8 md:gap-12">
                       <div className="md:w-2/5 relative group">
-                        <div className="relative">
-                          {/* Decorative elements */}
-                          {/* <div className="absolute -inset-4 bg-gradient-to-r from-blue-500/20 to-purple-500/20 rounded-xl blur-lg group-hover:blur-xl transition-all duration-500 opacity-0 group-hover:opacity-100"></div> */}
-
-
-                          {/* Step content */}
-                          <div className="relative rounded-xl overflow-hidden  p-1.5 ">
+                        <div className="relative rounded-xl shadow-2xl overflow-hidden bg-white">
+                          <div className="absolute -inset-1 bg-gradient-to-r from-blue-500 to-purple-500 opacity-20 blur-lg group-hover:opacity-30 transition-opacity"></div>
+                          <div className="relative rounded-xl overflow-hidden p-1">
                             <div className="aspect-video rounded-lg overflow-hidden">
                               <motion.img
                                 src={image9}
                                 alt="Company searching for developers"
-                                className="w-full h-full object-contain object-center transform group-hover:scale-110 transition-transform duration-700"
+                                className="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-700"
                                 initial={{ scale: 1 }}
                                 whileHover={{ scale: 1.02 }}
                               />
-
                             </div>
                           </div>
                         </div>
@@ -546,11 +559,9 @@ function Landing() {
                             </div>
                           </div>
 
-
                           <p className="text-gray-600 leading-relaxed">
                             Describe your project needs and requirements. Our system helps you find the perfect match from our pool of verified developers.
                           </p>
-
 
                           <div className="flex flex-wrap gap-3 pt-2">
                             <Badge variant="outline" className="bg-gradient-to-r from-blue-50 to-blue-100/50 border-blue-200">
@@ -585,7 +596,6 @@ function Landing() {
                     </div>
                   </motion.div>
 
-                  {/* Steps 2-4 follow similar pattern with adjusted colors and content */}
                   {/* Step 2: Developer Application */}
                   <motion.div
                     className="relative"
@@ -594,22 +604,19 @@ function Landing() {
                     viewport={{ once: true }}
                     transition={{ duration: 0.8 }}
                   >
-                    <div className="flex flex-col md:flex-row-reverse items-center gap-8">
+                    <div className="flex flex-col md:flex-row-reverse items-center gap-8 md:gap-12">
                       <div className="md:w-2/5 relative group">
-                        <div className="relative">
-                          {/* <div className="absolute -inset-4 bg-gradient-to-r from-purple-500/20 to-pink-500/20 rounded-xl blur-lg group-hover:blur-xl transition-all duration-500 opacity-0 group-hover:opacity-100"></div> */}
-
-
-                          <div className="relative rounded-xl overflow-hidden  p-1.5 ">
+                        <div className="relative rounded-xl shadow-2xl overflow-hidden bg-white">
+                          <div className="absolute -inset-1 bg-gradient-to-r from-purple-500 to-pink-500 opacity-20 blur-lg group-hover:opacity-30 transition-opacity"></div>
+                          <div className="relative rounded-xl overflow-hidden p-1">
                             <div className="aspect-video rounded-lg overflow-hidden">
                               <motion.img
                                 src={image6}
                                 alt="Developer applying for task"
-                                className="w-full h-full object-contain object-center transform group-hover:scale-110 transition-transform duration-700"
+                                className="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-700"
                                 initial={{ scale: 1 }}
                                 whileHover={{ scale: 1.02 }}
                               />
-                              {/*  */}
                             </div>
                           </div>
                         </div>
@@ -633,11 +640,9 @@ function Landing() {
                             </div>
                           </div>
 
-
                           <p className="text-gray-600 leading-relaxed">
                             Pre-vetted developers get matched with projects that align with their expertise. Our AI ensures the perfect fit between requirements and skills.
                           </p>
-
 
                           <div className="flex flex-wrap gap-3 pt-2">
                             <Badge variant="outline" className="bg-gradient-to-r from-purple-50 to-purple-100/50 border-purple-200">
@@ -675,21 +680,19 @@ function Landing() {
                     viewport={{ once: true }}
                     transition={{ duration: 0.8 }}
                   >
-                    <div className="flex flex-col md:flex-row items-center gap-8">
+                    <div className="flex flex-col md:flex-row items-center gap-8 md:gap-12">
                       <div className="md:w-2/5 relative group">
-                        <div className="relative">
-
-
-                          <div className="relative rounded-xl overflow-hidden p-1.5 ">
+                        <div className="relative rounded-xl shadow-2xl overflow-hidden bg-white">
+                          <div className="absolute -inset-1 bg-gradient-to-r from-cyan-500 to-blue-500 opacity-20 blur-lg group-hover:opacity-30 transition-opacity"></div>
+                          <div className="relative rounded-xl overflow-hidden p-1">
                             <div className="aspect-video rounded-lg overflow-hidden">
                               <motion.img
                                 src={image2}
                                 alt="Developer working"
-                                className="w-full h-full object-contain object-center transform group-hover:scale-110 transition-transform duration-700"
+                                className="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-700"
                                 initial={{ scale: 1 }}
                                 whileHover={{ scale: 1.02 }}
                               />
-
                             </div>
                           </div>
                         </div>
@@ -713,11 +716,9 @@ function Landing() {
                             </div>
                           </div>
 
-
                           <p className="text-gray-600 leading-relaxed">
                             Developers work on projects while maintaining constant communication. Track progress and provide feedback in real-time.
                           </p>
-
 
                           <div className="flex flex-wrap gap-3 pt-2">
                             <Badge variant="outline" className="bg-gradient-to-r from-cyan-50 to-cyan-100/50 border-cyan-200">
@@ -755,22 +756,19 @@ function Landing() {
                     viewport={{ once: true }}
                     transition={{ duration: 0.8 }}
                   >
-                    <div className="flex flex-col md:flex-row-reverse items-center gap-8">
+                    <div className="flex flex-col md:flex-row-reverse items-center gap-8 md:gap-12">
                       <div className="md:w-2/5 relative group">
-                        <div className="relative">
-                          {/* <div className="absolute -inset-4 bg-gradient-to-r from-green-500/20 to-emerald-500/20 rounded-xl blur-lg group-hover:blur-xl transition-all duration-500 opacity-0 group-hover:opacity-100"></div> */}
-
-
-                          <div className="relative rounded-xl overflow-hidden p-1.5 ">
+                        <div className="relative rounded-xl shadow-2xl overflow-hidden bg-white">
+                          <div className="absolute -inset-1 bg-gradient-to-r from-green-500 to-emerald-500 opacity-20 blur-lg group-hover:opacity-30 transition-opacity"></div>
+                          <div className="relative rounded-xl overflow-hidden p-1">
                             <div className="aspect-video rounded-lg overflow-hidden">
                               <motion.img
                                 src={image1}
                                 alt="Project completion"
-                                className="w-full h-full object-contain object-center transform group-hover:scale-110 transition-transform duration-700"
+                                className="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-700"
                                 initial={{ scale: 1 }}
                                 whileHover={{ scale: 1.02 }}
                               />
-
                             </div>
                           </div>
                         </div>
@@ -794,11 +792,9 @@ function Landing() {
                             </div>
                           </div>
 
-
                           <p className="text-gray-600 leading-relaxed">
                             Once the project is completed and approved, secure instant payment is released to the developer. Simple, fast, and transparent.
                           </p>
-
 
                           <div className="flex flex-wrap gap-3 pt-2">
                             <Badge variant="outline" className="bg-gradient-to-r from-green-50 to-green-100/50 border-green-200">
@@ -831,7 +827,7 @@ function Landing() {
 
                 {/* CTA Buttons */}
                 <motion.div
-                  className="flex flex-col sm:flex-row gap-4 justify-center mt-24"
+                  className="flex flex-col sm:flex-row gap-4 justify-center mt-16 md:mt-24"
                   initial={{ opacity: 0, y: 20 }}
                   whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: true }}
@@ -840,7 +836,8 @@ function Landing() {
                   <Button
                     variant="primary"
                     size="lg"
-                    className="group relative overflow-hidden bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 border-0"
+                    className="group relative overflow-hidden bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 border-0 shadow-xl shadow-blue-500/20"
+                    onClick={() => navigate('/company/login')}
                   >
                     <span className="relative z-10 flex items-center justify-center">
                       Start Hiring
@@ -857,7 +854,7 @@ function Landing() {
                     <Button
                       variant="secondary"
                       size="lg"
-                      className="group relative overflow-hidden bg-white hover:bg-gray-50 text-gray-900 border-gray-200"
+                      className="group relative overflow-hidden bg-white hover:bg-gray-50 text-gray-900 border-gray-200 shadow-lg"
                     >
                       <span className="relative z-10 flex items-center justify-center">
                         Join as Developer
@@ -874,7 +871,7 @@ function Landing() {
               </FadeIn>
             </div>
           </div>
-        </div>
+        </section>
       </ScrollTrigger>
 
       {/* Modern Professional Footer */}
@@ -1020,27 +1017,21 @@ function Landing() {
         </div>
       </footer>
 
-      {/* Keep scroll helper and debug indicator */}
-      <div className="fixed bottom-8 right-8 z-50 hidden md:block">
-        <motion.div
-          className="flex flex-col gap-3 items-center"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 1.5, duration: 0.5 }}
+      {/* Back to top button */}
+      <motion.div
+        className="fixed bottom-8 right-8 z-50 hidden md:block"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: 1.5, duration: 0.5 }}
+      >
+        <button
+          onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+          className="p-3 bg-white shadow-xl rounded-full hover:bg-blue-50 transition-colors text-blue-600 hover:text-blue-700"
+          aria-label="Back to top"
         >
-          <button
-            onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-            className="p-3 bg-white shadow-lg rounded-full hover:bg-blue-50 transition-colors"
-          >
-            <ArrowUpRight size={20} className="text-blue-600" />
-          </button>
-        </motion.div>
-      </div>
-
-      {/* Debug indicator - remove in production */}
-      <div className="fixed top-4 right-4 z-50 bg-white p-2 rounded-md shadow-md text-sm font-mono opacity-70">
-        {/* <p>Scroll: {scrollDirection}</p> */}
-      </div>
+          <ArrowUp size={20} />
+        </button>
+      </motion.div>
     </div>
   );
 }

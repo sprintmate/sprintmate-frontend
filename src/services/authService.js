@@ -34,14 +34,15 @@ export const removeToken = () => {
 };
 
 // Login company with credentials
-export const loginCompany = async (email, password) => {
+export const loginCompany = async (email, cred) => {
   try {
-    console.log('Attempting login with:', { email, password: '****' });
+    console.log('Attempting login with:', { email, cred: '****' });
     
-    const response = await axios.post('https://round-georgianna-sprintmate-8451e6d8.koyeb.app/v1/tokens', 
+    const response = await axios.post(
+      'https://round-georgianna-sprintmate-8451e6d8.koyeb.app/v1/tokens', 
       {
         email,
-        cred: password
+        cred
       },
       {
         headers: {
@@ -57,12 +58,13 @@ export const loginCompany = async (email, password) => {
       console.log('Login successful, token received');
       setToken(response.data.token);
       
-      // If the response includes user profile data, store it
-      if (response.data.profile) {
-        setUserProfile(response.data.profile);
-      } else {
-        // Otherwise, fetch the profile
-        await fetchUserProfile();
+      // Store userId if it exists in the response
+      if (response.data.userId) {
+        const userProfile = {
+          userId: response.data.userId,
+          email
+        };
+        setUserProfile(userProfile);
       }
       
       return response.data;
