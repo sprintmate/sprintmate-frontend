@@ -10,7 +10,9 @@ const COMPANY_PROFILE_KEY = 'company_profile';
 // Setup axios defaults
 const setupAxiosDefaults = (token) => {
   if (token) {
-    axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+    // Don't add 'Bearer' prefix if it already exists in the token
+    const authHeader = token.startsWith('Bearer ') ? token : `Bearer ${token}`;
+    axios.defaults.headers.common['Authorization'] = authHeader;
   } else {
     delete axios.defaults.headers.common['Authorization'];
   }
