@@ -26,6 +26,7 @@ const App = () => {
             <Route path="/developer/create-profile" element={<CreateDeveloperProfile />} />
             <Route path="/company/login" element={<CompanyLogin />} />
             <Route path="/company/dashboard/*" element={<CompanyDashboard />} />
+            
           </Routes>
         </Suspense>
       </div>

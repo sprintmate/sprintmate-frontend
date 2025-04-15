@@ -2,11 +2,14 @@ import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import axios from 'axios';
 import { FaBuilding, FaUser, FaEnvelope, FaIdCard, FaPhone, FaMapMarkerAlt, FaEdit } from 'react-icons/fa';
+import { useNavigate } from 'react-router-dom';
 
 export default function CompanyProfile() {
   const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+
+  const navigate = useNavigate()
   
   useEffect(() => {
     const fetchProfile = async () => {
@@ -250,6 +253,7 @@ export default function CompanyProfile() {
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
                 className="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                onClick={()=> navigate('/company/edit-profile') }
               >
                 <FaEdit className="mr-2" />
                 Edit Profile

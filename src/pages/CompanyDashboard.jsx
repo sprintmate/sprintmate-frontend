@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Routes, Route, NavLink, useLocation, Link } from 'react-router-dom';
+import { Routes, Route, NavLink, useLocation, Link, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence, useScroll, useTransform } from 'framer-motion';
 import { 
   Home, 
@@ -38,7 +38,12 @@ import {
   Braces,
   FileCheck,
   MessageSquare,
-  ArrowUpRight
+  ArrowUpRight,
+  // Change GitHub to Github (correct casing)
+  Github,
+  Linkedin,
+  Globe,
+  UserCheck
 } from 'lucide-react';
 import CustomCursor from '@/components/ui/CustomCursor';
 import PostTaskForm from '@/components/dashboard/PostTaskForm';
@@ -52,6 +57,7 @@ import {
   AnimatedCounter,
   GlowContainer
 } from '@/components/ui/dashboardAnimations';
+import axios from 'axios';
 
 // Import our new company dashboard view component
 import CompanyViewDashboard from '@/components/dashboard/companyViewDashboard';
@@ -71,118 +77,22 @@ const MyTasks = () => {
   const [selectedTask, setSelectedTask] = useState(null);
   const scrollRef = useRef(null);
   
-  // Remove the scroll-based opacity and scale transformation
-  // We'll keep the ref for other potential uses
+  // New states for API integration
+  const [companyId, setCompanyId] = useState(null);
+  const [recentTasks, setRecentTasks] = useState([]);
+  const [pastTasks, setPastTasks] = useState([]);
+  const [currentPage, setCurrentPage] = useState(0);
+  const [totalPages, setTotalPages] = useState(0);
+  const [totalTasks, setTotalTasks] = useState(0);
+  const [error, setError] = useState(null);
+  
+  // The scroll progress stuff
   const { scrollYProgress } = useScroll({
     target: scrollRef,
     offset: ["start start", "end start"]
   });
   
-  // These variables are no longer tied to scroll position
-  // const opacity = useTransform(scrollYProgress, [0, 0.5], [1, 0]);
-  // const scale = useTransform(scrollYProgress, [0, 0.5], [1, 0.8]);
-  
-  // Enhanced data for more detailed views
-  const recentTasks = [
-    {
-      id: 1,
-      title: "Frontend Developer for Dashboard UI",
-      description: "Looking for a skilled frontend developer to create a modern dashboard interface with responsive design and advanced data visualization components.",
-      applications: 12,
-      status: "active",
-      posted: "2 days ago",
-      deadline: "Apr 15, 2025",
-      budget: "$2,000 - $3,500",
-      techStack: ["React", "TypeScript", "Tailwind"],
-      applicants: [
-        { id: 101, name: "Alex Johnson", rating: 4.9, experience: "5 years" },
-        { id: 102, name: "Sarah Chen", rating: 4.7, experience: "3 years" }
-      ],
-      priority: "High",
-      duration: "2 weeks",
-      views: 156
-    },
-    {
-      id: 2,
-      title: "Backend API Development",
-      description: "Need an experienced developer to build robust RESTful APIs with proper authentication, data validation, and comprehensive documentation.",
-      applications: 8,
-      status: "reviewing",
-      posted: "1 day ago",
-      deadline: "Apr 20, 2025",
-      budget: "$2,500 - $4,000",
-      techStack: ["Node.js", "Express", "MongoDB"],
-      applicants: [
-        { id: 103, name: "Michael Lee", rating: 4.5, experience: "4 years" }
-      ],
-      priority: "Medium",
-      duration: "3 weeks",
-      views: 89
-    },
-    {
-      id: 5,
-      title: "DevOps Engineer for CI/CD Pipeline",
-      description: "Setting up automated CI/CD pipelines with Docker and Kubernetes for our microservices architecture.",
-      applications: 5,
-      status: "active",
-      posted: "3 days ago",
-      deadline: "Apr 25, 2025",
-      budget: "$3,000 - $5,000",
-      techStack: ["Docker", "Kubernetes", "Jenkins"],
-      applicants: [
-        { id: 107, name: "David Miller", rating: 4.8, experience: "6 years" }
-      ],
-      priority: "High",
-      duration: "4 weeks",
-      views: 72
-    }
-  ];
-
-  const pastTasks = [
-    {
-      id: 3,
-      title: "Mobile App Development",
-      description: "Cross-platform mobile app development project with React Native for iOS and Android platforms.",
-      status: "completed",
-      hired: "John Doe",
-      completedDate: "March 15, 2025",
-      duration: "4 weeks",
-      budget: "$4,200",
-      finalCost: "$4,000",
-      techStack: ["React Native", "Firebase", "Redux"],
-      rating: 4.8,
-      feedback: "Excellent work, delivered on time with great attention to detail."
-    },
-    {
-      id: 4,
-      title: "Database Optimization",
-      description: "Optimize database performance and queries for our e-commerce platform to handle increased traffic.",
-      status: "completed",
-      hired: "Jane Smith",
-      completedDate: "March 1, 2025",
-      duration: "2 weeks",
-      budget: "$1,800",
-      finalCost: "$1,800",
-      techStack: ["PostgreSQL", "Redis", "SQL"],
-      rating: 5.0,
-      feedback: "Outstanding performance improvements. Queries are now 10x faster."
-    },
-    {
-      id: 6,
-      title: "UI/UX Redesign for Mobile App",
-      description: "Complete redesign of our mobile app interface with modern design principles and improved user flows.",
-      status: "completed",
-      hired: "Emma Wilson",
-      completedDate: "February 20, 2025",
-      duration: "3 weeks",
-      budget: "$2,500",
-      finalCost: "$2,350",
-      techStack: ["Figma", "Adobe XD", "Sketch"],
-      rating: 4.9,
-      feedback: "Creative designs that perfectly matched our brand identity. Users love the new interface!"
-    }
-  ];
-
+  // Analytics data (we'll keep using this for now)
   const analytics = {
     totalTasks: 15,
     activeTasks: 3,
@@ -220,20 +130,152 @@ const MyTasks = () => {
     ]
   };
 
-  // Detailed task activity data for visualization
   const taskActivityData = {
     daily: [25, 36, 42, 29, 38, 46, 53],
     labels: ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
   };
 
+  // Get company ID from localStorage
   useEffect(() => {
-    // Simulate data loading
-    const timer = setTimeout(() => {
-      setIsLoading(false);
-    }, 1000);
-    
-    return () => clearTimeout(timer);
+    try {
+      const storedProfile = localStorage.getItem('userProfile');
+      if (storedProfile) {
+        const parsedProfile = JSON.parse(storedProfile);
+        
+        // Extract companyId from companyProfiles array
+        if (parsedProfile.companyProfiles && parsedProfile.companyProfiles.length > 0) {
+          const companyExternalId = parsedProfile.companyProfiles[0].externalId;
+          if (companyExternalId) {
+            console.log("Found company externalId:", companyExternalId);
+            setCompanyId(companyExternalId);
+          }
+        }
+      }
+    } catch (error) {
+      console.error("Error loading company profile:", error);
+      setError("Could not load company profile. Please try again later.");
+    }
   }, []);
+
+  // Fetch tasks when companyId is available
+  useEffect(() => {
+    if (companyId) {
+      fetchTasks();
+    }
+  }, [companyId, currentPage]);
+
+  // Function to fetch tasks from API
+  const fetchTasks = async () => {
+    setIsLoading(true);
+    try {
+      // Use full absolute URL to the API endpoint to prevent redirection to your frontend
+      const apiBaseUrl = "https://round-georgianna-sprintmate-8451e6d8.koyeb.app";
+      const response = await axios.get(`${apiBaseUrl}/v1/company-profiles/${companyId}/tasks?page=${currentPage}&size=10`);
+      
+      if (response.data && response.data.content) {
+        console.log("API Response:", response.data);
+        
+        // Map API data to our UI format
+        const formattedTasks = response.data.content.map(task => ({
+          id: task.externalId,
+          title: task.title,
+          description: task.description,
+          applications: Object.keys(task.applications || {}).length || 0,
+          status: task.status === "OPEN" ? "active" : 
+                  task.status === "IN_PROGRESS" ? "reviewing" : 
+                  task.status,
+          posted: formatDateRelative(task.createdAt),
+          deadline: formatDate(task.deadline),
+          budget: `${task.currency} ${task.budget.toLocaleString()}`,
+          techStack: task.tags ? task.tags.split(',') : [],
+          priority: getPriorityFromDeadline(task.deadline),
+          duration: calculateDuration(task.createdAt, task.deadline),
+          views: Math.floor(Math.random() * 200) + 50, // Placeholder since API doesn't provide views
+          // Create placeholder applicants for now until we have real data
+          applicants: generatePlaceholderApplicants(2)
+        }));
+        
+        setRecentTasks(formattedTasks);
+        setTotalPages(response.data.totalPages);
+        setTotalTasks(response.data.totalElements);
+        
+        // Update analytics with real data
+        analytics.totalTasks = response.data.totalElements;
+        analytics.activeTasks = formattedTasks.filter(t => t.status === "active").length;
+      }
+    } catch (error) {
+      console.error("Error fetching tasks:", error);
+      setError("Failed to load tasks. Please try again later.");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Helper function to format date relative to today
+  const formatDateRelative = (dateString) => {
+    const date = new Date(dateString);
+    const now = new Date();
+    const diffTime = Math.abs(now - date);
+    const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+    
+    if (diffDays === 0) return "Today";
+    if (diffDays === 1) return "Yesterday";
+    if (diffDays < 7) return `${diffDays} days ago`;
+    if (diffDays < 30) return `${Math.floor(diffDays / 7)} weeks ago`;
+    return `${Math.floor(diffDays / 30)} months ago`;
+  };
+
+  // Helper function to format date for display
+  const formatDate = (dateString) => {
+    if (!dateString) return "No deadline";
+    
+    // Handle "2025-06-04 00:00:00" format
+    const date = new Date(dateString.replace(' ', 'T'));
+    const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+    return `${months[date.getMonth()]} ${date.getDate()}, ${date.getFullYear()}`;
+  };
+
+  // Helper function to determine priority based on deadline
+  const getPriorityFromDeadline = (deadlineString) => {
+    if (!deadlineString) return "Low";
+    
+    const deadline = new Date(deadlineString.replace(' ', 'T'));
+    const now = new Date();
+    const diffTime = deadline - now;
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    
+    if (diffDays < 7) return "High";
+    if (diffDays < 14) return "Medium";
+    return "Low";
+  };
+
+  // Helper function to calculate project duration
+  const calculateDuration = (startDateString, endDateString) => {
+    if (!startDateString || !endDateString) return "N/A";
+    
+    const start = new Date(startDateString);
+    const end = new Date(endDateString.replace(' ', 'T'));
+    const diffTime = Math.abs(end - start);
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    
+    if (diffDays < 7) return `${diffDays} days`;
+    if (diffDays < 30) return `${Math.ceil(diffDays / 7)} weeks`;
+    return `${Math.ceil(diffDays / 30)} months`;
+  };
+
+  // Generate placeholder applicants for testing
+  const generatePlaceholderApplicants = (count) => {
+    const firstNames = ["Alex", "Morgan", "Jamie", "Taylor", "Jordan", "Casey"];
+    const lastNames = ["Smith", "Johnson", "Lee", "Garcia", "Chen", "Wilson"];
+    const years = [2, 3, 4, 5, 6, 7];
+    
+    return Array.from({ length: count }, (_, i) => ({
+      id: 100 + i,
+      name: `${firstNames[Math.floor(Math.random() * firstNames.length)]} ${lastNames[Math.floor(Math.random() * lastNames.length)]}`,
+      rating: (4 + Math.random()).toFixed(1),
+      experience: `${years[Math.floor(Math.random() * years.length)]} years`
+    }));
+  };
 
   // Determine which stats to show based on active tab
   const getActiveStats = () => {
@@ -253,12 +295,24 @@ const MyTasks = () => {
 
   return (
     <div className="px-4 sm:px-6 lg:px-8 py-6 space-y-8 max-w-[1500px] mx-auto">
+      {/* Error message if any */}
+      {error && (
+        <div className="bg-red-50 border border-red-200 text-red-800 rounded-lg p-4 mb-6">
+          <p>{error}</p>
+          <Button 
+            onClick={() => { setError(null); fetchTasks(); }} 
+            variant="outline" 
+            className="mt-2"
+          >
+            Try Again
+          </Button>
+        </div>
+      )}
+
       {/* Hero Section with Animated Elements - Now always visible */}
       <motion.div 
         ref={scrollRef}
         className="relative rounded-2xl p-6 sm:p-8 mb-8 overflow-hidden"
-        // Remove the scroll-dependent style
-        // style={{ opacity, scale }}
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6 }}
@@ -326,7 +380,7 @@ const MyTasks = () => {
                 >
                   <span className="bg-white/20 backdrop-blur-sm text-xs rounded-full py-1 px-2 flex items-center gap-1 font-normal">
                     <Sparkles size={12} className="text-yellow-300" />
-                    <span>April 2025</span>
+                    <span>Total: {totalTasks || 0}</span>
                   </span>
                 </motion.div>
               </h1>
@@ -341,11 +395,13 @@ const MyTasks = () => {
               animate={{ opacity: 1, scale: 1 }}
               transition={{ delay: 0.3, duration: 0.5 }}
             >
-              <button className="px-4 py-2 sm:px-5 sm:py-2.5 bg-white text-blue-700 rounded-lg font-medium flex items-center gap-2 hover:bg-blue-50 transition-colors">
-                <Zap size={16} />
-                <span className="hidden sm:inline">Post New Task</span>
-                <span className="sm:hidden">New</span>
-              </button>
+              <Link to="/company/dashboard/post-task">
+                <button className="px-4 py-2 sm:px-5 sm:py-2.5 bg-white text-blue-700 rounded-lg font-medium flex items-center gap-2 hover:bg-blue-50 transition-colors">
+                  <Zap size={16} />
+                  <span className="hidden sm:inline">Post New Task</span>
+                  <span className="sm:hidden">New</span>
+                </button>
+              </Link>
             </motion.div>
             <motion.div
               initial={{ opacity: 0, scale: 0.8 }}
@@ -555,204 +611,265 @@ const MyTasks = () => {
             delay={0.5}
             staggerDelay={0.15}
             actionButton={
-              <Button variant="outline" size="sm" className="text-blue-600 hover:text-blue-700 gap-1">
-                View All
-                <ChevronRight size={16} />
-              </Button>
+              <div className="flex items-center gap-2">
+                {totalPages > 1 && (
+                  <div className="flex items-center gap-1 mr-2 text-sm text-gray-500">
+                    <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      onClick={() => setCurrentPage(prev => Math.max(0, prev - 1))}
+                      disabled={currentPage === 0 || isLoading}
+                      className="h-8 w-8 p-0"
+                    >
+                      <ChevronLeft size={16} />
+                    </Button>
+                    <span>{currentPage + 1} / {totalPages}</span>
+                    <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      onClick={() => setCurrentPage(prev => Math.min(totalPages - 1, prev + 1))}
+                      disabled={currentPage === totalPages - 1 || isLoading}
+                      className="h-8 w-8 p-0"
+                    >
+                      <ChevronRight size={16} />
+                    </Button>
+                  </div>
+                )}
+                <Button variant="outline" size="sm" className="text-blue-600 hover:text-blue-700 gap-1">
+                  View All
+                  <ChevronRight size={16} />
+                </Button>
+              </div>
             }
           >
-            {recentTasks.map((task) => (
-              <div key={task.id} className="group">
-                <Card className="overflow-hidden backdrop-blur-sm border-blue-100/50 hover:border-blue-200/70 transition-all duration-300">
+            {isLoading ? (
+              // Loading state - shimmer placeholders
+              Array(3).fill(0).map((_, index) => (
+                <Card key={index} className="overflow-hidden backdrop-blur-sm border-blue-100/50 hover:border-blue-200/70 transition-all duration-300">
                   <CardContent className="relative p-4 sm:p-5">
-                    {/* Status indicator line with animation */}
-                    <motion.div 
-                      className={`absolute left-0 top-0 bottom-0 w-1 ${
-                        task.status === 'active' ? 'bg-blue-500' : 'bg-amber-500'
-                      }`}
-                      initial={{ height: 0 }}
-                      whileInView={{ height: '100%' }}
-                      viewport={{ once: true }}
-                      transition={{ duration: 0.5 }}
-                    />
-                    
-                    <div className="flex flex-col sm:flex-row justify-between sm:items-start gap-4 pl-3">
-                      <div className="min-w-0 flex-1">
-                        <div className="flex items-center flex-wrap sm:flex-nowrap gap-2 sm:gap-0">
-                          <div className="mr-3">
-                            {task.status === 'active' ? (
-                              <div className="w-8 h-8 rounded-lg bg-blue-100/80 flex items-center justify-center">
-                                <Laptop size={15} className="text-blue-600" />
-                              </div>
-                            ) : (
-                              <div className="w-8 h-8 rounded-lg bg-amber-100/80 flex items-center justify-center">
-                                <Server size={15} className="text-amber-600" />
-                              </div>
-                            )}
-                          </div>
-                          <h3 className="text-base font-semibold text-gray-900 truncate group-hover:text-blue-600 transition-colors">
-                            {task.title}
-                          </h3>
-                          
-                          <div className="sm:ml-auto sm:pl-2 flex gap-2">
-                            <Badge 
-                              variant={task.status === 'active' ? 'blue' : 'yellow'} 
-                              gradient 
-                              glow 
-                              size="sm"
-                              className="capitalize"
-                            >
-                              {task.status === 'active' && <span className="w-1.5 h-1.5 rounded-full bg-blue-500 mr-1 animate-pulse" />}
-                              {task.status}
-                            </Badge>
-                            <Badge 
-                              variant={task.priority === 'High' ? 'red' : 'blue'} 
-                              size="sm"
-                              className="capitalize hidden sm:flex"
-                            >
-                              {task.priority}
-                            </Badge>
-                          </div>
-                        </div>
-                        
-                        <p className="text-sm text-gray-600 mt-2 line-clamp-2 pl-11">{task.description}</p>
-                        
-                        <div className="flex flex-wrap gap-2 mt-3 pl-11">
-                          {task.techStack.map((tech, idx) => (
-                            <motion.div
-                              key={tech}
-                              initial={{ opacity: 0, y: 10 }}
-                              whileInView={{ opacity: 1, y: 0 }}
-                              viewport={{ once: true }}
-                              transition={{ delay: 0.2 + (idx * 0.1) }}
-                            >
-                              <Badge
-                                variant="blue"
-                                gradient
-                                size="sm"
-                                className="bg-blue-50/80"
-                              >
-                                {tech === "React" && <Code size={12} className="mr-1" />}
-                                {tech === "Node.js" && <Server size={12} className="mr-1" />}
-                                {tech === "MongoDB" && <Database size={12} className="mr-1" />}
-                                {tech === "Docker" && <Blocks size={12} className="mr-1" />}
-                                {tech === "Kubernetes" && <Cpu size={12} className="mr-1" />}
-                                {tech === "Jenkins" && <GitBranch size={12} className="mr-1" />}
-                                {tech === "TypeScript" && <FileCode size={12} className="mr-1" />}
-                                {tech === "Express" && <Server size={12} className="mr-1" />}
-                                {tech === "Tailwind" && <Braces size={12} className="mr-1" />}
-                                {tech}
-                              </Badge>
-                            </motion.div>
-                          ))}
-                        </div>
-
-                        <div className="flex flex-wrap sm:flex-nowrap items-center gap-3 sm:gap-6 mt-4 pt-3 border-t border-gray-100 pl-3 text-xs text-gray-500">
-                          <span className="flex items-center gap-1">
-                            <Calendar size={12} className="text-blue-500" />
-                            Deadline: {task.deadline}
-                          </span>
-                          <span className="flex items-center gap-1">
-                            <DollarSign size={12} className="text-blue-500" />
-                            {task.budget}
-                          </span>
-                          <span className="flex items-center gap-1">
-                            <Timer size={12} className="text-blue-500" />
-                            {task.duration}
-                          </span>
-                          <span className="flex items-center gap-1 ml-auto">
-                            <Users2 size={12} className="text-blue-500" />
-                            {task.applications} applicants
-                          </span>
+                    <div className="flex flex-col sm:flex-row gap-4 pl-3">
+                      <Shimmer width="w-8" height="h-8" className="rounded-lg" />
+                      <div className="flex-1 space-y-4">
+                        <Shimmer width="w-2/3" height="h-6" />
+                        <Shimmer width="w-full" height="h-4" />
+                        <Shimmer width="w-full" height="h-4" />
+                        <div className="flex flex-wrap gap-2 pt-2">
+                          <Shimmer width="w-16" height="h-6" className="rounded-md" />
+                          <Shimmer width="w-16" height="h-6" className="rounded-md" />
+                          <Shimmer width="w-16" height="h-6" className="rounded-md" />
                         </div>
                       </div>
                     </div>
-                    
-                    {/* Task action buttons */}
-                    <div className="flex items-center justify-between mt-4 pt-3 border-t border-gray-100 pl-3">
-                      <div className="flex items-center gap-2">
-                        <Button variant="ghost" size="sm" className="text-gray-500 hover:text-gray-700 hover:bg-gray-50/50 -ml-2 h-8">
-                          <Eye size={14} className="mr-1" />
-                          <span className="hidden sm:inline">{task.views} views</span>
-                          <span className="sm:hidden">{task.views}</span>
-                        </Button>
+                  </CardContent>
+                </Card>
+              ))
+            ) : recentTasks.length > 0 ? (
+              recentTasks.map((task) => (
+                <div key={task.id} className="group">
+                  <Card className="overflow-hidden backdrop-blur-sm border-blue-100/50 hover:border-blue-200/70 transition-all duration-300">
+                    <CardContent className="relative p-4 sm:p-5">
+                      {/* Status indicator line with animation */}
+                      <motion.div 
+                        className={`absolute left-0 top-0 bottom-0 w-1 ${
+                          task.status === 'active' ? 'bg-blue-500' : 'bg-amber-500'
+                        }`}
+                        initial={{ height: 0 }}
+                        whileInView={{ height: '100%' }}
+                        viewport={{ once: true }}
+                        transition={{ duration: 0.5 }}
+                      />
+                      
+                      <div className="flex flex-col sm:flex-row justify-between sm:items-start gap-4 pl-3">
+                        <div className="min-w-0 flex-1">
+                          <div className="flex items-center flex-wrap sm:flex-nowrap gap-2 sm:gap-0">
+                            <div className="mr-3">
+                              {task.status === 'active' ? (
+                                <div className="w-8 h-8 rounded-lg bg-blue-100/80 flex items-center justify-center">
+                                  <Laptop size={15} className="text-blue-600" />
+                                </div>
+                              ) : (
+                                <div className="w-8 h-8 rounded-lg bg-amber-100/80 flex items-center justify-center">
+                                  <Server size={15} className="text-amber-600" />
+                                </div>
+                              )}
+                            </div>
+                            <h3 className="text-base font-semibold text-gray-900 truncate group-hover:text-blue-600 transition-colors">
+                              {task.title}
+                            </h3>
+                            
+                            <div className="sm:ml-auto sm:pl-2 flex gap-2">
+                              <Badge 
+                                variant={task.status === 'active' ? 'blue' : 'yellow'} 
+                                gradient 
+                                glow 
+                                size="sm"
+                                className="capitalize"
+                              >
+                                {task.status === 'active' && <span className="w-1.5 h-1.5 rounded-full bg-blue-500 mr-1 animate-pulse" />}
+                                {task.status}
+                              </Badge>
+                              <Badge 
+                                variant={task.priority === 'High' ? 'red' : 'blue'} 
+                                size="sm"
+                                className="capitalize hidden sm:flex"
+                              >
+                                {task.priority}
+                              </Badge>
+                            </div>
+                          </div>
+                          
+                          <p className="text-sm text-gray-600 mt-2 line-clamp-2 pl-11">{task.description}</p>
+                          
+                          <div className="flex flex-wrap gap-2 mt-3 pl-11">
+                            {task.techStack.map((tech, idx) => (
+                              <motion.div
+                                key={tech+idx}
+                                initial={{ opacity: 0, y: 10 }}
+                                whileInView={{ opacity: 1, y: 0 }}
+                                viewport={{ once: true }}
+                                transition={{ delay: 0.2 + (idx * 0.1) }}
+                              >
+                                <Badge
+                                  variant="blue"
+                                  gradient
+                                  size="sm"
+                                  className="bg-blue-50/80"
+                                >
+                                  {tech === "React" && <Code size={12} className="mr-1" />}
+                                  {tech === "Node.js" && <Server size={12} className="mr-1" />}
+                                  {tech === "MongoDB" && <Database size={12} className="mr-1" />}
+                                  {tech === "Docker" && <Blocks size={12} className="mr-1" />}
+                                  {tech === "Kubernetes" && <Cpu size={12} className="mr-1" />}
+                                  {tech === "Jenkins" && <GitBranch size={12} className="mr-1" />}
+                                  {tech === "TypeScript" && <FileCode size={12} className="mr-1" />}
+                                  {tech === "Express" && <Server size={12} className="mr-1" />}
+                                  {tech === "Tailwind" && <Braces size={12} className="mr-1" />}
+                                  {tech}
+                                </Badge>
+                              </motion.div>
+                            ))}
+                          </div>
+
+                          <div className="flex flex-wrap sm:flex-nowrap items-center gap-3 sm:gap-6 mt-4 pt-3 border-t border-gray-100 pl-3 text-xs text-gray-500">
+                            <span className="flex items-center gap-1">
+                              <Calendar size={12} className="text-blue-500" />
+                              Deadline: {task.deadline}
+                            </span>
+                            <span className="flex items-center gap-1">
+                              <DollarSign size={12} className="text-blue-500" />
+                              {task.budget}
+                            </span>
+                            <span className="flex items-center gap-1">
+                              <Timer size={12} className="text-blue-500" />
+                              {task.duration}
+                            </span>
+                            <span className="flex items-center gap-1 ml-auto">
+                              <Users2 size={12} className="text-blue-500" />
+                              {task.applications} applicants
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                      
+                      {/* Task action buttons */}
+                      <div className="flex items-center justify-between mt-4 pt-3 border-t border-gray-100 pl-3">
+                        <div className="flex items-center gap-2">
+                          <Button variant="ghost" size="sm" className="text-gray-500 hover:text-gray-700 hover:bg-gray-50/50 -ml-2 h-8">
+                            <Eye size={14} className="mr-1" />
+                            <span className="hidden sm:inline">{task.views} views</span>
+                            <span className="sm:hidden">{task.views}</span>
+                          </Button>
+                          
+                          <Button 
+                            variant="ghost" 
+                            size="sm" 
+                            className="text-blue-600 hover:text-blue-700 hover:bg-blue-50/50 h-8"
+                            onClick={() => setSelectedTask(task.id === selectedTask ? null : task.id)}
+                          >
+                            <Users size={14} className="mr-1" />
+                            <span className="hidden sm:inline">Applicants</span>
+                            <span className="sm:hidden">{task.applicants?.length || 0}</span>
+                          </Button>
+                        </div>
                         
-                        <Button 
-                          variant="ghost" 
-                          size="sm" 
-                          className="text-blue-600 hover:text-blue-700 hover:bg-blue-50/50 h-8"
-                          onClick={() => setSelectedTask(task.id === selectedTask ? null : task.id)}
-                        >
-                          <Users size={14} className="mr-1" />
-                          <span className="hidden sm:inline">Applicants</span>
-                          <span className="sm:hidden">{task.applicants.length}</span>
+                        <Button variant="ghost" size="sm" className="text-blue-600 hover:text-blue-700 hover:bg-blue-50/50 -mr-2 group h-8">
+                          <span className="hidden sm:inline">Details</span>
+                          <motion.div
+                            className="inline-block ml-1"
+                            whileHover={{ x: 2, y: -2 }}
+                          >
+                            <ArrowUpRight size={14} />
+                          </motion.div>
                         </Button>
                       </div>
                       
-                      <Button variant="ghost" size="sm" className="text-blue-600 hover:text-blue-700 hover:bg-blue-50/50 -mr-2 group h-8">
-                        <span className="hidden sm:inline">Details</span>
-                        <motion.div
-                          className="inline-block ml-1"
-                          whileHover={{ x: 2, y: -2 }}
-                        >
-                          <ArrowUpRight size={14} />
-                        </motion.div>
-                      </Button>
-                    </div>
-                    
-                    {/* Applicants panel (collapsible) */}
-                    <AnimatePresence>
-                      {selectedTask === task.id && (
-                        <motion.div
-                          initial={{ height: 0, opacity: 0, marginTop: 0 }}
-                          animate={{ height: 'auto', opacity: 1, marginTop: 12 }}
-                          exit={{ height: 0, opacity: 0, marginTop: 0 }}
-                          transition={{ duration: 0.3 }}
-                          className="overflow-hidden border-t border-gray-100 pl-3 pt-3"
-                        >
-                          <div className="flex items-center justify-between mb-2">
-                            <h4 className="text-sm font-medium text-gray-800 flex items-center">
-                              <UserCheck size={14} className="mr-2 text-blue-500" />
-                              Top Applicants
-                            </h4>
-                            <Badge variant="blue" size="sm">{task.applicants.length} total</Badge>
-                          </div>
-                          <div className="space-y-2">
-                            {task.applicants.map((applicant) => (
-                              <div 
-                                key={applicant.id} 
-                                className="flex items-center justify-between p-2 bg-blue-50/50 rounded-lg"
-                              >
-                                <div className="flex items-center gap-2">
-                                  <div className="w-8 h-8 rounded-full bg-gradient-to-r from-blue-400 to-blue-600 flex items-center justify-center text-white font-medium text-xs">
-                                    {applicant.name.split(' ').map(n => n[0]).join('')}
+                      {/* Applicants panel (collapsible) */}
+                      <AnimatePresence>
+                        {selectedTask === task.id && task.applicants && (
+                          <motion.div
+                            initial={{ height: 0, opacity: 0, marginTop: 0 }}
+                            animate={{ height: 'auto', opacity: 1, marginTop: 12 }}
+                            exit={{ height: 0, opacity: 0, marginTop: 0 }}
+                            transition={{ duration: 0.3 }}
+                            className="overflow-hidden border-t border-gray-100 pl-3 pt-3"
+                          >
+                            <div className="flex items-center justify-between mb-2">
+                              <h4 className="text-sm font-medium text-gray-800 flex items-center">
+                                <UserCheck size={14} className="mr-2 text-blue-500" />
+                                Applicants
+                              </h4>
+                              <Badge variant="blue" size="sm">{task.applicants.length} total</Badge>
+                            </div>
+                            <div className="space-y-2">
+                              {task.applicants.map((applicant) => (
+                                <div 
+                                  key={applicant.id} 
+                                  className="flex items-center justify-between p-2 bg-blue-50/50 rounded-lg"
+                                >
+                                  <div className="flex items-center gap-2">
+                                    <div className="w-8 h-8 rounded-full bg-gradient-to-r from-blue-400 to-blue-600 flex items-center justify-center text-white font-medium text-xs">
+                                      {applicant.name.split(' ').map(n => n[0]).join('')}
+                                    </div>
+                                    <div>
+                                      <p className="text-sm font-medium text-gray-800">{applicant.name}</p>
+                                      <p className="text-xs text-gray-500">{applicant.experience}</p>
+                                    </div>
                                   </div>
-                                  <div>
-                                    <p className="text-sm font-medium text-gray-800">{applicant.name}</p>
-                                    <p className="text-xs text-gray-500">{applicant.experience}</p>
+                                  <div className="flex items-center gap-3">
+                                    <div className="flex items-center">
+                                      <Star size={12} className="text-amber-400" fill="currentColor" />
+                                      <span className="text-xs font-medium ml-1">{applicant.rating}</span>
+                                    </div>
+                                    <Button size="sm" variant="ghost" className="h-7 px-2 text-blue-600">View</Button>
                                   </div>
                                 </div>
-                                <div className="flex items-center gap-3">
-                                  <div className="flex items-center">
-                                    <Star size={12} className="text-amber-400" fill="currentColor" />
-                                    <span className="text-xs font-medium ml-1">{applicant.rating}</span>
-                                  </div>
-                                  <Button size="sm" variant="ghost" className="h-7 px-2 text-blue-600">View</Button>
-                                </div>
-                              </div>
-                            ))}
-                          </div>
-                        </motion.div>
-                      )}
-                    </AnimatePresence>
-                  </CardContent>
-                </Card>
+                              ))}
+                            </div>
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
+                    </CardContent>
+                  </Card>
+                </div>
+              ))
+            ) : (
+              <div className="text-center py-8">
+                <div className="w-16 h-16 mx-auto bg-blue-100 rounded-full flex items-center justify-center">
+                  <FileText className="text-blue-600" size={24} />
+                </div>
+                <h3 className="mt-4 text-lg font-medium text-gray-900">No tasks found</h3>
+                <p className="mt-2 text-sm text-gray-500">Get started by posting your first task</p>
+                <Button className="mt-4 bg-blue-600" asChild>
+                  <Link to="/company/dashboard/post-task">
+                    Post a Task
+                  </Link>
+                </Button>
               </div>
-            ))}
+            )}
           </StaggeredSection>
         </div>
 
-        {/* Past Tasks - Minor Half */}
+        {/* Past Tasks - Minor Half - keeping this as is for now */}
         <div>
           <StaggeredSection 
             title="Completed Tasks"
@@ -938,16 +1055,31 @@ const SettingsPage = () => (
   </div>
 );
 
+// Add ProfileEdit component import
+import EditProfile from '@/components/profile/EditProfile';
+
 // Add UserProfile component
 const UserProfile = () => {
+  const navigate = useNavigate();
+  const location = useLocation();
+  const [isEditing, setIsEditing] = useState(false);
+  
   // This would typically come from a context or API call
-  // Using sample data based on your API response
-  const userData = {
+  const [userData, setUserData] = useState({
     name: "shashant kashyap",
     email: "shashant2538@gmail.com",
     role: "CORPORATE",
     userId: "6b1227af-fe28-4f05-8ab3-f7d475383ca0",
     verified: true,
+    about: "Experienced technology leader with a passion for building innovative products.",
+    skills: "Project Management, Product Strategy, Team Leadership",
+    experience: "8",
+    education: "MBA, Business Administration - Stanford University\nBSc, Computer Science - MIT",
+    portfolio: {
+      GITHUB: "https://github.com/shashant",
+      LINKEDIN: "https://linkedin.com/in/shashant-kashyap",
+      WEBSITE: "https://shashant.dev"
+    },
     companyProfiles: [
       {
         externalId: "7823fdcf-bb3b-47ea-a182-6853ab925ffc",
@@ -966,7 +1098,16 @@ const UserProfile = () => {
       }
     ],
     developerProfiles: []
-  };
+  });
+
+  // Check if we should be in edit mode based on url
+  useEffect(() => {
+    if (location.pathname.includes('/edit')) {
+      setIsEditing(true);
+    } else {
+      setIsEditing(false);
+    }
+  }, [location.pathname]);
 
   // Extract first letters of first and last name for avatar
   const getInitials = (name) => {
@@ -977,6 +1118,43 @@ const UserProfile = () => {
       .toUpperCase();
   };
 
+  // Handle profile update
+  const handleProfileUpdate = async (updatedData) => {
+    try {
+      // This would typically be an API call to update the profile
+      console.log("Profile data to update:", updatedData);
+      
+      // For demo, just update the local state
+      setUserData(prev => ({
+        ...prev,
+        ...updatedData
+      }));
+      
+      // Navigate back to view mode
+      navigate('/company/dashboard/profile');
+      
+      return Promise.resolve();
+    } catch (error) {
+      console.error("Error updating profile:", error);
+      return Promise.reject(error);
+    }
+  };
+
+  // Handle cancel edit
+  const handleCancelEdit = () => {
+    navigate('/company/dashboard/profile');
+  };
+
+  // Show edit form if in edit mode
+  if (isEditing) {
+    return <EditProfile 
+      userData={userData} 
+      onSave={handleProfileUpdate}
+      onCancel={handleCancelEdit}
+    />;
+  }
+
+  // Otherwise show profile view
   return (
     <div className="p-6 md:p-8 max-w-4xl mx-auto">
       <motion.div 
@@ -1020,7 +1198,12 @@ const UserProfile = () => {
             </div>
             
             <div className="flex gap-3">
-              <Button variant="outline" size="sm" className="gap-2">
+              <Button 
+                variant="outline" 
+                size="sm" 
+                className="gap-2"
+                onClick={() => navigate('/company/dashboard/profile/edit')}
+              >
                 <FileText size={16} />
                 Edit Profile
               </Button>
@@ -1030,6 +1213,28 @@ const UserProfile = () => {
               </Button>
             </div>
           </div>
+          
+          {/* About section */}
+          {userData.about && (
+            <div className="mt-6">
+              <h2 className="text-lg font-semibold mb-2">About</h2>
+              <p className="text-gray-700">{userData.about}</p>
+            </div>
+          )}
+          
+          {/* Skills section */}
+          {userData.skills && (
+            <div className="mt-6">
+              <h2 className="text-lg font-semibold mb-2">Skills</h2>
+              <div className="flex flex-wrap gap-2">
+                {userData.skills.split(',').map((skill) => (
+                  <Badge key={skill} variant="blue" className="bg-blue-50/80">
+                    {skill.trim()}
+                  </Badge>
+                ))}
+              </div>
+            </div>
+          )}
           
           {/* Role & ID information */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-8">
@@ -1047,6 +1252,12 @@ const UserProfile = () => {
                     <p className="text-sm text-gray-500">User ID</p>
                     <p className="font-medium text-gray-900 break-all">{userData.userId}</p>
                   </div>
+                  {userData.experience && (
+                    <div>
+                      <p className="text-sm text-gray-500">Experience</p>
+                      <p className="font-medium text-gray-900">{userData.experience} years</p>
+                    </div>
+                  )}
                 </div>
               </CardContent>
             </Card>
@@ -1079,6 +1290,70 @@ const UserProfile = () => {
             )}
           </div>
           
+          {/* Portfolio Links */}
+          {userData.portfolio && Object.values(userData.portfolio).some(link => link) && (
+            <div className="mt-8">
+              <h2 className="text-lg font-semibold mb-4">Portfolio & Links</h2>
+              <Card>
+                <CardContent className="p-6 space-y-4">
+                  {userData.portfolio.GITHUB && (
+                    <div className="flex items-center">
+                      <Github size={18} className="text-gray-700 mr-3" />
+                      <a 
+                        href={userData.portfolio.GITHUB} 
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                        className="text-blue-600 hover:text-blue-800 hover:underline"
+                      >
+                        {userData.portfolio.GITHUB}
+                      </a>
+                    </div>
+                  )}
+                  {userData.portfolio.LINKEDIN && (
+                    <div className="flex items-center">
+                      <Linkedin size={18} className="text-gray-700 mr-3" />
+                      <a 
+                        href={userData.portfolio.LINKEDIN} 
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                        className="text-blue-600 hover:text-blue-800 hover:underline"
+                      >
+                        {userData.portfolio.LINKEDIN}
+                      </a>
+                    </div>
+                  )}
+                  {userData.portfolio.WEBSITE && (
+                    <div className="flex items-center">
+                      <Globe size={18} className="text-gray-700 mr-3" />
+                      <a 
+                        href={userData.portfolio.WEBSITE} 
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                        className="text-blue-600 hover:text-blue-800 hover:underline"
+                      >
+                        {userData.portfolio.WEBSITE}
+                      </a>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            </div>
+          )}
+          
+          {/* Education */}
+          {userData.education && (
+            <div className="mt-8">
+              <h2 className="text-lg font-semibold mb-4">Education</h2>
+              <Card>
+                <CardContent className="p-6">
+                  <div className="whitespace-pre-line">
+                    {userData.education}
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          )}
+          
           {/* Activity section */}
           <div className="mt-8">
             <h2 className="text-xl font-semibold mb-4">Recent Activity</h2>
@@ -1099,7 +1374,6 @@ const UserProfile = () => {
   );
 };
 
-// Add the missing SidebarLink component definition before the CompanyDashboard component
 // Sidebar Link Component for better organization and styling
 const SidebarLink = ({ to, icon, label, isExpanded, isActive }) => {
   return (
@@ -1228,7 +1502,7 @@ const CompanyDashboard = () => {
       <motion.aside
         ref={sidebarRef}
         className={`fixed inset-y-0 left-0 z-30 bg-white shadow-md flex flex-col border-r border-blue-100
-                  lg:relative lg:translate-x-0 ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}`}
+                  h-screen overflow-hidden lg:relative lg:translate-x-0 ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}`}
         animate={{ 
           // For mobile, always show full width when open
           width: (isSidebarExpanded || isMobileMenuOpen) ? 240 : 80,
@@ -1276,7 +1550,7 @@ const CompanyDashboard = () => {
           )}
         </div>
         
-        {/* Nav links */}
+        {/* Nav links - Make this section scrollable if needed */}
         <nav className="flex-1 py-6 space-y-1 px-3 overflow-y-auto">
           {navLinks.map((link) => (
             <SidebarLink
@@ -1293,7 +1567,7 @@ const CompanyDashboard = () => {
           ))}
         </nav>
         
-        {/* User profile section */}
+        {/* User profile section - Keep this at the bottom */}
         <div className={`p-4 border-t border-blue-100 ${(isSidebarExpanded || isMobileMenuOpen) ? 'px-4' : 'px-3'}`}>
           <Link to="/company/dashboard/profile" className={`flex items-center gap-3 ${(isSidebarExpanded || isMobileMenuOpen) ? '' : 'justify-center'} hover:bg-blue-50 p-2 rounded-lg transition-colors`}>
             <div className="w-10 h-10 rounded-full bg-gradient-to-r from-blue-600 to-blue-400 flex items-center justify-center text-white font-medium">
@@ -1337,15 +1611,15 @@ const CompanyDashboard = () => {
         </div>
       </motion.aside>
       
-      {/* Main Content Area */}
+      {/* Main Content Area - Make only this part scrollable */}
       <motion.main 
-        className="flex-1 min-w-0 min-h-screen"
+        className="flex-1 min-w-0 h-screen overflow-y-auto"
         animate={{ 
           marginLeft: isSidebarExpanded ? 0 : 0 
         }}
         transition={{ duration: 0.3 }}
       >
-        {/* Top Bar */}
+        {/* Top Bar - Keep this fixed */}
         <header className="bg-white border-b border-blue-100 sticky top-0 z-10 shadow-sm">
           <div className="px-4 sm:px-6 flex h-16 items-center justify-between">
             {/* Menu button and page title */}
@@ -1383,8 +1657,8 @@ const CompanyDashboard = () => {
           </div>
         </header>
         
-        {/* Page Content */}
-        <div className="py-4">
+        {/* Page Content - This will scroll */}
+        <div className="py-4 h-[calc(100vh-4rem)] overflow-y-auto">
           <Routes>
             <Route path="/" element={<DashboardHome />} />
             <Route path="/tasks" element={<MyTasks />} />
@@ -1392,6 +1666,7 @@ const CompanyDashboard = () => {
             <Route path="/applications" element={<Applications />} />
             <Route path="/settings" element={<SettingsPage />} />
             <Route path="/profile" element={<UserProfile />} />
+            <Route path="/profile/edit" element={<UserProfile />} />
           </Routes>
         </div>
       </motion.main>
