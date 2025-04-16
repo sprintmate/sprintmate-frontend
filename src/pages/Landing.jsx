@@ -874,6 +874,29 @@ function Landing() {
         </section>
       </ScrollTrigger>
 
+      {/* Motion shapes */}
+      {[...Array(5)].map((_, i) => (
+        <motion.div
+          key={`particle-${i}`} // Changed to use a unique key with index
+          className="absolute w-1 h-1 bg-white rounded-full opacity-0"
+          style={{ left: `${20 + i * 15}%`, top: '50%' }}
+          variants={{
+            initial: { opacity: 0, y: 0, scale: 0 },
+            hover: {
+              opacity: [0, 0.5, 0],
+              y: [0, -20 - i * 2],
+              x: [0, (i - 2) * 5],
+              scale: [0, 1 + i * 0.1, 0],
+              transition: {
+                repeat: Infinity,
+                duration: 1 + i * 0.1,
+                delay: i * 0.06,
+              }
+            }
+          }}
+        />
+      ))}
+
       {/* Modern Professional Footer */}
       <footer className="relative mt-20">
         {/* Modern gradient separator */}

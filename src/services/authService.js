@@ -7,6 +7,8 @@ const TOKEN_KEY = 'auth_token';
 const USER_PROFILE_KEY = 'user_profile';
 const COMPANY_PROFILE_KEY = 'company_profile';
 
+const url = import.meta.env.VITE_API_BASE_URL 
+
 // Setup axios defaults
 const setupAxiosDefaults = (token) => {
   if (token) {
@@ -41,7 +43,7 @@ export const loginCompany = async (email, cred) => {
     console.log('Attempting login with:', { email, cred: '****' });
     
     const response = await axios.post(
-      'https://round-georgianna-sprintmate-8451e6d8.koyeb.app/v1/tokens', 
+      `${url}/v1/tokens`, 
       {
         email,
         cred
@@ -91,6 +93,30 @@ export const loginCompany = async (email, cred) => {
       console.error('Error message:', error.message);
     }
     throw error;
+  }
+};
+
+// Function to login a developer user (similar structure to loginCompany)
+export const loginDeveloper = async (email, cred) => {
+  try {
+    const response = await axios.post(`${url}/v1/tokens`, {
+      email,
+      cred,
+    });
+    
+    if (response.data && response.data.token) {
+      return response.data;
+    } else {
+      throw new Error('Invalid response from server');
+    }
+  } catch (error) {
+    if (error.response) {
+      throw new Error(error.response.data.message || 'Authentication failed');
+    } else if (error.request) {
+      throw new Error('No response from server. Please check your internet connection.');
+    } else {
+      throw new Error('Error setting up request: ' + error.message);
+    }
   }
 };
 

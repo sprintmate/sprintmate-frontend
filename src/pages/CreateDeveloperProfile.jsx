@@ -25,6 +25,8 @@ const CreateDeveloperProfile = () => {
     }
   });
 
+  const url = import.meta.env.VITE_API_BASE_URL 
+
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     if (name.startsWith('portfolio.')) {

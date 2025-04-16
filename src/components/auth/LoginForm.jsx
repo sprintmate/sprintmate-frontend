@@ -16,6 +16,8 @@ const LoginForm = () => {
     setLoading(true);
     setError('');
 
+    const url = import.meta.env.VITE_API_BASE_URL 
+
     try {
       // 1. Login and get token
       const response = await axios.post('/api/auth/login', { email, password });

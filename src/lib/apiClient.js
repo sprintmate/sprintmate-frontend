@@ -1,5 +1,5 @@
 // src/lib/apiClient.js
-const BASE_URL = import.meta.env.VITE_API_BASE_URL || "https://sprintmate-production.up.railway.app";
+const BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://sprintmate-stage.ap-south-1.elasticbeanstalk.com:8080";
 
 // Helper to get token from localStorage (or any storage mechanism you use)
 function getToken() {

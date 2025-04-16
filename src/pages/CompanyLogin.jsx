@@ -13,6 +13,8 @@ export default function CompanyLogin() {
   const [error, setError] = useState('');
   const navigate = useNavigate();
 
+  const url = import.meta.env.VITE_API_BASE_URL || "http://sprintmate-stage.ap-south-1.elasticbeanstalk.com:8080";
+
   const handleLogin = async (e) => {
     e.preventDefault();
     setLoading(true);
@@ -26,7 +28,7 @@ export default function CompanyLogin() {
       
       // Fetch user profile after successful login
       try {
-        const profileResponse = await axios.get('https://round-georgianna-sprintmate-8451e6d8.koyeb.app/v1/users/profile', {
+        const profileResponse = await axios.get(`${url}/v1/users/profile`, {
           headers: {
             'Authorization': response.token
           }

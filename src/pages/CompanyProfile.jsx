@@ -10,6 +10,8 @@ export default function CompanyProfile() {
   const [error, setError] = useState(null);
 
   const navigate = useNavigate()
+
+  const url = import.meta.env.VITE_API_BASE_URL ;
   
   useEffect(() => {
     const fetchProfile = async () => {
@@ -28,7 +30,7 @@ export default function CompanyProfile() {
           throw new Error("Authentication token not found");
         }
         
-        const response = await axios.get('https://round-georgianna-sprintmate-8451e6d8.koyeb.app/v1/users/profile', {
+        const response = await axios.get(`${url}/v1/users/profile`, {
           headers: {
             'Authorization': token
           }

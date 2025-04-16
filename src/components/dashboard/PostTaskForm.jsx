@@ -340,10 +340,10 @@ const PostTaskForm = () => {
         } : {}
       };
       
-      console.log("Using companyId for API call:", companyId);
+      const url = import.meta.env.VITE_API_BASE_URL 
       
       // Make API request
-      const response = await axios.post(`https://round-georgianna-sprintmate-8451e6d8.koyeb.app/v1/company-profiles/${companyId}/tasks`, payload);
+      const response = await axios.post(`${url}/v1/company-profiles/${companyId}/tasks`, payload);
       
       if (response.status === 200 || response.status === 201) {
         toast({

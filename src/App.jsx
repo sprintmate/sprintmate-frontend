@@ -22,11 +22,10 @@ const App = () => {
           <Routes>
             <Route path="/" element={<Landing />} />
             <Route path="/developer/login" element={<DeveloperLogin />} />
-            <Route path="/developer/dashboard" element={<DeveloperDashboard />} />
+            <Route path="/developer/dashboard/*" element={<DeveloperDashboard />} />
             <Route path="/developer/create-profile" element={<CreateDeveloperProfile />} />
             <Route path="/company/login" element={<CompanyLogin />} />
             <Route path="/company/dashboard/*" element={<CompanyDashboard />} />
-            
           </Routes>
         </Suspense>
       </div>

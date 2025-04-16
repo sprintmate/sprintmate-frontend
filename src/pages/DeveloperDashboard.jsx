@@ -1,265 +1,329 @@
 // DeveloperDashboard.jsx
-import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState, useRef, useEffect } from 'react';
+import { Routes, Route, useLocation, useNavigate, Link } from 'react-router-dom';
+import { motion, AnimatePresence } from 'framer-motion';
+import axios from 'axios';
 import { 
-  getUserProfile,
-  createDeveloperProfile, 
-  getDeveloperProfile, 
-  getDeveloperStatistics,
-  getAvailableTasks,
-  getApplications,
-  applyForTask,
-  withdrawApplication,
-  uploadDocument
-} from '@/services/developerService';
-import { useAuth } from '@/contexts/AuthContext';
-import { toast } from 'react-hot-toast';
+  Home, 
+  CheckSquare, 
+  Briefcase, 
+  Search,
+  Bell,
+  User,
+  Menu,
+  X,
+  ArrowRight,
+  Settings,
+  LogOut,
+  Code
+} from 'lucide-react';
 
-// Components
-import ProfileSection from '@/components/developer/ProfileSection';
-import TaskList from '@/components/developer/TaskList';
-import ApplicationList from '@/components/developer/ApplicationList';
-import StatisticsCard from '@/components/developer/StatisticsCard';
-import LoadingSpinner from '@/components/common/LoadingSpinner';
-import UserHeader from '@/components/common/UserHeader';
+import CustomCursor from "@/components/ui/CustomCursor";
+
+// Import developer dashboard components
+import DeveloperHome from '@/components/developer/DeveloperHome';
+import ProjectsList from '@/components/developer/ProjectsList';
+import MyApplications from '@/components/developer/MyApplications';
+import SettingsPage from '@/components/developer/SettingsPage';
+import DeveloperProfile from '@/components/developer/DeveloperProfile';
+import NotFound from '@/components/developer/NotFound';
+
+// Sidebar link component
+const SidebarLink = ({ to, icon: Icon, label, isActive, isExpanded }) => {
+  return (
+    <Link
+      to={to}
+      className={`flex items-center py-3 px-3 rounded-lg transition-colors ${
+        isActive 
+          ? 'bg-blue-50 text-blue-600 font-medium' 
+          : 'text-gray-700 hover:bg-gray-100'
+      }`}
+    >
+      <Icon size={20} className={isActive ? 'text-blue-600' : 'text-gray-500'} />
+      {isExpanded && (
+        <span className="ml-3 transition-opacity duration-200">
+          {label}
+        </span>
+      )}
+    </Link>
+  );
+};
 
 const DeveloperDashboard = () => {
+  const location = useLocation();
   const navigate = useNavigate();
-  const { user } = useAuth();
-  const [loading, setLoading] = useState(true);
-  const [profile, setProfile] = useState(null);
-  const [statistics, setStatistics] = useState(null);
-  const [tasks, setTasks] = useState(null);
-  const [applications, setApplications] = useState(null);
-  const [currentTaskPage, setCurrentTaskPage] = useState(0);
-  const [currentApplicationPage, setCurrentApplicationPage] = useState(0);
-  const [developerId, setDeveloperId] = useState(null);
-  const [errors, setErrors] = useState({});
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isSidebarExpanded, setIsSidebarExpanded] = useState(true);
+  const [developer, setDeveloper] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const sidebarRef = useRef(null);
 
-  // Fetch initial data
+  // Navigation links for the sidebar - use full paths to match Routes definition
+  const navLinks = [
+    { to: '/developer/dashboard', icon: Home, label: 'Dashboard' },
+    { to: '/developer/dashboard/projects', icon: Briefcase, label: 'Find Projects' },
+    { to: '/developer/dashboard/applications', icon: CheckSquare, label: 'My Applications' },
+    { to: '/developer/dashboard/profile', icon: User, label: 'Profile' },
+    { to: '/developer/dashboard/settings', icon: Settings, label: 'Settings' },
+  ];
+
+  // Fetch developer profile on mount
   useEffect(() => {
-    const fetchData = async () => {
-      if (!user?.id) {
-        setErrors({ auth: 'User not authenticated' });
-        setLoading(false);
-        return;
-      }
-
+    const fetchDeveloperProfile = async () => {
       try {
-        setLoading(true);
-        setErrors({});
-        
-        // First get user profile to check for developer profile
-        const userProfile = await getUserProfile();
-        
-        if (!userProfile.developerProfiles || userProfile.developerProfiles.length === 0) {
-          // No developer profile exists, redirect to create profile
-          navigate('/developer/create-profile');
-          return;
-        }
+        const storedProfile = localStorage.getItem("userProfile");
+        if (storedProfile) {
+          const profileData = JSON.parse(storedProfile);
+          setDeveloper(profileData);
+          setIsLoading(false);
+        } else {
+          const token = localStorage.getItem("authToken");
+          if (!token) {
+            navigate('/developer/login');
+            return;
+          }
 
-        // Get the first developer profile ID
-        const devId = userProfile.developerProfiles[0].externalId;
-        setDeveloperId(devId);
-
-        // Fetch all data independently
-        try {
-          const profileData = await getDeveloperProfile(devId);
-          setProfile(profileData);
-        } catch (error) {
-          console.error('Error fetching profile:', error);
-          setErrors(prev => ({ ...prev, profile: error.message }));
-        }
-
-        try {
-          const stats = await getDeveloperStatistics(devId);
-          setStatistics(stats);
-        } catch (error) {
-          console.error('Error fetching statistics:', error);
-          setErrors(prev => ({ ...prev, statistics: error.message }));
-        }
-
-        try {
-          const tasksData = await getAvailableTasks(devId, 0, 10);
-          setTasks(tasksData.content);
-        } catch (error) {
-          console.error('Error fetching tasks:', error);
-          setErrors(prev => ({ ...prev, tasks: error.message }));
-        }
-
-        try {
-          const apps = await getApplications(devId);
-          setApplications(apps.content);
-        } catch (error) {
-          console.error('Error fetching applications:', error);
-          setErrors(prev => ({ ...prev, applications: error.message }));
+          const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || "https://round-georgianna-sprintmate-8451e6d8.koyeb.app";
+          const response = await axios.get(`${apiBaseUrl}/v1/users/profile`, {
+            headers: {
+              'Authorization': token
+            }
+          });
+          
+          if (response.data) {
+            setDeveloper(response.data);
+            localStorage.setItem("userProfile", JSON.stringify(response.data));
+          }
         }
       } catch (error) {
-        console.error('Error fetching user profile:', error);
-        setErrors(prev => ({ ...prev, userProfile: error.message }));
+        console.error("Error fetching developer profile:", error);
       } finally {
-        setLoading(false);
+        setIsLoading(false);
       }
     };
 
-    fetchData();
-  }, [user?.id, navigate]);
+    fetchDeveloperProfile();
+  }, [navigate]);
 
+  // Close sidebar when clicking outside on mobile
   useEffect(() => {
-    const fetchTasks = async () => {
-      try {
-        const data = await getAvailableTasks(developerId, currentTaskPage, 10);
-        setTasks(data.content);
-        setErrors(prev => ({ ...prev, tasks: null }));
-      } catch (error) {
-        console.error('Error fetching tasks:', error);
-        setErrors(prev => ({ ...prev, tasks: error.message }));
+    const handleClickOutside = (event) => {
+      if (
+        isMobileMenuOpen &&
+        sidebarRef.current &&
+        !sidebarRef.current.contains(event.target)
+      ) {
+        setIsMobileMenuOpen(false);
       }
     };
 
-    fetchTasks();
-  }, [developerId, currentTaskPage]);
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [isMobileMenuOpen]);
 
+  // Close mobile menu when route changes
   useEffect(() => {
-    const fetchApplications = async () => {
-      try {
-        const data = await getApplications(currentApplicationPage);
-        console.log('Applications data:', data);
-        setApplications(data.content);
-        setErrors(prev => ({ ...prev, applications: null }));
-      } catch (error) {
-        console.error('Error fetching applications:', error);
-        setErrors(prev => ({ ...prev, applications: error.message }));
-      }
-    };
+    setIsMobileMenuOpen(false);
+  }, [location.pathname]);
 
-    fetchApplications();
-  }, [currentApplicationPage]);
-
-  // Handle task application
-  const handleApplyForTask = async (taskId, proposal) => {
-    try {
-      const applicationData = {
-        developerId,
-        proposal
-      };
-      
-      await applyForTask(taskId, applicationData);
-      toast.success('Application submitted successfully');
-      
-      // Refresh applications list
-      try {
-        const updatedApps = await getApplications(developerId);
-        setApplications(updatedApps.content);
-      } catch (error) {
-        console.error('Error refreshing applications:', error);
-        toast.error('Application submitted but failed to refresh list');
-      }
-    } catch (error) {
-      toast.error('Failed to submit application');
-      console.error('Application error:', error);
-    }
+  const handleLogout = () => {
+    localStorage.removeItem("authToken");
+    localStorage.removeItem("userProfile");
+    localStorage.removeItem("userType");
+    navigate('/developer/login');
   };
 
-  // Handle application withdrawal
-  const handleWithdrawApplication = async (taskId, applicationId) => {
-    try {
-      await withdrawApplication(taskId, applicationId);
-      toast.success('Application withdrawn successfully');
-      
-      // Refresh applications list
-      try {
-        const updatedApps = await getApplications(developerId);
-        setApplications(updatedApps.content);
-      } catch (error) {
-        console.error('Error refreshing applications:', error);
-        toast.error('Application withdrawn but failed to refresh list');
-      }
-    } catch (error) {
-      toast.error('Failed to withdraw application');
-      console.error('Withdrawal error:', error);
-    }
+  // Get initials for avatar
+  const getInitials = (name) => {
+    if (!name) return "U";
+    return name
+      .split(' ')
+      .map(n => n[0])
+      .join('')
+      .toUpperCase();
   };
 
-  // Handle profile update
-  const handleProfileUpdate = async (updatedProfile) => {
-    try {
-      const response = await createDeveloperProfile(updatedProfile);
-      setProfile(response);
-      toast.success('Profile updated successfully');
-    } catch (error) {
-      toast.error('Failed to update profile');
-      console.error('Profile update error:', error);
-    }
-  };
-
-  // Handle document upload
-  const handleDocumentUpload = async (file, type) => {
-    try {
-      const response = await uploadDocument(file, type);
-      toast.success('Document uploaded successfully');
-      return response;
-    } catch (error) {
-      toast.error('Failed to upload document');
-      console.error('Document upload error:', error);
-      throw error;
-    }
-  };
-
-  const handleTaskPageChange = (page) => {
-    setCurrentTaskPage(page);
-  };
-
-  const handleApplicationPageChange = (page) => {
-    setCurrentApplicationPage(page);
-  };
-
-  if (loading) {
-    return <LoadingSpinner />;
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-blue-100/50">
+        <div className="w-16 h-16 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+      </div>
+    );
   }
 
+  // Function to determine if a route is active (accounting for index route)
+  const isRouteActive = (path) => {
+    if (path === '/developer/dashboard') {
+      return location.pathname === '/developer/dashboard';
+    }
+    return location.pathname.includes(path);
+  };
+
   return (
-    <div className="min-h-screen bg-gray-50">
-      <UserHeader />
-      <div className="container mx-auto px-6 py-8">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          <div className="lg:col-span-2 space-y-8">
-            {/* Left Column - Profile and Statistics */}
-            {!errors.profile && (
-              <ProfileSection 
-                profile={profile}
-                onUpdate={handleProfileUpdate}
-                onDocumentUpload={handleDocumentUpload}
-              />
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-blue-100/50 cursor-none flex">
+      <CustomCursor />
+
+      {/* Mobile overlay */}
+      <AnimatePresence>
+        {isMobileMenuOpen && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 0.5 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2 }}
+            className="fixed inset-0 bg-gray-900 z-20 lg:hidden"
+            onClick={() => setIsMobileMenuOpen(false)}
+          />
+        )}
+      </AnimatePresence>
+      
+      {/* Sidebar */}
+      <motion.aside
+        ref={sidebarRef}
+        className={`fixed inset-y-0 left-0 z-30 bg-white shadow-md flex flex-col border-r border-blue-100
+                  h-screen overflow-hidden lg:relative lg:translate-x-0 ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}`}
+        animate={{ 
+          width: (isSidebarExpanded || isMobileMenuOpen) ? 240 : 80,
+          transition: { duration: 0.3, ease: "easeInOut" }
+        }}
+        transition={{ duration: 0.3 }}
+      >
+        {/* Logo section */}
+        <div className={`py-6 ${(isSidebarExpanded || isMobileMenuOpen) ? 'px-6' : 'px-4'} border-b border-blue-100 flex items-center justify-between`}>
+          <div className="flex items-center">
+            <div className="p-1 bg-blue-100 rounded text-blue-600">
+              <Code size={20} />
+            </div>
+            {(isSidebarExpanded || isMobileMenuOpen) && (
+              <h1 className="ml-3 font-bold text-xl">Dev Portal</h1>
             )}
-            {!errors.statistics && (
-              <StatisticsCard statistics={statistics} />
+          </div>
+          <button
+            onClick={() => setIsSidebarExpanded(!isSidebarExpanded)}
+            className="text-gray-500 hover:text-gray-700 hidden lg:block"
+          >
+            <ArrowRight
+              size={20}
+              className={`transform transition-transform ${
+                isSidebarExpanded ? '' : 'rotate-180'
+              }`}
+            />
+          </button>
+          <button
+            onClick={() => setIsMobileMenuOpen(false)}
+            className="text-gray-500 hover:text-gray-700 lg:hidden"
+          >
+            <X size={20} />
+          </button>
+        </div>
+        
+        {/* Nav links */}
+        <nav className="flex-1 py-6 space-y-1 px-3 overflow-y-auto">
+          {navLinks.map((link) => (
+            <SidebarLink
+              key={link.to}
+              to={link.to}
+              icon={link.icon}
+              label={link.label}
+              isExpanded={isSidebarExpanded || isMobileMenuOpen}
+              isActive={isRouteActive(link.to)}
+            />
+          ))}
+        </nav>
+        
+        {/* User profile section */}
+        <div className={`p-4 border-t border-blue-100 ${(isSidebarExpanded || isMobileMenuOpen) ? 'px-4' : 'px-3'}`}>
+          <div className="flex items-center">
+            <div className="w-9 h-9 rounded-full bg-gradient-to-r from-blue-600 to-blue-400 flex items-center justify-center text-white font-semibold">
+              {getInitials(developer?.name)}
+            </div>
+            {(isSidebarExpanded || isMobileMenuOpen) && (
+              <div className="ml-3 truncate">
+                <p className="text-sm font-medium text-gray-800 truncate">
+                  {developer?.name || "Developer"}
+                </p>
+                <p className="text-xs text-gray-500 truncate">
+                  {developer?.email || "developer@example.com"}
+                </p>
+              </div>
             )}
           </div>
           
-          <div className="space-y-8">
-            {errors.applications && (
-              <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">
-                {errors.applications}
-              </div>
-            )}
-            {!errors.tasks && (
-              <TaskList 
-                tasks={tasks}
-                currentPage={currentTaskPage}
-                totalPages={tasks?.totalPages || 0}
-                onPageChange={handleTaskPageChange}
-                onApply={handleApplyForTask}
-              />
-            )}
-            <ApplicationList 
-              applications={applications} 
-              onWithdraw={handleWithdrawApplication}
-              onPageChange={handleApplicationPageChange}
-            />
-          </div>
+          {(isSidebarExpanded || isMobileMenuOpen) && (
+            <button
+              onClick={handleLogout}
+              className="mt-4 w-full flex items-center justify-center gap-2 text-sm text-gray-700 hover:text-red-600 p-2 rounded-lg hover:bg-red-50 transition-colors"
+            >
+              <LogOut size={16} />
+              <span>Logout</span>
+            </button>
+          )}
         </div>
-      </div>
+      </motion.aside>
+      
+      {/* Main content */}
+      <motion.main 
+        className="flex-1 min-w-0 h-screen overflow-y-auto"
+        animate={{ 
+          marginLeft: isSidebarExpanded ? 0 : 0 
+        }}
+        transition={{ duration: 0.3 }}
+      >
+        {/* Header */}
+        <header className="bg-white border-b border-blue-100 sticky top-0 z-10 shadow-sm">
+          <div className="flex items-center justify-between px-4 py-3">
+            <div className="flex items-center">
+              <button
+                onClick={() => setIsMobileMenuOpen(true)}
+                className="p-2 rounded-md text-gray-500 hover:text-gray-700 hover:bg-gray-100 lg:hidden"
+              >
+                <Menu size={24} />
+              </button>
+              
+              <div className="ml-4 lg:ml-0">
+                <h2 className="text-lg font-semibold text-gray-800">
+                  {location.pathname.includes('/projects') ? 'Available Projects' :
+                   location.pathname.includes('/applications') ? 'My Applications' :
+                   location.pathname.includes('/profile') ? 'Developer Profile' :
+                   location.pathname.includes('/settings') ? 'Settings' : 'Dashboard'}
+                </h2>
+              </div>
+            </div>
+            
+            <div className="flex items-center gap-4">
+              <div className="relative">
+                <button className="p-2 rounded-md text-gray-500 hover:text-gray-700 hover:bg-gray-100">
+                  <Bell size={20} />
+                </button>
+                <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
+              </div>
+              
+              <div className="hidden md:flex items-center bg-gray-100 rounded-lg py-1.5 px-2 gap-2">
+                <Search size={16} className="text-gray-500" />
+                <input
+                  type="text"
+                  placeholder="Search projects..."
+                  className="bg-transparent border-none outline-none text-sm w-40"
+                />
+              </div>
+            </div>
+          </div>
+        </header>
+        
+        {/* Page content */}
+        <div className="py-4 h-[calc(100vh-4rem)] overflow-y-auto">
+          <Routes>
+            <Route index element={<DeveloperHome developer={developer} />} />
+            <Route path="projects" element={<ProjectsList />} />
+            <Route path="applications" element={<MyApplications />} />
+            <Route path="settings" element={<SettingsPage />} />
+            <Route path="profile" element={<DeveloperProfile developer={developer} />} />
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </div>
+      </motion.main>
     </div>
   );
 };

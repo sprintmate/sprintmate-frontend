@@ -91,6 +91,8 @@ const MyTasks = () => {
     target: scrollRef,
     offset: ["start start", "end start"]
   });
+
+  const url = import.meta.env.VITE_API_BASE_URL || "http://sprintmate-stage.ap-south-1.elasticbeanstalk.com:8080";
   
   // Analytics data (we'll keep using this for now)
   const analytics = {
@@ -169,7 +171,7 @@ const MyTasks = () => {
     setIsLoading(true);
     try {
       // Use full absolute URL to the API endpoint to prevent redirection to your frontend
-      const apiBaseUrl = "https://round-georgianna-sprintmate-8451e6d8.koyeb.app";
+      const apiBaseUrl = import.meta.env.VITE_API_BASE_URL ;
       const response = await axios.get(`${apiBaseUrl}/v1/company-profiles/${companyId}/tasks?page=${currentPage}&size=10`);
       
       if (response.data && response.data.content) {
@@ -1484,7 +1486,7 @@ const CompanyDashboard = () => {
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-blue-100/50 cursor-none flex">
       <CustomCursor />
 
-      {/* Mobile Overlay */}
+      {/* Mobile Overlay */} 
       <AnimatePresence>
         {isMobileMenuOpen && (
           <motion.div
