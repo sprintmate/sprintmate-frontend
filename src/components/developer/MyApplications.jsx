@@ -157,9 +157,9 @@ const ApplicationCard = ({ application, index, onStatusUpdate }) => {
       
       console.log('Withdrawing application:', { taskId, applicationId, url });
       
-      const response = await axios.put(url, {}, {
+      const response = await axios.put(url, {
         headers: {
-          'Authorization': `Bearer ${token}`,
+          'Authorization': `${token}`,
           'Content-Type': 'application/json'
         }
       });
