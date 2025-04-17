@@ -235,7 +235,10 @@ const DeveloperDashboard = () => {
         
         {/* User profile section */}
         <div className={`p-4 border-t border-blue-100 ${(isSidebarExpanded || isMobileMenuOpen) ? 'px-4' : 'px-3'}`}>
-          <div className="flex items-center">
+          <div 
+            onClick={() => navigate('/developer/dashboard/profile')}
+            className={`flex items-center cursor-pointer hover:bg-gray-100 ${isRouteActive('/developer/dashboard/profile') ? 'bg-blue-50 text-blue-600' : ''} rounded-lg p-2 transition-colors`}
+          >
             <div className="w-9 h-9 rounded-full bg-gradient-to-r from-blue-600 to-blue-400 flex items-center justify-center text-white font-semibold">
               {getInitials(developer?.name)}
             </div>

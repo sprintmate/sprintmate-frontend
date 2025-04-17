@@ -192,3 +192,24 @@
     transform: scale(1.1);
   }
 }
+
+/* Fix for cursor visibility in modals */
+.cursor-auto {
+  cursor: auto !important;
+}
+
+.cursor-pointer {
+  cursor: pointer !important;
+}
+
+.cursor-text {
+  cursor: text !important;
+}
+
+/* Ensure modals and dialogs always show the cursor */
+dialog,
+[role="dialog"],
+.modal,
+.popup {
+  cursor: auto !important;
+}

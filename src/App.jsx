@@ -10,6 +10,8 @@ const CreateDeveloperProfile = React.lazy(() => import('./pages/CreateDeveloperP
 const CompanyDashboard = React.lazy(() => import('./pages/CompanyDashboard'))
 const CompanyLogin = React.lazy(() => import('./pages/CompanyLogin'))
 
+import DeveloperProfilePage from '@/components/developer/DeveloperProfilePage';
+
 const App = () => {
   return (
     <AuthProvider>
@@ -23,6 +25,7 @@ const App = () => {
             <Route path="/" element={<Landing />} />
             <Route path="/developer/login" element={<DeveloperLogin />} />
             <Route path="/developer/dashboard/*" element={<DeveloperDashboard />} />
+            <Route path="/developer/profile/:developerId" element={<DeveloperProfilePage />} />
             <Route path="/developer/create-profile" element={<CreateDeveloperProfile />} />
             <Route path="/company/login" element={<CompanyLogin />} />
             <Route path="/company/dashboard/*" element={<CompanyDashboard />} />
