@@ -5,7 +5,8 @@ import {
   getCompanyProfile,
   clearAuthData, 
   initializeAuth,
-  fetchUserProfile
+  fetchUserProfile,
+  setToken
 } from '../services/authService';
 
 const AuthContext = createContext(null);
@@ -59,6 +60,26 @@ export const AuthProvider = ({ children }) => {
     initialize();
   }, []);
 
+  // Login function - properly clears previous data
+  const login = (token, userData) => {
+    // Clear any existing auth data
+    clearAuthData();
+    
+    // Set the new token
+    setToken(token);
+    
+    // Set user data
+    if (userData) {
+      setUser(userData);
+      
+      if (userData.companyProfiles?.length > 0) {
+        setCompanyProfile(userData.companyProfiles[0]);
+      }
+    }
+    
+    setIsAuthenticated(true);
+  };
+
   // Logout function
   const logout = () => {
     clearAuthData();
@@ -94,6 +115,7 @@ export const AuthProvider = ({ children }) => {
         companyProfile,
         isAuthenticated, 
         loading,
+        login,
         logout,
         refreshUserProfile
       }}

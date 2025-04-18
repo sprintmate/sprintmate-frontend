@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
-import { setToken, fetchUserProfile } from '../../services/authService';
+import { setToken, fetchUserProfile, clearAuthData } from '../../services/authService';
 // ...existing imports...
 
 const LoginForm = () => {
@@ -19,8 +19,14 @@ const LoginForm = () => {
     const url = import.meta.env.VITE_API_BASE_URL 
 
     try {
+      // Clear any existing auth data before login
+      clearAuthData();
+      
       // 1. Login and get token
-      const response = await axios.post('/api/auth/login', { email, password });
+      const response = await axios.post(`${url}/v1/tokens`, { 
+        email, 
+        cred: password 
+      });
       
       if (response.data && response.data.token) {
         // 2. Store the token

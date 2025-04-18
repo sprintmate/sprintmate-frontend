@@ -3,7 +3,7 @@
 import axios from 'axios';
 
 // Storage keys
-const TOKEN_KEY = 'auth_token';
+const TOKEN_KEY = 'authToken'; // Changed to match what's used in MyApplications.jsx
 const USER_PROFILE_KEY = 'user_profile';
 const COMPANY_PROFILE_KEY = 'company_profile';
 
@@ -20,27 +20,41 @@ const setupAxiosDefaults = (token) => {
   }
 };
 
-// Store authentication token
+// Store authentication token - clears any existing token first
 export const setToken = (token) => {
+  // Clear any existing token first
+  localStorage.removeItem(TOKEN_KEY);
+  
+  // Store new token
   localStorage.setItem(TOKEN_KEY, token);
+  
+  // Setup axios defaults
   setupAxiosDefaults(token);
+  
+  console.log('Token set in localStorage:', token ? 'Valid token stored' : 'No token stored');
 };
 
 // Get stored token
 export const getToken = () => {
-  return localStorage.getItem(TOKEN_KEY);
+  const token = localStorage.getItem(TOKEN_KEY);
+  console.log('Getting token from localStorage:', token ? 'Token found' : 'No token found');
+  return token;
 };
 
 // Remove token on logout
 export const removeToken = () => {
   localStorage.removeItem(TOKEN_KEY);
   setupAxiosDefaults(null);
+  console.log('Token removed from localStorage');
 };
 
 // Login company with credentials
 export const loginCompany = async (email, cred) => {
   try {
     console.log('Attempting login with:', { email, cred: '****' });
+    
+    // Clear any existing tokens before attempting login
+    removeToken();
     
     const response = await axios.post(
       `${url}/v1/tokens`, 
@@ -99,12 +113,16 @@ export const loginCompany = async (email, cred) => {
 // Function to login a developer user (similar structure to loginCompany)
 export const loginDeveloper = async (email, cred) => {
   try {
+    // Clear any existing tokens before attempting login
+    removeToken();
+    
     const response = await axios.post(`${url}/v1/tokens`, {
       email,
       cred,
     });
     
     if (response.data && response.data.token) {
+      setToken(response.data.token);
       return response.data;
     } else {
       throw new Error('Invalid response from server');
@@ -154,6 +172,7 @@ export const clearAuthData = () => {
   localStorage.removeItem(USER_PROFILE_KEY);
   localStorage.removeItem(COMPANY_PROFILE_KEY);
   setupAxiosDefaults(null);
+  console.log('All auth data cleared');
 };
 
 // Fetch user profile from API

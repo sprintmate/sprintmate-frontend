@@ -11,6 +11,7 @@ import {
   Loader2, AlertCircle
 } from 'lucide-react';
 import TaskApplicationModal from './TaskApplicationModal';
+import toast from 'react-hot-toast';
 
 const ProjectsList = () => {
   const [searchTerm, setSearchTerm] = useState('');

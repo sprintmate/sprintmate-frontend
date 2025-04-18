@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { X, SendHorizonal, CheckCircle2, AlertCircle, Loader2, Sparkles, FileText } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
+import { useToast } from '@/components/ui/use-toast';
 import axios from 'axios';
 
 const TaskApplicationModal = ({ isOpen, onClose, taskId, onSuccess }) => {
@@ -12,6 +13,7 @@ const TaskApplicationModal = ({ isOpen, onClose, taskId, onSuccess }) => {
   const [success, setSuccess] = useState(false);
   const [charCount, setCharCount] = useState(0);
   const maxChars = 500;
+  const { toast } = useToast();
   
   // Close modal when ESC key is pressed
   useEffect(() => {
@@ -52,8 +54,18 @@ const TaskApplicationModal = ({ isOpen, onClose, taskId, onSuccess }) => {
   const handleSubmit = async () => {
     if (proposal.trim().length < 10) {
       setError('Please provide a detailed proposal of at least 10 characters.');
+      
+      // Show toast notification for better user feedback
+      toast({
+        variant: "destructive",
+        title: "Validation Error",
+        description: "Your proposal must be at least 10 characters long.",
+        duration: 3000,
+      });
       return;
     }
+
+    console.log("Applying for application")
     
     setLoading(true);
     setError(null);
@@ -101,7 +113,7 @@ const TaskApplicationModal = ({ isOpen, onClose, taskId, onSuccess }) => {
         throw new Error('Task ID is missing. Please try again.');
       }
       
-      const baseUrl = import.meta.env.VITE_API_BASE_URL || 'https://round-georgianna-sprintmate-8451e6d8.koyeb.app';
+      const baseUrl = import.meta.env.VITE_API_BASE_URL ;
       
       // Make API call to apply for the task
       const response = await axios.post(

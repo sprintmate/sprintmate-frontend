@@ -152,14 +152,20 @@ const ApplicationCard = ({ application, index, onStatusUpdate }) => {
     
     try {
       const token = getToken();
+      if (!token) {
+        throw new Error("Authentication token not found");
+      }
+      
       const baseUrl = import.meta.env.VITE_API_BASE_URL || 'https://round-georgianna-sprintmate-8451e6d8.koyeb.app';
       const url = `${baseUrl}/v1/tasks/${taskId}/applications/${applicationId}/withdraw`;
       
       console.log('Withdrawing application:', { taskId, applicationId, url });
+      console.log('Using token:', token);
       
-      const response = await axios.put(url, {
+      // Fix: Use a POST request with proper Authorization header
+      const response = await axios.put(url, {}, {
         headers: {
-          'Authorization': `${token}`,
+          'Authorization': token.startsWith('Bearer ') ? token : `Bearer ${token}`,
           'Content-Type': 'application/json'
         }
       });
@@ -453,7 +459,7 @@ const MyApplications = () => {
     setError(null);
     
     try {
-      const token = localStorage.getItem('authToken');
+      const token = getToken();
       if (!token) {
         throw new Error("Authentication token not found");
       }
@@ -461,7 +467,7 @@ const MyApplications = () => {
       const baseUrl = import.meta.env.VITE_API_BASE_URL || 'https://round-georgianna-sprintmate-8451e6d8.koyeb.app';
       const response = await axios.get(`${baseUrl}/v1/developers/applications`, {
         headers: {
-          'Authorization': token
+          'Authorization': token.startsWith('Bearer ') ? token : `Bearer ${token}`
         },
         // Add timeout to prevent hanging requests
         timeout: 15000

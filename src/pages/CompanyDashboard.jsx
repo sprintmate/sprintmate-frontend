@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Routes, Route, NavLink, useLocation, Link, useNavigate } from 'react-router-dom';
+import { Routes, Route, NavLink, useLocation, Link, useNavigate, useParams } from 'react-router-dom';
 import { motion, AnimatePresence, useScroll, useTransform } from 'framer-motion';
 import { 
   Home, 
@@ -62,6 +62,9 @@ import axios from 'axios';
 // Import our new company dashboard view component
 import CompanyViewDashboard from '@/components/dashboard/companyViewDashboard';
 
+// Import the new ApplicationDetails component
+import ApplicationDetails from '@/components/dashboard/ApplicationDetails';
+
 // New DashboardHome component that uses our professional dashboard
 const DashboardHome = () => (
   //<CompanyViewDashboard />
@@ -76,6 +79,7 @@ const MyTasks = () => {
   const [activeStat, setActiveStat] = useState('week');
   const [selectedTask, setSelectedTask] = useState(null);
   const scrollRef = useRef(null);
+  const navigate = useNavigate(); // Add useNavigate hook
   
   // New states for API integration
   const [companyId, setCompanyId] = useState(null);
@@ -182,7 +186,7 @@ const MyTasks = () => {
           id: task.externalId,
           title: task.title,
           description: task.description,
-          applications: Object.keys(task.applications || {}).length || 0,
+          applications: task.applicationsCount || 0, // Use the actual applicationsCount from API
           status: task.status === "OPEN" ? "active" : 
                   task.status === "IN_PROGRESS" ? "reviewing" : 
                   task.status,
@@ -194,7 +198,7 @@ const MyTasks = () => {
           duration: calculateDuration(task.createdAt, task.deadline),
           views: Math.floor(Math.random() * 200) + 50, // Placeholder since API doesn't provide views
           // Create placeholder applicants for now until we have real data
-          applicants: generatePlaceholderApplicants(2)
+          applicants: generatePlaceholderApplicants(task.applicationsCount || 0)
         }));
         
         setRecentTasks(formattedTasks);
@@ -265,7 +269,7 @@ const MyTasks = () => {
     return `${Math.ceil(diffDays / 30)} months`;
   };
 
-  // Generate placeholder applicants for testing
+  // Generate placeholder applicants for testing - updated to respect the count parameter
   const generatePlaceholderApplicants = (count) => {
     const firstNames = ["Alex", "Morgan", "Jamie", "Taylor", "Jordan", "Casey"];
     const lastNames = ["Smith", "Johnson", "Lee", "Garcia", "Chen", "Wilson"];
@@ -294,6 +298,20 @@ const MyTasks = () => {
   };
 
   const activeStats = getActiveStats();
+
+  // Navigate to task applications with first application ID when available
+  const handleViewApplications = (taskId) => {
+    const task = recentTasks.find(task => task.id === taskId);
+    
+    if (task && task.applicants && task.applicants.length > 0) {
+      // If we have applicants, navigate to the first one directly
+      const firstApplicantId = task.applicants[0].id;
+      navigate(`/company/dashboard/tasks/${taskId}/applications/${firstApplicantId}`);
+    } else {
+      // Otherwise, just navigate to the applications list
+      navigate(`/company/dashboard/tasks/${taskId}/applications`);
+    }
+  };
 
   return (
     <div className="px-4 sm:px-6 lg:px-8 py-6 space-y-8 max-w-[1500px] mx-auto">
@@ -786,11 +804,10 @@ const MyTasks = () => {
                             variant="ghost" 
                             size="sm" 
                             className="text-blue-600 hover:text-blue-700 hover:bg-blue-50/50 h-8"
-                            onClick={() => setSelectedTask(task.id === selectedTask ? null : task.id)}
+                            onClick={() => handleViewApplications(task.id)}
                           >
                             <Users size={14} className="mr-1" />
-                            <span className="hidden sm:inline">Applicants</span>
-                            <span className="sm:hidden">{task.applicants?.length || 0}</span>
+                            <span>{task.applications} Applicants</span>
                           </Button>
                         </div>
                         
@@ -804,52 +821,9 @@ const MyTasks = () => {
                           </motion.div>
                         </Button>
                       </div>
+
+                      {/* Remove the slide-down applicants panel since we're navigating instead */}
                       
-                      {/* Applicants panel (collapsible) */}
-                      <AnimatePresence>
-                        {selectedTask === task.id && task.applicants && (
-                          <motion.div
-                            initial={{ height: 0, opacity: 0, marginTop: 0 }}
-                            animate={{ height: 'auto', opacity: 1, marginTop: 12 }}
-                            exit={{ height: 0, opacity: 0, marginTop: 0 }}
-                            transition={{ duration: 0.3 }}
-                            className="overflow-hidden border-t border-gray-100 pl-3 pt-3"
-                          >
-                            <div className="flex items-center justify-between mb-2">
-                              <h4 className="text-sm font-medium text-gray-800 flex items-center">
-                                <UserCheck size={14} className="mr-2 text-blue-500" />
-                                Applicants
-                              </h4>
-                              <Badge variant="blue" size="sm">{task.applicants.length} total</Badge>
-                            </div>
-                            <div className="space-y-2">
-                              {task.applicants.map((applicant) => (
-                                <div 
-                                  key={applicant.id} 
-                                  className="flex items-center justify-between p-2 bg-blue-50/50 rounded-lg"
-                                >
-                                  <div className="flex items-center gap-2">
-                                    <div className="w-8 h-8 rounded-full bg-gradient-to-r from-blue-400 to-blue-600 flex items-center justify-center text-white font-medium text-xs">
-                                      {applicant.name.split(' ').map(n => n[0]).join('')}
-                                    </div>
-                                    <div>
-                                      <p className="text-sm font-medium text-gray-800">{applicant.name}</p>
-                                      <p className="text-xs text-gray-500">{applicant.experience}</p>
-                                    </div>
-                                  </div>
-                                  <div className="flex items-center gap-3">
-                                    <div className="flex items-center">
-                                      <Star size={12} className="text-amber-400" fill="currentColor" />
-                                      <span className="text-xs font-medium ml-1">{applicant.rating}</span>
-                                    </div>
-                                    <Button size="sm" variant="ghost" className="h-7 px-2 text-blue-600">View</Button>
-                                  </div>
-                                </div>
-                              ))}
-                            </div>
-                          </motion.div>
-                        )}
-                      </AnimatePresence>
                     </CardContent>
                   </Card>
                 </div>
@@ -1033,17 +1007,91 @@ const PostTask = () => (
   </div>
 );
 
-// Applications Component
-const Applications = () => (
-  <div className="p-4">
-    <h2 className="text-2xl font-bold mb-6">Applications</h2>
-    <div className="bg-white rounded-xl shadow-sm border border-gray-100">
-      <div className="p-4">
-        <p>Developer applications will appear here</p>
-      </div>
+// Applications Component - Pass applicationId to ApplicationDetails
+const Applications = () => {
+  const navigate = useNavigate();
+  const { taskId, applicationId } = useParams();
+  const [applicationsData, setApplicationsData] = useState([]);
+  const [isLoading, setIsLoading] = useState(false);
+
+  // Fetch applications list if needed
+  useEffect(() => {
+    if (taskId && !applicationId) {
+      // Fetch application list to redirect to the first one
+      setIsLoading(true);
+      const fetchApplications = async () => {
+        try {
+          const apiBaseUrl = import.meta.env.VITE_API_BASE_URL;
+          const token = localStorage.getItem('authToken');
+          
+          if (!token) {
+            console.error("Auth token not found");
+            return;
+          }
+          
+          const response = await axios.get(
+            `${apiBaseUrl}/v1/tasks/${taskId}/applications`,
+            {
+              headers: { 'Authorization': token }
+            }
+          );
+          
+          if (response.data && response.data.length > 0) {
+
+            console.log(response , "*********")
+            // If applications exist, redirect to the first one
+            const firstAppId = response.data[0].externalId;
+            navigate(`/company/dashboard/tasks/${taskId}/applications/${firstAppId}`);
+          }
+        } catch (err) {
+          console.error("Error fetching applications:", err);
+        } finally {
+          setIsLoading(false);
+        }
+      };
+      
+      fetchApplications();
+    }
+  }, [taskId, applicationId, navigate]);
+
+  return (
+    <div className="p-6">
+      {taskId ? (
+        // If taskId is provided, render ApplicationDetails component
+        <ApplicationDetails applicationIdProp={applicationId} />
+      ) : (
+        // Otherwise, show the selection screen
+        <>
+          <motion.h2 
+            className="text-2xl font-bold mb-6"
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5 }}
+          >
+            Task Applications
+          </motion.h2>
+          <Card className="border-blue-100">
+            <CardContent className="p-6 text-center">
+              <div className="mb-4 w-16 h-16 mx-auto bg-blue-100 rounded-full flex items-center justify-center">
+                <Users className="h-8 w-8 text-blue-600" />
+              </div>
+              <h3 className="text-lg font-medium">Select a Task</h3>
+              <p className="text-gray-500 mt-2 max-w-md mx-auto">
+                Please select a task from the Tasks dashboard to view its applications.
+              </p>
+              <Button 
+                className="mt-4 bg-blue-600" 
+                onClick={() => navigate('/company/dashboard/tasks')}
+              >
+                View Tasks
+              </Button>
+            </CardContent>
+          </Card>
+        </>
+      )}
     </div>
-  </div>
-);
+  );
+};
 
 // Settings Component
 const SettingsPage = () => (
@@ -1485,7 +1533,7 @@ const CompanyDashboard = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-blue-100/50 cursor-none flex">
       <CustomCursor />
-
+      
       {/* Mobile Overlay */} 
       <AnimatePresence>
         {isMobileMenuOpen && (
@@ -1669,6 +1717,10 @@ const CompanyDashboard = () => {
             <Route path="/settings" element={<SettingsPage />} />
             <Route path="/profile" element={<UserProfile />} />
             <Route path="/profile/edit" element={<UserProfile />} />
+            
+            {/* New routes for task applications */}
+            <Route path="/tasks/:taskId/applications" element={<Applications />} />
+            <Route path="/tasks/:taskId/applications/:applicationId" element={<Applications />} />
           </Routes>
         </div>
       </motion.main>
