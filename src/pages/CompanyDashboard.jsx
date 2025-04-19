@@ -1038,7 +1038,7 @@ const Applications = () => {
           
           if (response.data && response.data.length > 0) {
 
-            console.log(response , "*********")
+            console.log(response , "(((((((((((((((((((*********))))))))))))))))")
             // If applications exist, redirect to the first one
             const firstAppId = response.data[0].externalId;
             navigate(`/company/dashboard/tasks/${taskId}/applications/${firstAppId}`);

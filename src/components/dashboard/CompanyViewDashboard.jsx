@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence, useAnimation } from 'framer-motion';
 import { useAuth } from '../../contexts/AuthContext';
+import { useNavigate } from 'react-router-dom';
 import { 
   TrendingUp, Briefcase, Users, DollarSign, Award, 
   Clock, CheckCircle, BarChart2, PieChart, Calendar, 
@@ -15,6 +16,7 @@ import {
   Layout,
   Box,
   Triangle,
+  FileText,
   FileCode
 } from 'lucide-react';
 import { 
@@ -486,6 +488,7 @@ const RecommendationCard = ({ recommendation, index }) => {
 const CompanyViewDashboard = () => {
   const { user, companyProfile } = useAuth();
   const [isLoading, setIsLoading] = useState(true);
+  const navigate = useNavigate();
   
   useEffect(() => {
     // Simulate data loading
@@ -493,6 +496,11 @@ const CompanyViewDashboard = () => {
       setIsLoading(false);
     }, 1200);
   }, []);
+  
+  // Handle navigation to applicants page
+  const handleViewApplicants = (taskId) => {
+    navigate(`/dashboard/applications/${taskId}`);
+  };
   
   // Get company name from profile or use fallback
   const getCompanyName = () => {
@@ -617,6 +625,42 @@ const CompanyViewDashboard = () => {
           accentColor="amber"
           delay={0.4}
         />
+        
+        {/* Add a new QuickStatCard for Applicants */}
+        <AnimatedCard delay={0.5}>
+          <GlowContainer color="indigo">
+            <Card className="bg-white backdrop-blur-sm border-opacity-50 overflow-hidden h-full cursor-pointer hover:shadow-md transition-shadow" 
+                  onClick={() => handleViewApplicants("task-123")}>
+              <CardContent className="p-6">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center gap-3">
+                    <div className="w-12 h-12 rounded-lg bg-indigo-100 flex items-center justify-center">
+                      <Users className="text-indigo-600" size={24} />
+                    </div>
+                    <h3 className="text-lg font-semibold text-gray-800">Applicants</h3>
+                  </div>
+                </div>
+                
+                <div className="space-y-2">
+                  <div className="flex items-end justify-between">
+                    <div className="flex items-baseline">
+                      <AnimatedCounter 
+                        value={27} 
+                        className="text-3xl font-bold text-indigo-600"
+                      />
+                      <span className="text-sm ml-1 text-gray-500">new</span>
+                    </div>
+                    <Badge variant="indigo" className="capitalize">
+                      <TrendingUp size={12} className="mr-1" />
+                      Active
+                    </Badge>
+                  </div>
+                  <p className="text-sm text-gray-500">View all applications</p>
+                </div>
+              </CardContent>
+            </Card>
+          </GlowContainer>
+        </AnimatedCard>
       </div>
       
       {/* Main Dashboard Grid */}
