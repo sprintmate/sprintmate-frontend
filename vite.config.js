@@ -11,4 +11,10 @@ export default defineConfig({
       '@': resolve(__dirname, 'src'),
     },
   },
+  base: '/sprintmate-frontend/',
+  build: {
+    rollupOptions: {
+      external: ['@radix-ui/react-label']
+    }
+  }
 })
