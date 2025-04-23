@@ -22,7 +22,7 @@ import { FaGoogle, FaGithub } from 'react-icons/fa';
 const Login = () => {
   const [formData, setFormData] = useState({
     email: '',
-    password: '',
+    cred: '',
   });
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
@@ -48,10 +48,16 @@ const Login = () => {
 
     try {
       const response = await axios.post(
-        `${import.meta.env.VITE_API_BASE_URL}/v1/auth/login`,
+        `${import.meta.env.VITE_API_BASE_URL}/v1/tokens`,
         {
-          ...formData,
-          role: userType === 'company' ? 'CORPORATE' : 'DEVELOPER',
+          email: formData.email,
+          cred: formData.cred
+        },
+        {
+          headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json, text/plain, */*'
+          }
         }
       );
 
@@ -310,7 +316,7 @@ const Login = () => {
                   </motion.div>
 
                   <motion.div className="space-y-1" variants={itemVariants}>
-                    <label htmlFor="password" className="block text-sm font-medium text-gray-700">
+                    <label htmlFor="cred" className="block text-sm font-medium text-gray-700">
                       Password
                     </label>
                     <div className="relative">
@@ -318,14 +324,14 @@ const Login = () => {
                         <Lock size={16} className="text-gray-400" />
                       </div>
                       <input
-                        id="password"
-                        name="password"
+                        id="cred"
+                        name="cred"
                         type={showPassword ? "text" : "password"}
                         autoComplete="current-password"
                         required
                         className="pl-10 pr-10 py-2 w-full rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
                         placeholder="Enter your password"
-                        value={formData.password}
+                        value={formData.cred}
                         onChange={handleChange}
                       />
                       <button
