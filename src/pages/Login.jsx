@@ -1,9 +1,9 @@
-// src/pages/DeveloperLogin.jsx
 import { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
-import { motion, AnimatePresence } from 'framer-motion';
+import { useNavigate, useLocation } from 'react-router-dom';
 import axios from 'axios';
-import { loginDeveloper } from '@/services/authService';
+import { toast } from 'react-hot-toast';
+import { authUtils } from '@/utils/authUtils';
+import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Code, 
   User, 
@@ -17,91 +17,93 @@ import {
   ChevronLeft, 
   Sparkles 
 } from 'lucide-react';
+import { FaGoogle, FaGithub } from 'react-icons/fa';
 
-export default function DeveloperLogin() {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [showPassword, setShowPassword] = useState(false);
+const Login = () => {
+  const [formData, setFormData] = useState({
+    email: '',
+    cred: '',
+  });
   const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [isSignUp, setIsSignUp] = useState(false);
   const [name, setName] = useState('');
+  
   const navigate = useNavigate();
+  const location = useLocation();
+  const userType = location.pathname.includes('company') ? 'company' : 'developer';
 
-  const url = import.meta.env.VITE_API_BASE_URL 
+  const handleChange = (e) => {
+    setFormData({
+      ...formData,
+      [e.target.name]: e.target.value,
+    });
+  };
 
-  const resetForm = () => {
-    setEmail('');
-    setPassword('');
-    setName('');
-    setError('');
-    setSuccess('');
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+
+    try {
+      const response = await axios.post(
+        `${import.meta.env.VITE_API_BASE_URL}/v1/tokens`,
+        {
+          email: formData.email,
+          cred: formData.cred
+        },
+        {
+          headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json, text/plain, */*'
+          }
+        }
+      );
+
+      if (response.data.token) {
+        authUtils.setAuthToken(response.data.token);
+        authUtils.setUserProfile(response.data.user);
+        toast.success('Login successful!');
+        navigate(`/${userType}/dashboard`);
+      }
+    } catch (error) {
+      console.error('Login error:', error);
+      toast.error(error.response?.data?.message || 'Login failed. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleGoogleLogin = () => {
+    authUtils.setOAuthRole(userType);
+    window.location.href = `${import.meta.env.VITE_API_BASE_URL}/oauth2/authorization/google?role=${userType}`;
+  };
+
+  const handleGithubLogin = () => {
+    authUtils.setOAuthRole(userType);
+    window.location.href = `${import.meta.env.VITE_API_BASE_URL}/oauth2/authorization/github?role=${userType}`;
   };
 
   const handleToggleMode = () => {
     setIsSignUp(!isSignUp);
-    resetForm();
-  };
-
-  const handleLogin = async (e) => {
-    e.preventDefault();
-    setLoading(true);
+    setFormData({
+      email: '',
+      password: '',
+      name: '',
+    });
     setError('');
     setSuccess('');
+  };
 
-    try {
-      if (isSignUp) {
-        // This is just a placeholder for signup functionality
-        // In a real implementation, you would call a registration API
-        setSuccess('Account created successfully! You can now login.');
-        setIsSignUp(false);
-        setLoading(false);
-        return;
-      }
-
-      // Login flow - same as company login but uses loginDeveloper
-      const response = await loginDeveloper(email, password);
-      
-      // Store auth token and user type in localStorage
-      localStorage.setItem("authToken", response.token);
-      localStorage.setItem("userType", "developer");
-      
-      // Fetch user profile after successful login
-      try {
-        const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || "https://round-georgianna-sprintmate-8451e6d8.koyeb.app";
-        const profileResponse = await axios.get(`${apiBaseUrl}/v1/users/profile`, {
-          headers: {
-            'Authorization': response.token
-          }
-        });
-        
-        if (profileResponse.data) {
-          // Store user profile in localStorage
-          localStorage.setItem("userProfile", JSON.stringify(profileResponse.data));
-          
-          // Store developer ID for easy access
-          if (profileResponse.data.externalId) {
-            localStorage.setItem("userId", profileResponse.data.externalId);
-          }
-          
-          setSuccess('Login successful!');
-        }
-      } catch (profileErr) {
-        console.error("Error fetching profile:", profileErr);
-        // Continue even if profile fetch fails - we already have the token
-      }
-      
-      // Short delay to show success message before redirecting
-      setTimeout(() => {
-        navigate('/developer/dashboard');
-      }, 1500);
-    } catch (err) {
-      console.error("Login error:", err);
-      setError(err.message || 'Authentication failed. Please check your credentials.');
-    } finally {
-      setLoading(false);
-    }
+  const resetForm = () => {
+    setFormData({
+      email: '',
+      password: '',
+    });
+    setName('');
+    setError('');
+    setSuccess('');
   };
 
   // Animation variants
@@ -132,10 +134,10 @@ export default function DeveloperLogin() {
       <header className="p-4 sm:p-6">
         <div className="max-w-7xl mx-auto">
           <div className="flex justify-between items-center">
-            <Link to="/" className="flex items-center space-x-2 text-xl font-bold text-gray-900 hover:text-blue-600 transition-colors">
+            <div className="flex items-center space-x-2 text-xl font-bold text-gray-900">
               <Code size={24} className="text-blue-600" />
               <span>SprintFlow</span>
-            </Link>
+            </div>
             <button 
               onClick={() => navigate('/')} 
               className="flex items-center text-sm text-gray-600 hover:text-blue-600 transition-colors"
@@ -206,12 +208,12 @@ export default function DeveloperLogin() {
                     </div>
                   </motion.div>
                   <motion.h2 variants={itemVariants} className="text-2xl font-bold text-gray-900">
-                    {isSignUp ? 'Create Developer Account' : 'Developer Login'}
+                    {isSignUp ? `Create ${userType === 'company' ? 'Company' : 'Developer'} Account` : `${userType === 'company' ? 'Company' : 'Developer'} Login`}
                   </motion.h2>
                   <motion.p variants={itemVariants} className="mt-2 text-sm text-gray-600">
                     {isSignUp 
-                      ? 'Join our community and start building amazing projects' 
-                      : 'Access your dashboard and explore available projects'}
+                      ? `Join our platform as a ${userType === 'company' ? 'company' : 'developer'} and start your journey` 
+                      : `Access your ${userType === 'company' ? 'company' : 'developer'} dashboard`}
                   </motion.p>
                 </div>
 
@@ -249,7 +251,7 @@ export default function DeveloperLogin() {
                   )}
                 </AnimatePresence>
 
-                <form onSubmit={handleLogin} className="space-y-5">
+                <form onSubmit={handleSubmit} className="space-y-5">
                   <AnimatePresence mode="wait">
                     {isSignUp && (
                       <motion.div 
@@ -301,18 +303,20 @@ export default function DeveloperLogin() {
                       </div>
                       <input
                         id="email"
+                        name="email"
                         type="email"
-                        value={email}
-                        onChange={(e) => setEmail(e.target.value)}
-                        className="pl-10 pr-3 py-2 w-full rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
-                        placeholder="developer@example.com"
+                        autoComplete="email"
                         required
+                        className="pl-10 pr-3 py-2 w-full rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                        placeholder={`${userType}@example.com`}
+                        value={formData.email}
+                        onChange={handleChange}
                       />
                     </div>
                   </motion.div>
 
                   <motion.div className="space-y-1" variants={itemVariants}>
-                    <label htmlFor="password" className="block text-sm font-medium text-gray-700">
+                    <label htmlFor="cred" className="block text-sm font-medium text-gray-700">
                       Password
                     </label>
                     <div className="relative">
@@ -320,13 +324,15 @@ export default function DeveloperLogin() {
                         <Lock size={16} className="text-gray-400" />
                       </div>
                       <input
-                        id="password"
+                        id="cred"
+                        name="cred"
                         type={showPassword ? "text" : "password"}
-                        value={password}
-                        onChange={(e) => setPassword(e.target.value)}
-                        className="pl-10 pr-10 py-2 w-full rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
-                        placeholder={isSignUp ? "Create a secure password" : "Enter your password"}
+                        autoComplete="current-password"
                         required
+                        className="pl-10 pr-10 py-2 w-full rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                        placeholder="Enter your password"
+                        value={formData.cred}
+                        onChange={handleChange}
                       />
                       <button
                         type="button"
@@ -368,35 +374,6 @@ export default function DeveloperLogin() {
                       >
                         <ArrowRight size={16} />
                       </motion.div>
-
-                      {/* Particle effect on hover */}
-                      <motion.div
-                        className="absolute inset-0 -z-10"
-                        whileHover="hover"
-                        initial="initial"
-                      >
-                        {[...Array(5)].map((_, i) => (
-                          <motion.div
-                            key={i}
-                            className="absolute w-1 h-1 bg-white rounded-full opacity-0"
-                            style={{ left: `${20 + i * 15}%`, top: '50%' }}
-                            variants={{
-                              initial: { opacity: 0, y: 0, scale: 0 },
-                              hover: {
-                                opacity: [0, 0.5, 0],
-                                y: [0, -20 - i * 2],
-                                x: [0, (i - 2) * 5],
-                                scale: [0, 1 + i * 0.1, 0],
-                                transition: {
-                                  repeat: Infinity,
-                                  duration: 1 + i * 0.1,
-                                  delay: i * 0.06,
-                                }
-                              }
-                            }}
-                          />
-                        ))}
-                      </motion.div>
                     </motion.button>
                   </motion.div>
                 </form>
@@ -412,16 +389,24 @@ export default function DeveloperLogin() {
                     </div>
                   </div>
 
-                  <div className="mt-6">
+                  <div className="mt-6 grid grid-cols-2 gap-3">
                     <motion.button
-                      variants={itemVariants}
-                      type="button"
+                      onClick={handleGoogleLogin}
                       className="w-full inline-flex justify-center items-center py-2.5 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 transition-colors"
                       whileHover={{ y: -2, boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)' }}
                       whileTap={{ y: 0 }}
                     >
-                      <Github size={16} className="mr-2" />
-                      Continue with GitHub
+                      <FaGoogle className="mr-2" />
+                      Google
+                    </motion.button>
+                    <motion.button
+                      onClick={handleGithubLogin}
+                      className="w-full inline-flex justify-center items-center py-2.5 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 transition-colors"
+                      whileHover={{ y: -2, boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)' }}
+                      whileTap={{ y: 0 }}
+                    >
+                      <FaGithub className="mr-2" />
+                      GitHub
                     </motion.button>
                   </div>
                 </div>
@@ -443,7 +428,7 @@ export default function DeveloperLogin() {
                   </p>
                 </motion.div>
 
-                {/* Developer highlights */}
+                {/* User type specific highlights */}
                 {!isSignUp && (
                   <motion.div 
                     variants={itemVariants}
@@ -451,15 +436,25 @@ export default function DeveloperLogin() {
                   >
                     <div className="flex items-center mb-3">
                       <Sparkles size={16} className="text-blue-500 mr-2" />
-                      <p className="text-sm font-medium text-gray-900">Developer Benefits</p>
+                      <p className="text-sm font-medium text-gray-900">
+                        {userType === 'company' ? 'Company Benefits' : 'Developer Benefits'}
+                      </p>
                     </div> 
                     <div className="grid grid-cols-2 gap-3">
-                      {[
-                        "Find exciting projects",
-                        "Build your portfolio",
-                        "Flexible remote work",
-                        "Secure payments"
-                      ].map((benefit, i) => (
+                      {(userType === 'company' 
+                        ? [
+                            "Find top talent",
+                            "Manage projects",
+                            "Track progress",
+                            "Secure payments"
+                          ]
+                        : [
+                            "Find exciting projects",
+                            "Build your portfolio",
+                            "Flexible remote work",
+                            "Secure payments"
+                          ]
+                      ).map((benefit, i) => (
                         <motion.div
                           key={i}
                           className="flex items-center text-xs text-gray-600"
@@ -486,4 +481,6 @@ export default function DeveloperLogin() {
       </footer>
     </div>
   );
-}
+};
+
+export default Login; 

@@ -5,6 +5,8 @@ import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/components/ui/use-toast';
 import axios from 'axios';
+import { authUtils } from '@/utils/authUtils';
+
 
 const TaskApplicationModal = ({ isOpen, onClose, taskId, onSuccess }) => {
   const [proposal, setProposal] = useState('');
@@ -103,7 +105,7 @@ const TaskApplicationModal = ({ isOpen, onClose, taskId, onSuccess }) => {
       }
       
       // Get auth token
-      const token = localStorage.getItem('authToken');
+      const token = authUtils.getAuthToken();
       if (!token) {
         throw new Error('Authentication token not found. Please log in again.');
       }

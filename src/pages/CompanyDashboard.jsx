@@ -58,9 +58,11 @@ import {
   GlowContainer
 } from '@/components/ui/dashboardAnimations';
 import axios from 'axios';
+import { authUtils } from '@/utils/authUtils';
+
 
 // Import our new company dashboard view component
-import CompanyViewDashboard from '@/components/dashboard/companyViewDashboard';
+import CompanyViewDashboard from '@/components/dashboard/CompanyViewDashboard';
 
 // Import the new ApplicationDetails component
 import ApplicationDetails from '@/components/dashboard/ApplicationDetails';
@@ -1022,7 +1024,7 @@ const Applications = () => {
       const fetchApplications = async () => {
         try {
           const apiBaseUrl = import.meta.env.VITE_API_BASE_URL;
-          const token = localStorage.getItem('authToken');
+          const token = authUtils.getAuthToken();
           
           if (!token) {
             console.error("Auth token not found");
