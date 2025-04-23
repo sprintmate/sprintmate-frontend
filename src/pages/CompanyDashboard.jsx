@@ -62,7 +62,7 @@ import { authUtils } from '@/utils/authUtils';
 
 
 // Import our new company dashboard view component
-import CompanyViewDashboard from '@/components/dashboard/companyViewDashboard';
+import CompanyViewDashboard from '@/components/dashboard/CompanyViewDashboard';
 
 // Import the new ApplicationDetails component
 import ApplicationDetails from '@/components/dashboard/ApplicationDetails';
