@@ -23,6 +23,7 @@ import {
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { authUtils } from '@/utils/authUtils';
 
 const DeveloperProfilePage = () => {
   const { developerId } = useParams();
@@ -80,7 +81,7 @@ const DeveloperProfilePage = () => {
       setError(null);
       
       try {
-        const token = localStorage.getItem('authToken');
+        const token = authUtils.getToken();
         if (!token) {
           throw new Error('Authentication token not found');
         }
