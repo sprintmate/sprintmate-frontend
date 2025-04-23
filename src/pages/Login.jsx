@@ -17,7 +17,7 @@ import {
   ChevronLeft, 
   Sparkles 
 } from 'lucide-react';
-import { FaGoogle } from 'react-icons/fa';
+import { FaGoogle, FaGithub } from 'react-icons/fa';
 
 const Login = () => {
   const [formData, setFormData] = useState({
@@ -74,9 +74,9 @@ const Login = () => {
     window.location.href = `${import.meta.env.VITE_API_BASE_URL}/oauth2/authorization/google?role=${userType}`;
   };
 
-  const handleGithubLogin = (e) => {
-    e.preventDefault();
-    // Implement GitHub login logic
+  const handleGithubLogin = () => {
+    authUtils.setOAuthRole(userType);
+    window.location.href = `${import.meta.env.VITE_API_BASE_URL}/oauth2/authorization/github?role=${userType}`;
   };
 
   const handleToggleMode = () => {
@@ -383,7 +383,7 @@ const Login = () => {
                     </div>
                   </div>
 
-                  <div className="mt-6">
+                  <div className="mt-6 grid grid-cols-2 gap-3">
                     <motion.button
                       onClick={handleGoogleLogin}
                       className="w-full inline-flex justify-center items-center py-2.5 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 transition-colors"
@@ -391,7 +391,16 @@ const Login = () => {
                       whileTap={{ y: 0 }}
                     >
                       <FaGoogle className="mr-2" />
-                      Continue with Google
+                      Google
+                    </motion.button>
+                    <motion.button
+                      onClick={handleGithubLogin}
+                      className="w-full inline-flex justify-center items-center py-2.5 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 transition-colors"
+                      whileHover={{ y: -2, boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)' }}
+                      whileTap={{ y: 0 }}
+                    >
+                      <FaGithub className="mr-2" />
+                      GitHub
                     </motion.button>
                   </div>
                 </div>
