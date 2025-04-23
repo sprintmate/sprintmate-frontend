@@ -105,7 +105,7 @@ const TaskApplicationModal = ({ isOpen, onClose, taskId, onSuccess }) => {
       }
       
       // Get auth token
-      const token = authUtils.getToken();
+      const token = authUtils.getAuthToken();
       if (!token) {
         throw new Error('Authentication token not found. Please log in again.');
       }

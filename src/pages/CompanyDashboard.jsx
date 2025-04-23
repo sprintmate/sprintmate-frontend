@@ -1024,7 +1024,7 @@ const Applications = () => {
       const fetchApplications = async () => {
         try {
           const apiBaseUrl = import.meta.env.VITE_API_BASE_URL;
-          const token = authUtils.getToken();
+          const token = authUtils.getAuthToken();
           
           if (!token) {
             console.error("Auth token not found");

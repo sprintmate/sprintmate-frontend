@@ -81,7 +81,7 @@ const DeveloperProfilePage = () => {
       setError(null);
       
       try {
-        const token = authUtils.getToken();
+        const token = authUtils.getAuthToken();
         if (!token) {
           throw new Error('Authentication token not found');
         }
