@@ -26,11 +26,13 @@ export const AuthProvider = ({ children }) => {
         if (hasToken) {
           // Try to get stored profile data first
           const storedUser = getUserProfile();
-          const storedCompany = getCompanyProfile();
+          const storedCompany = getCompanyProfile(); // This is now properly implemented
           
           if (storedUser) {
             setUser(storedUser);
-            setCompanyProfile(storedCompany);
+            if (storedCompany) {
+              setCompanyProfile(storedCompany);
+            }
             setIsAuthenticated(true);
           } else {
             // If no stored profile, fetch it from API

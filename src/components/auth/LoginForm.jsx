@@ -16,7 +16,9 @@ const LoginForm = () => {
     setLoading(true);
     setError('');
 
-    const url = import.meta.env.VITE_API_BASE_URL 
+    const url = import.meta.env.VITE_API_BASE_URL;
+    
+    console.log("Login attempt for:", email);
 
     try {
       // Clear any existing auth data before login
@@ -29,24 +31,49 @@ const LoginForm = () => {
       });
       
       if (response.data && response.data.token) {
-        // 2. Store the token
-        setToken(response.data.token);
+        const token = response.data.token;
         
-        // 3. Fetch user profile data using the token
-        const profileData = await fetchUserProfile();
+        // 2. Store the token - ensure it has Bearer prefix for API calls
+        const success = setToken(token);
         
-        // 4. Redirect based on user role
-        if (profileData.role === 'CORPORATE') {
-          navigate('/dashboard/company');
-        } else if (profileData.role === 'DEVELOPER') {
-          navigate('/dashboard/developer');
-        } else {
-          navigate('/dashboard');
+        if (!success) {
+          setError("Failed to store authentication token");
+          setLoading(false);
+          return;
+        }
+        
+        try {
+          // 3. Fetch user profile data immediately after successful login
+          const profileData = await fetchUserProfile();
+          
+          // 4. Store user profile data for later use
+          storeUserProfile(profileData);
+          
+          console.log("Profile data stored in localStorage");
+          
+          // 5. Redirect based on user role
+          if (profileData.role === 'CORPORATE') {
+            navigate('/company/dashboard');
+          } else if (profileData.role === 'DEVELOPER') {
+            navigate('/dashboard/developer');
+          } else {
+            navigate('/dashboard');
+          }
+        } catch (profileError) {
+          console.error("Error fetching profile:", profileError);
+          
+          setError("Login successful but couldn't load your profile. Redirecting to dashboard...");
+          
+          // Default to company dashboard if we can't determine role
+          setTimeout(() => {
+            navigate('/company/dashboard');
+          }, 2000);
         }
       } else {
-        setError('Invalid login response');
+        setError('Invalid login response - no token received');
       }
     } catch (err) {
+      console.error("Login error:", err);
       setError(
         err.response?.data?.message || 
         'Login failed. Please check your credentials and try again.'

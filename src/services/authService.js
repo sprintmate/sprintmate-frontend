@@ -2,206 +2,119 @@
 
 import axios from 'axios';
 
-// Storage keys
-const TOKEN_KEY = 'authToken'; // Changed to match what's used in MyApplications.jsx
-const USER_PROFILE_KEY = 'user_profile';
-const COMPANY_PROFILE_KEY = 'company_profile';
+const TOKEN_KEY = 'auth_token';
 
-const url = import.meta.env.VITE_API_BASE_URL 
-
-// Setup axios defaults
-const setupAxiosDefaults = (token) => {
-  if (token) {
-    // Don't add 'Bearer' prefix if it already exists in the token
-    const authHeader = token.startsWith('Bearer ') ? token : `Bearer ${token}`;
-    axios.defaults.headers.common['Authorization'] = authHeader;
-  } else {
-    delete axios.defaults.headers.common['Authorization'];
-  }
-};
-
-// Store authentication token - clears any existing token first
+// Ensure token is stored with Bearer prefix if needed
 export const setToken = (token) => {
-  // Clear any existing token first
-  localStorage.removeItem(TOKEN_KEY);
-  
-  // Store new token
-  localStorage.setItem(TOKEN_KEY, token);
-  
-  // Setup axios defaults
-  setupAxiosDefaults(token);
-  
-  console.log('Token set in localStorage:', token ? 'Valid token stored' : 'No token stored');
+  try {
+    // Make sure token has the Bearer prefix for API calls
+    const formattedToken = token.startsWith('Bearer ') ? token : `Bearer ${token}`;
+    localStorage.setItem('authToken', formattedToken);
+    return true;
+  } catch (error) {
+    console.error("Error storing auth token:", error);
+    return false;
+  }
 };
 
-// Get stored token
+// Get token with proper format
 export const getToken = () => {
-  const token = localStorage.getItem(TOKEN_KEY);
-  console.log('Getting token from localStorage:', token ? 'Token found' : 'No token found');
-  return token;
-};
-
-// Remove token on logout
-export const removeToken = () => {
-  localStorage.removeItem(TOKEN_KEY);
-  setupAxiosDefaults(null);
-  console.log('Token removed from localStorage');
-};
-
-// Login company with credentials
-export const loginCompany = async (email, cred) => {
   try {
-    console.log('Attempting login with:', { email, cred: '****' });
-    
-    // Clear any existing tokens before attempting login
-    removeToken();
-    
-    const response = await axios.post(
-      `${url}/v1/tokens`, 
-      {
-        email,
-        cred
-      },
-      {
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json'
-        }
-      }
-    );
-    
-    console.log('Login API response:', response);
-    
-    if (response.data && response.data.token) {
-      console.log('Login successful, token received');
-      setToken(response.data.token);
-      
-      // Store userId if it exists in the response
-      if (response.data.userId) {
-        const userProfile = {
-          userId: response.data.userId,
-          email
-        };
-        setUserProfile(userProfile);
-      }
-      
-      return response.data;
-    } else {
-      console.error('Invalid response format:', response.data);
-      throw new Error('Invalid login response: Token not found in response');
-    }
-    
+    return localStorage.getItem('authToken');
   } catch (error) {
-    console.error('Login failed:', error);
-    if (error.response) {
-      // The request was made and the server responded with a status code
-      // that falls out of the range of 2xx
-      console.error('Error response data:', error.response.data);
-      console.error('Error response status:', error.response.status);
-      console.error('Error response headers:', error.response.headers);
-    } else if (error.request) {
-      // The request was made but no response was received
-      console.error('No response received:', error.request);
-    } else {
-      // Something happened in setting up the request that triggered an Error
-      console.error('Error message:', error.message);
-    }
-    throw error;
+    console.error("Error getting auth token:", error);
+    return null;
   }
 };
 
-// Function to login a developer user (similar structure to loginCompany)
-export const loginDeveloper = async (email, cred) => {
+// Store user profile data in localStorage for easy access
+export const storeUserProfile = (profileData) => {
   try {
-    // Clear any existing tokens before attempting login
-    removeToken();
-    
-    const response = await axios.post(`${url}/v1/tokens`, {
-      email,
-      cred,
-    });
-    
-    if (response.data && response.data.token) {
-      setToken(response.data.token);
-      return response.data;
-    } else {
-      throw new Error('Invalid response from server');
-    }
+    localStorage.setItem('userProfile', JSON.stringify(profileData));
+    return true;
   } catch (error) {
-    if (error.response) {
-      throw new Error(error.response.data.message || 'Authentication failed');
-    } else if (error.request) {
-      throw new Error('No response from server. Please check your internet connection.');
-    } else {
-      throw new Error('Error setting up request: ' + error.message);
-    }
-  }
-};
-
-// Store user profile data
-export const setUserProfile = (profileData) => {
-  localStorage.setItem(USER_PROFILE_KEY, JSON.stringify(profileData));
-  
-  // Also store company profile separately for easier access
-  if (profileData.companyProfiles && profileData.companyProfiles.length > 0) {
-    const companyProfile = profileData.companyProfiles[0];
-    // Make sure to include the companyId with the expected property name
-    const enhancedCompanyProfile = {
-      ...companyProfile,
-      companyId: companyProfile.externalId // Add alias for consistent property naming
-    };
-    localStorage.setItem(COMPANY_PROFILE_KEY, JSON.stringify(enhancedCompanyProfile));
+    console.error("Error storing user profile:", error);
+    return false;
   }
 };
 
 // Get stored user profile
 export const getUserProfile = () => {
-  const profile = localStorage.getItem(USER_PROFILE_KEY);
-  return profile ? JSON.parse(profile) : null;
-};
-
-// Get stored company profile
-export const getCompanyProfile = () => {
-  const profile = localStorage.getItem(COMPANY_PROFILE_KEY);
-  return profile ? JSON.parse(profile) : null;
-};
-
-// Clear all auth data
-export const clearAuthData = () => {
-  localStorage.removeItem(TOKEN_KEY);
-  localStorage.removeItem(USER_PROFILE_KEY);
-  localStorage.removeItem(COMPANY_PROFILE_KEY);
-  setupAxiosDefaults(null);
-  console.log('All auth data cleared');
-};
-
-// Fetch user profile from API
-export const fetchUserProfile = async () => {
   try {
-    const token = getToken();
-    if (!token) {
-      throw new Error('No authentication token found');
-    }
-    
-    setupAxiosDefaults(token);
-    const response = await axios.get('/v1/users/profile');
-    
-    if (response.data) {
-      setUserProfile(response.data);
-      return response.data;
+    const profileData = localStorage.getItem('userProfile');
+    return profileData ? JSON.parse(profileData) : null;
+  } catch (error) {
+    console.error("Error getting user profile:", error);
+    return null;
+  }
+};
+
+// Get company profile from stored user profile
+export const getCompanyProfile = () => {
+  try {
+    const userProfile = getUserProfile();
+    if (userProfile && userProfile.companyProfiles && userProfile.companyProfiles.length > 0) {
+      return userProfile.companyProfiles[0];
     }
     return null;
   } catch (error) {
-    console.error('Error fetching user profile:', error);
+    console.error("Error getting company profile:", error);
+    return null;
+  }
+};
+
+// Fetch user profile with better error handling and logging
+export const fetchUserProfile = async () => {
+  try {
+    // Try to get from localStorage first
+    const storedProfile = getUserProfile();
+    if (storedProfile) {
+      console.log("Using profile from localStorage");
+      return storedProfile;
+    }
+
+    const token = getToken();
+    const apiBaseUrl = import.meta.env.VITE_API_BASE_URL;
+    
+    if (!token) {
+      console.error("No auth token available for profile fetch");
+      throw new Error("Authentication required");
+    }
+    
+    console.log("Fetching profile from API:", `${apiBaseUrl}/v1/users/profile`);
+    
+    const response = await axios.get(`${apiBaseUrl}/v1/users/profile`, {
+      headers: {
+        'Authorization': token,
+        'Content-Type': 'application/json'
+      }
+    });
+    
+    if (response.data) {
+      console.log("Profile API response received successfully");
+      // Store profile in localStorage for future use
+      storeUserProfile(response.data);
+      return response.data;
+    } else {
+      throw new Error("Invalid profile data received");
+    }
+  } catch (error) {
+    console.error("Error fetching user profile:", error);
     throw error;
   }
 };
 
-// Initialize auth service on app load
+// Clear all auth data when logging out
+export const clearAuthData = () => {
+  localStorage.removeItem('authToken');
+  localStorage.removeItem('userProfile');
+};
+
+// Initialize authentication on app load
 export const initializeAuth = () => {
   const token = getToken();
   if (token) {
-    setupAxiosDefaults(token);
+    axios.defaults.headers.common['Authorization'] = token;
     return true;
   }
   return false;

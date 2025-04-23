@@ -59,6 +59,7 @@ import {
 } from '@/components/ui/dashboardAnimations';
 import axios from 'axios';
 import { authUtils } from '@/utils/authUtils';
+import { getToken, fetchUserProfile, getUserProfile } from '../services/authService'; // Update imports
 
 
 // Import our new company dashboard view component
@@ -143,26 +144,52 @@ const MyTasks = () => {
     labels: ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
   };
 
-  // Get company ID from localStorage
+  // Get company ID from localStorage with better fallbacks
   useEffect(() => {
-    try {
-      const storedProfile = localStorage.getItem('userProfile');
-      if (storedProfile) {
-        const parsedProfile = JSON.parse(storedProfile);
+    const getCompanyProfileData = async () => {
+      try {
+        // First try to get from localStorage directly using the helper
+        const storedProfile = getUserProfile();
         
-        // Extract companyId from companyProfiles array
-        if (parsedProfile.companyProfiles && parsedProfile.companyProfiles.length > 0) {
-          const companyExternalId = parsedProfile.companyProfiles[0].externalId;
+        if (storedProfile && storedProfile.companyProfiles && storedProfile.companyProfiles.length > 0) {
+          const companyExternalId = storedProfile.companyProfiles[0].externalId;
           if (companyExternalId) {
-            console.log("Found company externalId:", companyExternalId);
+            console.log("Found company externalId from stored profile:", companyExternalId);
             setCompanyId(companyExternalId);
+            return; // Exit if we found the ID
           }
         }
+        
+        // If we reach here, we need to fetch from API
+        console.log("No valid company profile found in storage, fetching from API...");
+        
+        const token = getToken();
+        if (!token) {
+          setError("Authentication required. Please log in again.");
+          return;
+        }
+        
+        // Fetch profile from API as a last resort
+        const profileData = await fetchUserProfile();
+        
+        if (profileData && profileData.companyProfiles && profileData.companyProfiles.length > 0) {
+          const companyExternalId = profileData.companyProfiles[0].externalId;
+          if (companyExternalId) {
+            console.log("Found company externalId from API:", companyExternalId);
+            setCompanyId(companyExternalId);
+            return;
+          }
+        }
+        
+        // If we still don't have a company ID, show an error
+        setError("Could not load company profile. Please try logging in again.");
+      } catch (error) {
+        console.error("Error in getCompanyProfileData:", error);
+        setError("Could not load company profile. Please try again later.");
       }
-    } catch (error) {
-      console.error("Error loading company profile:", error);
-      setError("Could not load company profile. Please try again later.");
-    }
+    };
+
+    getCompanyProfileData();
   }, []);
 
   // Fetch tasks when companyId is available
@@ -177,46 +204,143 @@ const MyTasks = () => {
     setIsLoading(true);
     try {
       // Use full absolute URL to the API endpoint to prevent redirection to your frontend
-      const apiBaseUrl = import.meta.env.VITE_API_BASE_URL ;
-      const response = await axios.get(`${apiBaseUrl}/v1/company-profiles/${companyId}/tasks?page=${currentPage}&size=10`);
+      const apiBaseUrl = import.meta.env.VITE_API_BASE_URL;
       
-      if (response.data && response.data.content) {
+      // Check if we have a valid companyId
+      if (!companyId) {
+        console.error("No company ID available for API call");
+        setError("No company ID available. Please try logging in again.");
+        setIsLoading(false);
+        return;
+      }
+      
+      // Debug the URL and companyId
+      console.log("API Base URL:", apiBaseUrl);
+      console.log("Company ID:", companyId);
+      console.log("Attempting to call:", `${apiBaseUrl}/v1/company-profiles/${companyId}/tasks?page=${currentPage}&size=10`);
+      
+      // Add auth headers to ensure authenticated request
+      const token = getToken(); // Make sure getToken function is imported
+      
+      if (!token) {
+        console.error("No authentication token found");
+        setError("Authentication required. Please log in again.");
+        setIsLoading(false);
+        return;
+      }
+      
+      const response = await axios.get(
+        `${apiBaseUrl}/v1/company-profiles/${companyId}/tasks?page=${currentPage}&size=10`, 
+        { 
+          headers: { 
+            'Authorization': token,
+            'Content-Type': 'application/json'
+          } 
+        }
+      );
+      
+      // Log the response
+      console.log("API Response received:", response.status);
+      
+      if (response.data) {
         console.log("API Response:", response.data);
         
-        // Map API data to our UI format
-        const formattedTasks = response.data.content.map(task => ({
-          id: task.externalId,
-          title: task.title,
-          description: task.description,
-          applications: task.applicationsCount || 0, // Use the actual applicationsCount from API
-          status: task.status === "OPEN" ? "active" : 
-                  task.status === "IN_PROGRESS" ? "reviewing" : 
-                  task.status,
-          posted: formatDateRelative(task.createdAt),
-          deadline: formatDate(task.deadline),
-          budget: `${task.currency} ${task.budget.toLocaleString()}`,
-          techStack: task.tags ? task.tags.split(',') : [],
-          priority: getPriorityFromDeadline(task.deadline),
-          duration: calculateDuration(task.createdAt, task.deadline),
-          views: Math.floor(Math.random() * 200) + 50, // Placeholder since API doesn't provide views
-          // Create placeholder applicants for now until we have real data
-          applicants: generatePlaceholderApplicants(task.applicationsCount || 0)
-        }));
-        
-        setRecentTasks(formattedTasks);
-        setTotalPages(response.data.totalPages);
-        setTotalTasks(response.data.totalElements);
-        
-        // Update analytics with real data
-        analytics.totalTasks = response.data.totalElements;
-        analytics.activeTasks = formattedTasks.filter(t => t.status === "active").length;
+        if (response.data.content) {
+          // Map API data to our UI format
+          const formattedTasks = response.data.content.map(task => {
+            // Parse tags if available or default to empty array
+            const tags = task.tags ? task.tags.split(',').map(tag => tag.trim()) : [];
+            
+            // Parse dates properly
+            const createdDate = new Date(task.createdAt.replace(' ', 'T'));
+            const deadlineDate = task.deadline ? new Date(task.deadline.replace(' ', 'T')) : null;
+            
+            // Calculate task duration in days
+            const durationDays = deadlineDate ? 
+              Math.ceil((deadlineDate - createdDate) / (1000 * 60 * 60 * 24)) : 
+              null;
+            
+            return {
+              id: task.externalId,
+              title: task.title,
+              description: task.description,
+              applications: task.applicationsCount || 0,
+              status: task.status === "OPEN" ? "active" : 
+                     task.status === "IN_PROGRESS" ? "reviewing" : 
+                     task.status.toLowerCase(),
+              category: task.category,
+              budget: `${task.currency} ${task.budget.toLocaleString()}`,
+              currency: task.currency,
+              amount: task.budget,
+              posted: formatDateRelative(task.createdAt),
+              postedDate: createdDate,
+              deadline: formatDate(task.deadline),
+              deadlineDate: deadlineDate,
+              techStack: tags,
+              priority: getPriorityFromDeadline(task.deadline),
+              duration: `${durationDays} days`,
+              durationDays: durationDays,
+              views: Math.floor(Math.random() * 200) + 50, // Placeholder since API doesn't provide views
+              hasAttachments: !!task.attachments && Object.keys(task.attachments).length > 0,
+              attachments: task.attachments || {},
+              ndaRequired: task.ndaRequired,
+              // Create placeholder applicants for visual representation
+              applicants: generatePlaceholderApplicants(task.applicationsCount || 0)
+            };
+          });
+          
+          setRecentTasks(formattedTasks);
+          
+          // Set pagination data
+          setTotalPages(response.data.totalPages);
+          setTotalTasks(response.data.totalElements);
+          
+          // Update analytics with real data
+          analytics.totalTasks = response.data.totalElements;
+          analytics.activeTasks = formattedTasks.filter(t => t.status === "active").length;
+          
+          // Calculate applications statistics
+          const totalApplications = formattedTasks.reduce((sum, task) => sum + task.applications, 0);
+          analytics.totalApplications = totalApplications;
+          analytics.avgApplicationsPerTask = totalApplications > 0 && formattedTasks.length > 0 ? 
+            (totalApplications / formattedTasks.length).toFixed(1) : 0;
+        } else {
+          // Handle case where content array is missing
+          setRecentTasks([]);
+          setTotalPages(0);
+          setTotalTasks(0);
+          console.error("API response is missing 'content' array:", response.data);
+        }
       }
     } catch (error) {
       console.error("Error fetching tasks:", error);
+      
+      // Enhanced error logging
+      if (error.response) {
+        console.error("Response data:", error.response.data);
+        console.error("Response status:", error.response.status);
+        console.error("Response headers:", error.response.headers);
+      } else if (error.request) {
+        console.error("No response received:", error.request);
+      } else {
+        console.error("Error setting up request:", error.message);
+      }
+      
       setError("Failed to load tasks. Please try again later.");
     } finally {
       setIsLoading(false);
     }
+  };
+
+  // Helper function to calculate duration between two dates
+  const calculateDuration = (startDateStr, endDateStr) => {
+    if (!startDateStr || !endDateStr) return "N/A";
+    
+    const start = new Date(startDateStr.replace(' ', 'T'));
+    const end = new Date(endDateStr.replace(' ', 'T'));
+    const days = Math.ceil((end - start) / (1000 * 60 * 60 * 24));
+    
+    return `${days} days`;
   };
 
   // Helper function to format date relative to today
@@ -225,7 +349,6 @@ const MyTasks = () => {
     const now = new Date();
     const diffTime = Math.abs(now - date);
     const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
-    
     if (diffDays === 0) return "Today";
     if (diffDays === 1) return "Yesterday";
     if (diffDays < 7) return `${diffDays} days ago`;
@@ -236,7 +359,6 @@ const MyTasks = () => {
   // Helper function to format date for display
   const formatDate = (dateString) => {
     if (!dateString) return "No deadline";
-    
     // Handle "2025-06-04 00:00:00" format
     const date = new Date(dateString.replace(' ', 'T'));
     const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
@@ -246,29 +368,13 @@ const MyTasks = () => {
   // Helper function to determine priority based on deadline
   const getPriorityFromDeadline = (deadlineString) => {
     if (!deadlineString) return "Low";
-    
     const deadline = new Date(deadlineString.replace(' ', 'T'));
     const now = new Date();
     const diffTime = deadline - now;
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-    
     if (diffDays < 7) return "High";
     if (diffDays < 14) return "Medium";
     return "Low";
-  };
-
-  // Helper function to calculate project duration
-  const calculateDuration = (startDateString, endDateString) => {
-    if (!startDateString || !endDateString) return "N/A";
-    
-    const start = new Date(startDateString);
-    const end = new Date(endDateString.replace(' ', 'T'));
-    const diffTime = Math.abs(end - start);
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-    
-    if (diffDays < 7) return `${diffDays} days`;
-    if (diffDays < 30) return `${Math.ceil(diffDays / 7)} weeks`;
-    return `${Math.ceil(diffDays / 30)} months`;
   };
 
   // Generate placeholder applicants for testing - updated to respect the count parameter
@@ -304,7 +410,6 @@ const MyTasks = () => {
   // Navigate to task applications with first application ID when available
   const handleViewApplications = (taskId) => {
     const task = recentTasks.find(task => task.id === taskId);
-    
     if (task && task.applicants && task.applicants.length > 0) {
       // If we have applicants, navigate to the first one directly
       const firstApplicantId = task.applicants[0].id;
@@ -321,10 +426,9 @@ const MyTasks = () => {
       {error && (
         <div className="bg-red-50 border border-red-200 text-red-800 rounded-lg p-4 mb-6">
           <p>{error}</p>
-          <Button 
-            onClick={() => { setError(null); fetchTasks(); }} 
-            variant="outline" 
-            className="mt-2"
+          <Button
+            onClick={() => { setError(null); fetchTasks(); }}
+            variant="outline" className="mt-2"
           >
             Try Again
           </Button>
@@ -332,14 +436,14 @@ const MyTasks = () => {
       )}
 
       {/* Hero Section with Animated Elements - Now always visible */}
-      <motion.div 
+      <motion.div
         ref={scrollRef}
         className="relative rounded-2xl p-6 sm:p-8 mb-8 overflow-hidden"
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6 }}
       >
-        {/* Background */}
+        {/* Banner Background - Keep this blue */}
         <div className="absolute inset-0 bg-gradient-to-br from-blue-700 via-blue-600 to-indigo-700 opacity-90"></div>
 
         {/* Mesh Gradient Animation */}
@@ -352,7 +456,7 @@ const MyTasks = () => {
               fill="url(#purpleGradient)"
               animate={{
                 cx: [75, 65, 75],
-                cy: [30, 40, 30],
+                cy: [30, 40, 30]
               }}
               transition={{ repeat: Infinity, duration: 8, ease: "easeInOut" }}
             />
@@ -363,11 +467,10 @@ const MyTasks = () => {
               fill="url(#blueGradient)"
               animate={{
                 cx: [40, 50, 40],
-                cy: [70, 60, 70],
+                cy: [70, 60, 70]
               }}
               transition={{ repeat: Infinity, duration: 10, ease: "easeInOut" }}
             />
-            
             {/* Gradients */}
             <defs>
               <radialGradient id="purpleGradient" cx="0.5" cy="0.5" r="0.5" fx="0.5" fy="0.5">
@@ -391,22 +494,20 @@ const MyTasks = () => {
         {/* Content */}
         <div className="relative z-10 flex flex-col md:flex-row justify-between items-start md:items-center text-white">
           <div className="max-w-2xl">
-            <div className="flex items-center">
-              <h1 className="text-2xl sm:text-3xl font-bold mb-2 flex items-center">
-                My Tasks Dashboard
-                <motion.div
-                  className="ml-3 inline-flex items-center"
-                  initial={{ opacity: 0, scale: 0 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  transition={{ delay: 0.5, type: "spring" }}
-                >
-                  <span className="bg-white/20 backdrop-blur-sm text-xs rounded-full py-1 px-2 flex items-center gap-1 font-normal">
-                    <Sparkles size={12} className="text-yellow-300" />
-                    <span>Total: {totalTasks || 0}</span>
-                  </span>
-                </motion.div>
-              </h1>
-            </div>
+            <h1 className="text-2xl sm:text-3xl font-bold mb-2 flex items-center">
+              My Tasks Dashboard
+              <motion.div
+                className="ml-3 inline-flex items-center"
+                initial={{ opacity: 0, scale: 0 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ delay: 0.5, type: "spring" }}
+              >
+                <span className="bg-white/20 backdrop-blur-sm text-xs rounded-full py-1 px-2 flex items-center gap-1 font-normal">
+                  <Sparkles size={12} className="text-yellow-300" />
+                  <span>Total: {totalTasks || 0}</span>
+                </span>
+              </motion.div>
+            </h1>
             <p className="text-blue-100 text-sm sm:text-base max-w-2xl">
               Track active projects, review applications, and manage completed tasks all in one place
             </p>
@@ -440,14 +541,14 @@ const MyTasks = () => {
         </div>
       </motion.div>
 
-      {/* Time Period Selector */}
+      {/* Rest of content - Normal theme background */}
       <div className="bg-white rounded-xl p-4 shadow-sm border border-gray-200/60 mb-8">
+        {/* Time Period Selector */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
             <h2 className="text-lg font-semibold text-gray-900">Task Performance</h2>
             <p className="text-sm text-gray-500">Track your project metrics over time</p>
           </div>
-
           <div className="flex items-center bg-gray-100 rounded-lg p-1">
             {['week', 'month', 'year'].map((period) => (
               <button
@@ -484,7 +585,7 @@ const MyTasks = () => {
                     {activeStats.growth}%
                   </Badge>
                 </div>
-                
+
                 <div className="flex items-end justify-between">
                   <div className="text-2xl sm:text-3xl font-bold text-gray-900">
                     {isLoading ? <Shimmer width="w-20" height="h-9" /> : activeStats.taskViews.toLocaleString()}
@@ -522,17 +623,28 @@ const MyTasks = () => {
                   </div>
                   <Badge variant="purple" gradient glow className="capitalize">New</Badge>
                 </div>
-                
+
                 <div className="flex items-end justify-between">
                   <div className="text-2xl sm:text-3xl font-bold text-gray-900">
                     {isLoading ? <Shimmer width="w-16" height="h-9" /> : activeStats.newApplications}
                   </div>
-                  <div className="text-sm flex flex-col items-end">
-                    <div className="text-gray-500 font-medium text-xs">Time to hire</div>
-                    <div className="flex items-center gap-1 text-purple-600 font-medium">
-                      <Clock size={14} />
-                      <span>{analytics.timeToHire} days</span>
-                    </div>
+                  <div className="flex items-center gap-0.5 mt-1 text-amber-400">
+                    {Array.from({ length: 5 }).map((_, idx) => (
+                      <motion.div
+                        key={idx}
+                        initial={{ opacity: 0, scale: 0 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        transition={{ delay: 0.8 + (idx * 0.1) }}
+                        className="transition-transform hover:scale-110"
+                      >
+                        <Star
+                          size={16}
+                          fill={idx < Math.floor(analytics.avgRating) ? "currentColor" : "none"}
+                          className={idx < Math.floor(analytics.avgRating) ? "" : "text-gray-300"}
+                        />
+                      </motion.div>
+                    ))}
+                    <span className="ml-1 text-sm font-medium text-gray-700">{activeStats.newApplications}</span>
                   </div>
                 </div>
               </CardContent>
@@ -553,7 +665,7 @@ const MyTasks = () => {
                   </div>
                   <Badge variant="green" gradient glow className="capitalize">{activeStat}</Badge>
                 </div>
-                
+
                 <div className="flex items-end justify-between">
                   <div className="text-2xl sm:text-3xl font-bold text-gray-900">
                     {isLoading ? <Shimmer width="w-16" height="h-9" /> : activeStats.completedTasks}
@@ -595,7 +707,7 @@ const MyTasks = () => {
                   </div>
                   <Badge variant="yellow" gradient glow className="capitalize">Top</Badge>
                 </div>
-                
+
                 <div className="flex items-end justify-between">
                   <div className="text-2xl sm:text-3xl font-bold text-gray-900">
                     {isLoading ? <Shimmer width="w-16" height="h-9" /> : analytics.avgRating}
@@ -641,17 +753,18 @@ const MyTasks = () => {
                       size="sm" 
                       onClick={() => setCurrentPage(prev => Math.max(0, prev - 1))}
                       disabled={currentPage === 0 || isLoading}
-                      className="h-8 w-8 p-0"
                     >
                       <ChevronLeft size={16} />
                     </Button>
-                    <span>{currentPage + 1} / {totalPages}</span>
+                    <span>
+                      Page {currentPage + 1} of {totalPages} 
+                      <span className="hidden sm:inline"> ({totalTasks} total)</span>
+                    </span>
                     <Button 
                       variant="ghost" 
                       size="sm" 
                       onClick={() => setCurrentPage(prev => Math.min(totalPages - 1, prev + 1))}
                       disabled={currentPage === totalPages - 1 || isLoading}
-                      className="h-8 w-8 p-0"
                     >
                       <ChevronRight size={16} />
                     </Button>
@@ -664,8 +777,8 @@ const MyTasks = () => {
               </div>
             }
           >
+            {/* Loading state - shimmer placeholders */}
             {isLoading ? (
-              // Loading state - shimmer placeholders
               Array(3).fill(0).map((_, index) => (
                 <Card key={index} className="overflow-hidden backdrop-blur-sm border-blue-100/50 hover:border-blue-200/70 transition-all duration-300">
                   <CardContent className="relative p-4 sm:p-5">
@@ -692,9 +805,12 @@ const MyTasks = () => {
                     <CardContent className="relative p-4 sm:p-5">
                       {/* Status indicator line with animation */}
                       <motion.div 
-                        className={`absolute left-0 top-0 bottom-0 w-1 ${
-                          task.status === 'active' ? 'bg-blue-500' : 'bg-amber-500'
-                        }`}
+                        className="absolute left-0 top-0 bottom-0 w-1"
+                        style={{ 
+                          backgroundColor: task.status === 'active' ? 'rgb(37, 99, 235)' : 
+                                         task.status === 'reviewing' ? 'rgb(245, 158, 11)' : 
+                                         'rgb(34, 197, 94)'
+                        }}
                         initial={{ height: 0 }}
                         whileInView={{ height: '100%' }}
                         viewport={{ once: true }}
@@ -704,48 +820,60 @@ const MyTasks = () => {
                       <div className="flex flex-col sm:flex-row justify-between sm:items-start gap-4 pl-3">
                         <div className="min-w-0 flex-1">
                           <div className="flex items-center flex-wrap sm:flex-nowrap gap-2 sm:gap-0">
-                            <div className="mr-3">
-                              {task.status === 'active' ? (
-                                <div className="w-8 h-8 rounded-lg bg-blue-100/80 flex items-center justify-center">
-                                  <Laptop size={15} className="text-blue-600" />
-                                </div>
-                              ) : (
-                                <div className="w-8 h-8 rounded-lg bg-amber-100/80 flex items-center justify-center">
-                                  <Server size={15} className="text-amber-600" />
-                                </div>
-                              )}
+                            <div className="w-8 h-8 rounded-lg bg-blue-100/80 flex items-center justify-center mr-3">
+                              <Laptop size={15} className="text-blue-600" />
                             </div>
                             <h3 className="text-base font-semibold text-gray-900 truncate group-hover:text-blue-600 transition-colors">
                               {task.title}
                             </h3>
                             
-                            <div className="sm:ml-auto sm:pl-2 flex gap-2">
+                            {/* Status badge */}
+                            <div className="ml-auto">
                               <Badge 
-                                variant={task.status === 'active' ? 'blue' : 'yellow'} 
-                                gradient 
-                                glow 
-                                size="sm"
+                                variant={
+                                  task.status === 'active' ? "blue" : 
+                                  task.status === 'reviewing' ? "yellow" : 
+                                  "green"
+                                }
                                 className="capitalize"
                               >
-                                {task.status === 'active' && <span className="w-1.5 h-1.5 rounded-full bg-blue-500 mr-1 animate-pulse" />}
                                 {task.status}
-                              </Badge>
-                              <Badge 
-                                variant={task.priority === 'High' ? 'red' : 'blue'} 
-                                size="sm"
-                                className="capitalize hidden sm:flex"
-                              >
-                                {task.priority}
                               </Badge>
                             </div>
                           </div>
                           
                           <p className="text-sm text-gray-600 mt-2 line-clamp-2 pl-11">{task.description}</p>
                           
+                          {/* Task metadata - Budget, Deadline, Duration */}
+                          <div className="flex flex-wrap gap-4 mt-3 pl-11 text-sm text-gray-600">
+                            <div className="flex items-center gap-1">
+                              <DollarSign size={14} className="text-blue-500" />
+                              <span>{task.budget}</span>
+                            </div>
+                            
+                            <div className="flex items-center gap-1">
+                              <Calendar size={14} className="text-blue-500" />
+                              <span>{task.deadline}</span>
+                            </div>
+                            
+                            <div className="flex items-center gap-1">
+                              <Clock size={14} className="text-blue-500" />
+                              <span>{task.duration}</span>
+                            </div>
+                            
+                            {task.ndaRequired && (
+                              <div className="flex items-center gap-1">
+                                <FileCheck size={14} className="text-red-500" />
+                                <span className="text-red-600 font-medium">NDA Required</span>
+                              </div>
+                            )}
+                          </div>
+                          
+                          {/* Tech stack tags */}
                           <div className="flex flex-wrap gap-2 mt-3 pl-11">
                             {task.techStack.map((tech, idx) => (
                               <motion.div
-                                key={tech+idx}
+                                key={`${task.id}-${tech}-${idx}`}
                                 initial={{ opacity: 0, y: 10 }}
                                 whileInView={{ opacity: 1, y: 0 }}
                                 viewport={{ once: true }}
@@ -757,42 +885,23 @@ const MyTasks = () => {
                                   size="sm"
                                   className="bg-blue-50/80"
                                 >
-                                  {tech === "React" && <Code size={12} className="mr-1" />}
-                                  {tech === "Node.js" && <Server size={12} className="mr-1" />}
-                                  {tech === "MongoDB" && <Database size={12} className="mr-1" />}
-                                  {tech === "Docker" && <Blocks size={12} className="mr-1" />}
-                                  {tech === "Kubernetes" && <Cpu size={12} className="mr-1" />}
-                                  {tech === "Jenkins" && <GitBranch size={12} className="mr-1" />}
-                                  {tech === "TypeScript" && <FileCode size={12} className="mr-1" />}
-                                  {tech === "Express" && <Server size={12} className="mr-1" />}
-                                  {tech === "Tailwind" && <Braces size={12} className="mr-1" />}
+                                  {tech === "react" && <Code size={12} className="mr-1" />}
+                                  {tech === "node.js" && <Server size={12} className="mr-1" />}
+                                  {tech === "mongodb" && <Database size={12} className="mr-1" />}
+                                  {tech === "docker" && <Blocks size={12} className="mr-1" />}
+                                  {tech === "kubernetes" && <Cpu size={12} className="mr-1" />}
+                                  {tech === "jenkins" && <GitBranch size={12} className="mr-1" />}
+                                  {tech === "typescript" && <FileCode size={12} className="mr-1" />}
+                                  {tech === "express" && <Server size={12} className="mr-1" />}
+                                  {tech === "tailwind" && <Braces size={12} className="mr-1" />}
                                   {tech}
                                 </Badge>
                               </motion.div>
                             ))}
                           </div>
-
-                          <div className="flex flex-wrap sm:flex-nowrap items-center gap-3 sm:gap-6 mt-4 pt-3 border-t border-gray-100 pl-3 text-xs text-gray-500">
-                            <span className="flex items-center gap-1">
-                              <Calendar size={12} className="text-blue-500" />
-                              Deadline: {task.deadline}
-                            </span>
-                            <span className="flex items-center gap-1">
-                              <DollarSign size={12} className="text-blue-500" />
-                              {task.budget}
-                            </span>
-                            <span className="flex items-center gap-1">
-                              <Timer size={12} className="text-blue-500" />
-                              {task.duration}
-                            </span>
-                            <span className="flex items-center gap-1 ml-auto">
-                              <Users2 size={12} className="text-blue-500" />
-                              {task.applications} applicants
-                            </span>
-                          </div>
                         </div>
                       </div>
-                      
+
                       {/* Task action buttons */}
                       <div className="flex items-center justify-between mt-4 pt-3 border-t border-gray-100 pl-3">
                         <div className="flex items-center gap-2">
@@ -801,7 +910,6 @@ const MyTasks = () => {
                             <span className="hidden sm:inline">{task.views} views</span>
                             <span className="sm:hidden">{task.views}</span>
                           </Button>
-                          
                           <Button 
                             variant="ghost" 
                             size="sm" 
@@ -809,23 +917,14 @@ const MyTasks = () => {
                             onClick={() => handleViewApplications(task.id)}
                           >
                             <Users size={14} className="mr-1" />
-                            <span>{task.applications} Applicants</span>
+                            <span>{task.applications} {task.applications === 1 ? 'Applicant' : 'Applicants'}</span>
                           </Button>
                         </div>
                         
-                        <Button variant="ghost" size="sm" className="text-blue-600 hover:text-blue-700 hover:bg-blue-50/50 -mr-2 group h-8">
-                          <span className="hidden sm:inline">Details</span>
-                          <motion.div
-                            className="inline-block ml-1"
-                            whileHover={{ x: 2, y: -2 }}
-                          >
-                            <ArrowUpRight size={14} />
-                          </motion.div>
-                        </Button>
+                        <div className="text-xs text-gray-500">
+                          Posted: {task.posted}
+                        </div>
                       </div>
-
-                      {/* Remove the slide-down applicants panel since we're navigating instead */}
-                      
                     </CardContent>
                   </Card>
                 </div>
@@ -848,14 +947,14 @@ const MyTasks = () => {
         </div>
 
         {/* Past Tasks - Minor Half - keeping this as is for now */}
-        <div>
+        <div className="w-full">
           <StaggeredSection 
             title="Completed Tasks"
             delay={0.7}
             staggerDelay={0.15}
             actionButton={
               <Button variant="outline" size="sm" className="text-green-600 hover:text-green-700 gap-1">
-                History
+                Task History
                 <ChevronRight size={16} />
               </Button>
             }
@@ -872,7 +971,7 @@ const MyTasks = () => {
                       viewport={{ once: true }}
                       transition={{ duration: 0.5 }}
                     />
-                    
+
                     <div className="flex justify-between items-start gap-4 pl-3">
                       <div className="min-w-0 flex-1">
                         <div className="flex items-center flex-wrap sm:flex-nowrap gap-2 sm:gap-0">
@@ -880,21 +979,12 @@ const MyTasks = () => {
                             <FileCheck size={15} className="text-green-600" />
                           </div>
                           <h3 className="text-base font-semibold text-gray-900 truncate group-hover:text-green-600 transition-colors">
-                            {task.title}
+                            {task.title} 
                           </h3>
-                          <Badge 
-                            variant="green" 
-                            gradient 
-                            glow 
-                            size="sm" 
-                            className="capitalize flex items-center gap-1 sm:ml-auto sm:pl-2"
-                          >
-                            <CheckCircle2 size={12} />
-                            {task.status}
-                          </Badge>
                         </div>
+                        <p className="text-sm text-gray-600 mt-2 line-clamp-2 pl-11">{task.description}</p>
                         
-                        <div className="flex flex-wrap gap-2 mt-2 pl-11">
+                        <div className="flex flex-wrap gap-2 mt-3 pl-11">
                           {task.techStack.map((tech, idx) => (
                             <motion.div
                               key={tech}
@@ -905,6 +995,7 @@ const MyTasks = () => {
                             >
                               <Badge
                                 variant="green"
+                                gradient
                                 size="sm"
                                 className="bg-green-50/80"
                               >
@@ -913,61 +1004,9 @@ const MyTasks = () => {
                             </motion.div>
                           ))}
                         </div>
-                        
-                        <div className="ml-11 mt-2 space-y-1">
-                          <p className="text-sm text-gray-700 flex items-center">
-                            <Users2 size={14} className="text-green-500 mr-1.5" />
-                            <span className="font-medium">{task.hired}</span>
-                          </p>
-                          <p className="text-xs text-gray-500 flex items-center">
-                            <Calendar size={12} className="text-green-500 mr-1.5" />
-                            {task.completedDate}
-                          </p>
-                          <p className="text-xs text-gray-500 flex items-center">
-                            <DollarSign size={12} className="text-green-500 mr-1.5" />
-                            Budget: {task.budget} / Final: {task.finalCost}
-                          </p>
-                        </div>
                       </div>
                     </div>
 
-                    <div className="flex items-center justify-between mt-3 pt-3 border-t border-gray-100 pl-3">
-                      <div className="flex items-center gap-1 text-amber-400">
-                        {Array.from({ length: 5 }).map((_, idx) => (
-                          <motion.div
-                            key={`star-${task.id}-${idx}`}
-                            initial={{ opacity: 0, scale: 0 }}
-                            whileInView={{ opacity: 1, scale: 1 }}
-                            viewport={{ once: true }}
-                            transition={{ delay: 0.3 + (idx * 0.1) }}
-                            whileHover={{ scale: 1.2 }}
-                            className="cursor-pointer"
-                          >
-                            <Star
-                              size={14}
-                              fill={idx < Math.floor(task.rating) ? "currentColor" : "none"}
-                              className={idx < Math.floor(task.rating) ? "" : "text-gray-300"}
-                            />
-                          </motion.div>
-                        ))}
-                        <span className="ml-1 text-sm font-medium text-gray-700">{task.rating}</span>
-                      </div>
-                      
-                      <Button 
-                        variant="ghost" 
-                        size="sm" 
-                        className="text-green-600 hover:text-green-700 hover:bg-green-50/50 -mr-2 group h-8"
-                      >
-                        <span className="hidden sm:inline">Details</span>
-                        <motion.div
-                          className="inline-block ml-1"
-                          whileHover={{ x: 2, y: -2 }}
-                        >
-                          <ArrowUpRight size={14} />
-                        </motion.div>
-                      </Button>
-                    </div>
-                    
                     {/* Feedback summary (always shown) */}
                     <div className="mt-3 pt-3 border-t border-gray-100 pl-3">
                       <div className="flex items-start gap-2">
@@ -1004,8 +1043,7 @@ const PostTask = () => (
         Find the perfect developer for your project by providing detailed requirements
       </p>
     </motion.div>
-
-    <PostTaskForm />
+    <PostTaskForm /> 
   </div>
 );
 
@@ -1033,14 +1071,10 @@ const Applications = () => {
           
           const response = await axios.get(
             `${apiBaseUrl}/v1/tasks/${taskId}/applications`,
-            {
-              headers: { 'Authorization': token }
-            }
+            { headers: { 'Authorization': token } }
           );
-          
           if (response.data && response.data.length > 0) {
-
-            console.log(response , "(((((((((((((((((((*********))))))))))))))))")
+            console.log(response, "(((((((((((((((((((*********)))))))))))))))))");
             // If applications exist, redirect to the first one
             const firstAppId = response.data[0].externalId;
             navigate(`/company/dashboard/tasks/${taskId}/applications/${firstAppId}`);
@@ -1051,7 +1085,6 @@ const Applications = () => {
           setIsLoading(false);
         }
       };
-      
       fetchApplications();
     }
   }, [taskId, applicationId, navigate]);
@@ -1082,7 +1115,7 @@ const Applications = () => {
                 Please select a task from the Tasks dashboard to view its applications.
               </p>
               <Button 
-                className="mt-4 bg-blue-600" 
+                className="mt-4 bg-blue-600" asChild
                 onClick={() => navigate('/company/dashboard/tasks')}
               >
                 View Tasks
@@ -1107,15 +1140,14 @@ const SettingsPage = () => (
   </div>
 );
 
-// Add ProfileEdit component import
+// Add ProfileEdit component import};
 import EditProfile from '@/components/profile/EditProfile';
 
 // Add UserProfile component
 const UserProfile = () => {
   const navigate = useNavigate();
-  const location = useLocation();
+  const location = useLocation();  
   const [isEditing, setIsEditing] = useState(false);
-  
   // This would typically come from a context or API call
   const [userData, setUserData] = useState({
     name: "shashant kashyap",
@@ -1144,12 +1176,15 @@ const UserProfile = () => {
         verificationStatus: true,
         isDeleted: false,
         attachments: {
+          EDIN: "https://linkedin.com/in/shashant-kashyap",
           LOGO: "5c935565-fa32-413b-b15a-a461fde83b18"
         },
         about: null
       }
     ],
-    developerProfiles: []
+    externalId: "7823fdcf-bb3b-47ea-a182-6853ab925ffc",
+    developerProfiles: [],
+    createdAt: "2025-04-07T16:02:14.000+00:00"
   });
 
   // Check if we should be in edit mode based on url
@@ -1175,8 +1210,6 @@ const UserProfile = () => {
     try {
       // This would typically be an API call to update the profile
       console.log("Profile data to update:", updatedData);
-      
-      // For demo, just update the local state
       setUserData(prev => ({
         ...prev,
         ...updatedData
@@ -1184,7 +1217,6 @@ const UserProfile = () => {
       
       // Navigate back to view mode
       navigate('/company/dashboard/profile');
-      
       return Promise.resolve();
     } catch (error) {
       console.error("Error updating profile:", error);
@@ -1202,7 +1234,7 @@ const UserProfile = () => {
     return <EditProfile 
       userData={userData} 
       onSave={handleProfileUpdate}
-      onCancel={handleCancelEdit}
+      onCancel={handleCancelEdit} 
     />;
   }
 
@@ -1232,7 +1264,7 @@ const UserProfile = () => {
               </div>
             </div>
           </div>
-        </div>
+        </div>  {/* Grid Pattern Overlay */}
         
         {/* Profile information */}
         <div className="pt-20 pb-8 px-8">
@@ -1248,9 +1280,8 @@ const UserProfile = () => {
                 )}
               </p>
             </div>
-            
-            <div className="flex gap-3">
-              <Button 
+            <div className="flex gap-3"> px-8">
+              <Button
                 variant="outline" 
                 size="sm" 
                 className="gap-2"
@@ -1265,7 +1296,7 @@ const UserProfile = () => {
               </Button>
             </div>
           </div>
-          
+
           {/* About section */}
           {userData.about && (
             <div className="mt-6">
@@ -1273,7 +1304,7 @@ const UserProfile = () => {
               <p className="text-gray-700">{userData.about}</p>
             </div>
           )}
-          
+
           {/* Skills section */}
           {userData.skills && (
             <div className="mt-6">
@@ -1287,7 +1318,7 @@ const UserProfile = () => {
               </div>
             </div>
           )}
-          
+
           {/* Role & ID information */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-8">
             <Card>
@@ -1304,16 +1335,10 @@ const UserProfile = () => {
                     <p className="text-sm text-gray-500">User ID</p>
                     <p className="font-medium text-gray-900 break-all">{userData.userId}</p>
                   </div>
-                  {userData.experience && (
-                    <div>
-                      <p className="text-sm text-gray-500">Experience</p>
-                      <p className="font-medium text-gray-900">{userData.experience} years</p>
-                    </div>
-                  )}
                 </div>
               </CardContent>
             </Card>
-            
+
             {/* Company Information */}
             {userData.companyProfiles && userData.companyProfiles.length > 0 && (
               <Card>
@@ -1340,6 +1365,7 @@ const UserProfile = () => {
                 </CardContent>
               </Card>
             )}
+
           </div>
           
           {/* Portfolio Links */}
@@ -1348,56 +1374,6 @@ const UserProfile = () => {
               <h2 className="text-lg font-semibold mb-4">Portfolio & Links</h2>
               <Card>
                 <CardContent className="p-6 space-y-4">
-                  {userData.portfolio.GITHUB && (
-                    <div className="flex items-center">
-                      <Github size={18} className="text-gray-700 mr-3" />
-                      <a 
-                        href={userData.portfolio.GITHUB} 
-                        target="_blank" 
-                        rel="noopener noreferrer"
-                        className="text-blue-600 hover:text-blue-800 hover:underline"
-                      >
-                        {userData.portfolio.GITHUB}
-                      </a>
-                    </div>
-                  )}
-                  {userData.portfolio.LINKEDIN && (
-                    <div className="flex items-center">
-                      <Linkedin size={18} className="text-gray-700 mr-3" />
-                      <a 
-                        href={userData.portfolio.LINKEDIN} 
-                        target="_blank" 
-                        rel="noopener noreferrer"
-                        className="text-blue-600 hover:text-blue-800 hover:underline"
-                      >
-                        {userData.portfolio.LINKEDIN}
-                      </a>
-                    </div>
-                  )}
-                  {userData.portfolio.WEBSITE && (
-                    <div className="flex items-center">
-                      <Globe size={18} className="text-gray-700 mr-3" />
-                      <a 
-                        href={userData.portfolio.WEBSITE} 
-                        target="_blank" 
-                        rel="noopener noreferrer"
-                        className="text-blue-600 hover:text-blue-800 hover:underline"
-                      >
-                        {userData.portfolio.WEBSITE}
-                      </a>
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
-            </div>
-          )}
-          
-          {/* Education */}
-          {userData.education && (
-            <div className="mt-8">
-              <h2 className="text-lg font-semibold mb-4">Education</h2>
-              <Card>
-                <CardContent className="p-6">
                   <div className="whitespace-pre-line">
                     {userData.education}
                   </div>
@@ -1420,7 +1396,7 @@ const UserProfile = () => {
               </CardContent>
             </Card>
           </div>
-        </div>
+        </div>{/* Activity section */}
       </motion.div>
     </div>
   );
@@ -1428,16 +1404,13 @@ const UserProfile = () => {
 
 // Sidebar Link Component for better organization and styling
 const SidebarLink = ({ to, icon, label, isExpanded, isActive }) => {
-  return (
-    <NavLink
+  return (     <NavLink
       to={to}
-      className={({ isActive }) => `
-        flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-200
+      className={({ isActive }) => `flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-200
         ${isActive 
           ? 'bg-gradient-to-r from-blue-50 to-blue-100 text-blue-600 font-medium border-r-4 border-blue-600' 
           : 'text-gray-600 hover:bg-blue-50/50 hover:text-blue-600'
-        }
-      `}
+        }`}
     >
       <div className={`${isActive ? 'text-blue-600' : 'text-gray-500'}`}>
         {icon}
@@ -1462,8 +1435,7 @@ const SidebarLink = ({ to, icon, label, isExpanded, isActive }) => {
 const CompanyDashboard = () => {
   const [isSidebarExpanded, setIsSidebarExpanded] = useState(true);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const location = useLocation();
-  const sidebarRef = useRef(null);
+  const location = useLocation();          const sidebarRef = useRef(null);
   
   // Close menu when route changes
   useEffect(() => {
@@ -1477,7 +1449,6 @@ const CompanyDashboard = () => {
         setIsMobileMenuOpen(false);
       }
     };
-
     document.addEventListener('mousedown', handleClickOutside);
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
@@ -1496,10 +1467,8 @@ const CompanyDashboard = () => {
         }
       }
     };
-
     // Set initial state
     handleResize();
-
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
   }, [isMobileMenuOpen]);
@@ -1536,7 +1505,7 @@ const CompanyDashboard = () => {
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-blue-100/50 cursor-none flex">
       <CustomCursor />
       
-      {/* Mobile Overlay */} 
+      {/* Mobile Overlay */}
       <AnimatePresence>
         {isMobileMenuOpen && (
           <motion.div
@@ -1550,16 +1519,15 @@ const CompanyDashboard = () => {
         )}
       </AnimatePresence>
       
-      {/* Sidebar - Desktop and Mobile */}
+      {/* Sidebar - Desktop and Mobile */} 
       <motion.aside
         ref={sidebarRef}
-        className={`fixed inset-y-0 left-0 z-30 bg-white shadow-md flex flex-col border-r border-blue-100
-                  h-screen overflow-hidden lg:relative lg:translate-x-0 ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}`}
+        className={`fixed inset-y-0 left-0 z-30 bg-white shadow-md flex flex-col border-r border-blue-100 h-screen overflow-hidden lg:relative lg:translate-x-0 ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}`}
         animate={{ 
           // For mobile, always show full width when open
-          width: (isSidebarExpanded || isMobileMenuOpen) ? 240 : 80,
+          width: (isSidebarExpanded || isMobileMenuOpen) ? 240 : 80, 
           transition: { duration: 0.3, ease: "easeInOut" }
-        }}
+        }}     onClick={() => setIsMobileMenuOpen(false)}
         transition={{ duration: 0.3 }}
       >
         {/* Logo section */}
@@ -1582,15 +1550,14 @@ const CompanyDashboard = () => {
               )}
             </AnimatePresence>
           </Link>
-          
           {/* Toggle sidebar button - desktop only, hidden on mobile */}
           <button 
-            onClick={() => setIsSidebarExpanded(!isSidebarExpanded)}
+            onClick={() => setIsSidebarExpanded(!isSidebarExpanded)}       initial={{ opacity: 0, width: 0 }}
             className="hidden lg:flex items-center justify-center p-1.5 rounded-full bg-blue-50 text-blue-600 hover:bg-blue-100 transition-all"
           >
             {isSidebarExpanded ? <ChevronLeft size={18} /> : <ChevronRight size={18} />}
           </button>
-          
+
           {/* Close button - mobile only */}
           {isMobileMenuOpen && (
             <button 
@@ -1601,7 +1568,7 @@ const CompanyDashboard = () => {
             </button>
           )}
         </div>
-        
+
         {/* Nav links - Make this section scrollable if needed */}
         <nav className="flex-1 py-6 space-y-1 px-3 overflow-y-auto">
           {navLinks.map((link) => (
@@ -1618,7 +1585,7 @@ const CompanyDashboard = () => {
             />
           ))}
         </nav>
-        
+
         {/* User profile section - Keep this at the bottom */}
         <div className={`p-4 border-t border-blue-100 ${(isSidebarExpanded || isMobileMenuOpen) ? 'px-4' : 'px-3'}`}>
           <Link to="/company/dashboard/profile" className={`flex items-center gap-3 ${(isSidebarExpanded || isMobileMenuOpen) ? '' : 'justify-center'} hover:bg-blue-50 p-2 rounded-lg transition-colors`}>
@@ -1642,34 +1609,13 @@ const CompanyDashboard = () => {
               )}
             </AnimatePresence>
           </Link>
-          
-          {(isSidebarExpanded || isMobileMenuOpen) && (
-            <motion.div
-              initial={{ opacity: 0, height: 0 }}
-              animate={{ opacity: 1, height: 'auto' }}
-              exit={{ opacity: 0, height: 0 }}
-              transition={{ duration: 0.2 }}
-              className="mt-4"
-            >
-              <Button 
-                variant="ghost" 
-                className="w-full justify-start text-gray-600 hover:text-red-600 hover:bg-red-50/50"
-              >
-                <LogOut size={18} className="mr-2" />
-                Log Out
-              </Button>
-            </motion.div>
-          )}
         </div>
       </motion.aside>
-      
+
       {/* Main Content Area - Make only this part scrollable */}
       <motion.main 
-        className="flex-1 min-w-0 h-screen overflow-y-auto"
-        animate={{ 
-          marginLeft: isSidebarExpanded ? 0 : 0 
-        }}
-        transition={{ duration: 0.3 }}
+        className="flex-1 min-w-0 h-screen overflow-y-auto bg-gray-50"
+        animate={{ marginLeft: isSidebarExpanded ? 0 : 0 }}
       >
         {/* Top Bar - Keep this fixed */}
         <header className="bg-white border-b border-blue-100 sticky top-0 z-10 shadow-sm">
@@ -1687,20 +1633,20 @@ const CompanyDashboard = () => {
               
               <h1 className="text-xl font-semibold text-gray-900">{getActiveRoute()}</h1>
             </div>
-            
+
             {/* User actions */}
             <div className="flex items-center gap-4">
               {/* Search */}
               <button className="text-gray-500 hover:text-[#4169E1] p-2 rounded-full hover:bg-blue-50">
                 <Search className="h-5 w-5" />
               </button>
-              
+
               {/* Notifications */}
               <button className="text-gray-500 hover:text-[#4169E1] p-2 rounded-full hover:bg-blue-50 relative">
                 <Bell className="h-5 w-5" />
                 <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
               </button>
-              
+
               {/* User menu - mobile only */}
               <button className="lg:hidden text-gray-500 hover:text-[#4169E1] p-2 rounded-full hover:bg-blue-50">
                 <User className="h-5 w-5" />
