@@ -12,6 +12,7 @@ import {
 } from 'lucide-react';
 import TaskApplicationModal from './TaskApplicationModal';
 import toast from 'react-hot-toast';
+import { authUtils } from '@/utils/authUtils';
 
 const ProjectsList = () => {
   const [searchTerm, setSearchTerm] = useState('');
@@ -36,7 +37,7 @@ const ProjectsList = () => {
     setError(null);
     
     try {
-      const token = localStorage.getItem('authToken');
+      const token = authUtils.getAuthToken();
       if (!token) {
         throw new Error('Authentication token not found');
       }
