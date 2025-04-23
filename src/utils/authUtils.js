@@ -65,5 +65,15 @@ export const authUtils = {
     this.removeUserProfile();
     this.removeUserType();
     this.removeOAuthRole();
+  },
+
+  isAuthenticated: () => {
+    return !!localStorage.getItem(AUTH_TOKEN_KEY);
+  },
+
+  logout: () => {
+    localStorage.removeItem(AUTH_TOKEN_KEY);
+    localStorage.removeItem(USER_PROFILE_KEY);
+    localStorage.removeItem(OAUTH_ROLE_KEY);
   }
 }; 

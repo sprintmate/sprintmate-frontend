@@ -58,6 +58,8 @@ import {
   GlowContainer
 } from '@/components/ui/dashboardAnimations';
 import axios from 'axios';
+import { authUtils } from '@/utils/authUtils';
+
 
 // Import our new company dashboard view component
 import CompanyViewDashboard from '@/components/dashboard/companyViewDashboard';

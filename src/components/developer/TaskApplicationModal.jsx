@@ -5,6 +5,8 @@ import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/components/ui/use-toast';
 import axios from 'axios';
+import { authUtils } from '@/utils/authUtils';
+
 
 const TaskApplicationModal = ({ isOpen, onClose, taskId, onSuccess }) => {
   const [proposal, setProposal] = useState('');

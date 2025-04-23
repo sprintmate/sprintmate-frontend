@@ -12,6 +12,7 @@ import {
 } from 'lucide-react';
 import TaskApplicationModal from './TaskApplicationModal';
 import toast from 'react-hot-toast';
+import { authUtils } from '@/utils/authUtils';
 
 const ProjectsList = () => {
   const [searchTerm, setSearchTerm] = useState('');
