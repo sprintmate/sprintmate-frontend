@@ -1,74 +1,38 @@
-import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import React from 'react';
+import { useAuth } from '../../contexts/AuthContext';
 import { Button } from '@/components/ui/button';
-import { 
-  DollarSign, 
-  CheckCircle, 
-  AlertCircle, 
-  Loader2
-} from 'lucide-react';
+import { Card } from '@/components/ui/card';
 import { getToken } from '../../services/authService';
+import axios from 'axios';
+import { useNavigate } from 'react-router-dom';
+import { DollarSign, CheckCircle, AlertCircle, Loader2 } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import ChatComponent from './ChatComponent';
 
-const RazorpayPayment = ({ 
-  applicationId, 
-  onSuccess, 
-  onError, 
-  buttonText = "Block Funds", // Changed default text from "Accept & Pay" to "Block Funds"
-  buttonClassName = "",
-  paymentStatus = "IN_PROGRESS" // Add paymentStatus prop with default value
-}) => {
+const ApplicationDetail = ({ application, ...props }) => {
+  const { user } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
   const [paymentData, setPaymentData] = useState(null);
-  
+  const navigate = useNavigate();
+
   const url = import.meta.env.VITE_API_BASE_URL;
   const token = getToken();
-  
-  // Load Razorpay script when component mounts
-  useEffect(() => {
-    // Load the Razorpay script on component mount
-    const script = document.createElement('script');
-    script.src = 'https://checkout.razorpay.com/v1/checkout.js';
-    script.async = true;
-    
-    script.onload = () => {
-      console.log("Razorpay script loaded successfully");
-    };
-    
-    script.onerror = () => {
-      console.error("Failed to load Razorpay script");
-    };
-    
-    document.body.appendChild(script);
-    
-    // Clean up
-    return () => {
-      if (document.body.contains(script)) {
-        document.body.removeChild(script);
-      }
-    };
-  }, []);
 
-  // Function to determine if payment button should be shown
-  const shouldShowPaymentButton = () => {
-    // Only show payment button when status is IN_PROGRESS
-    return paymentStatus === "IN_PROGRESS";
-  };
-
-  // Function to get appropriate button message based on status
-  const getPaymentStatusMessage = () => {
-    switch(paymentStatus) {
-      case "FUNDS_BLOCKED":
-        return "Funds have been blocked";
-      case "FAILED":
-        return "Payment failed. Please try again.";
-      case "REFUNDED":
-        return "Payment was refunded";
-      case "PAID_TO_DEVELOPER":
-        return "Payment completed";
-      default:
-        return null;
-    }
+  // Updated function to check if chat should be available
+  const isChatEnabled = () => {
+    // List of statuses that should have chat enabled
+    const chatEnabledStatuses = [
+      'SHORTLISTED',
+      'ACCEPTED',
+      'IN_PROGRESS',
+      'COMPLETED',
+      'SUBMITTED'
+    ];
+    
+    // Get application status and convert to uppercase for comparison
+    const status = application?.status?.toUpperCase();
+    return chatEnabledStatuses.includes(status);
   };
 
   // Function to handle complete payment flow
@@ -81,7 +45,7 @@ const RazorpayPayment = ({
       console.log("Creating payment hold...");
       const createResponse = await axios.post(
         `${url}/v1/order/payments/hold`,
-        { taskApplicationId: applicationId },
+        { taskApplicationId: application.id },
         { headers: { Authorization: `${token}` } }
       );
       
@@ -169,7 +133,7 @@ const RazorpayPayment = ({
                 // Extract taskId and applicationId from capture response
                 const responseTaskId = captureResponse.data.taskId;
                 // Use the applicationId from the response, falling back to the prop if needed
-                const responseApplicationId = captureResponse.data.applicationId || applicationId;
+                const responseApplicationId = captureResponse.data.applicationId || application.id;
                 
                 console.log("Extracted from capture response - taskId:", responseTaskId, "applicationId:", responseApplicationId);
                 
@@ -200,19 +164,19 @@ const RazorpayPayment = ({
               }
               
               // Call the success callback regardless of status update result
-              onSuccess && onSuccess({
+              props.onSuccess && props.onSuccess({
                 ...captureResponse.data,
-                applicationId,
+                applicationId: application.id,
                 statusUpdated: true
               });
             } else {
               setError(`Payment verification failed. Status: ${captureResponse.data.status}`);
-              onError && onError(new Error("Payment not held properly"));
+              props.onError && props.onError(new Error("Payment not held properly"));
             }
           } catch (error) {
             console.error("Error capturing payment:", error);
             setError("Failed to verify payment. Please contact support.");
-            onError && onError(error);
+            props.onError && props.onError(error);
           } finally {
             setIsLoading(false);
           }
@@ -227,7 +191,7 @@ const RazorpayPayment = ({
           name: "Client"
         },
         notes: {
-          applicationId: applicationId
+          applicationId: application.id
         },
         theme: {
           color: "#3366FF"
@@ -245,7 +209,7 @@ const RazorpayPayment = ({
         console.error("Razorpay payment failed:", response.error);
         setError(`Payment failed: ${response.error.description}`);
         setIsLoading(false);
-        onError && onError(response.error);
+        props.onError && props.onError(response.error);
       });
       
       razorpayInstance.open();
@@ -254,35 +218,46 @@ const RazorpayPayment = ({
       console.error("Payment process error:", error);
       setError(error.response?.data?.message || error.message || "Payment process failed");
       setIsLoading(false);
-      onError && onError(error);
+      props.onError && props.onError(error);
     }
   };
-  
-  return (
-    <div>
-      {paymentData && paymentData.amountBreakdown && (
-        <div className="mb-3 p-3 bg-blue-50 rounded-md text-sm">
-          <h4 className="font-medium text-blue-700 mb-1">Payment Breakdown:</h4>
-          <ul className="space-y-1">
-            {paymentData.amountBreakdown.map((item, index) => (
-              <li key={index} className="flex justify-between">
-                <span className="text-gray-700">{item.message}</span>
-                <span className="font-medium text-gray-900">₹{item.amount}</span>
-              </li>
-            ))}
-            <li className="flex justify-between pt-1 border-t border-blue-200 mt-1">
-              <span className="font-medium text-gray-900">Total</span>
-              <span className="font-medium text-blue-800">₹{paymentData.displayAmount}</span>
-            </li>
-          </ul>
-        </div>
-      )}
 
-      {shouldShowPaymentButton() ? (
+  return (
+    <div className="application-detail-container">
+      <h2 className="text-2xl font-bold mb-4">Application Detail</h2>
+      <Card className="p-6 mb-6">
+        <h3 className="text-lg font-semibold mb-3">Application Info</h3>
+        <p><strong>ID:</strong> {application.id}</p>
+        <p><strong>Status:</strong> {application.status}</p>
+        <p><strong>Position:</strong> {application.position}</p>
+        <p><strong>Applicant:</strong> {application.applicantName}</p>
+        <p><strong>Applied On:</strong> {new Date(application.appliedOn).toLocaleDateString()}</p>
+      </Card>
+
+      <div className="mt-6">
+        <h3 className="text-lg font-semibold mb-3">Payment</h3>
+        {paymentData && paymentData.amountBreakdown && (
+          <div className="mb-3 p-3 bg-blue-50 rounded-md text-sm">
+            <h4 className="font-medium text-blue-700 mb-1">Payment Breakdown:</h4>
+            <ul className="space-y-1">
+              {paymentData.amountBreakdown.map((item, index) => (
+                <li key={index} className="flex justify-between">
+                  <span className="text-gray-700">{item.message}</span>
+                  <span className="font-medium text-gray-900">₹{item.amount}</span>
+                </li>
+              ))}
+              <li className="flex justify-between pt-1 border-t border-blue-200 mt-1">
+                <span className="font-medium text-gray-900">Total</span>
+                <span className="font-medium text-blue-800">₹{paymentData.displayAmount}</span>
+              </li>
+            </ul>
+          </div>
+        )}
+
         <Button
           onClick={handlePayment}
           disabled={isLoading}
-          className={`flex items-center gap-2 ${buttonClassName} ${
+          className={`flex items-center gap-2 ${props.buttonClassName} ${
             isLoading ? 'opacity-70 cursor-not-allowed' : ''
           }`}
         >
@@ -294,43 +269,38 @@ const RazorpayPayment = ({
           ) : (
             <>
               <DollarSign className="h-4 w-4" />
-              {buttonText}
+              {props.buttonText || "Accept & Pay"}
             </>
           )}
         </Button>
-      ) : (
-        <div className="flex items-center gap-2 text-sm">
-          {paymentStatus === "FUNDS_BLOCKED" && (
-            <CheckCircle className="h-4 w-4 text-green-500" />
-          )}
-          {paymentStatus === "FAILED" && (
-            <AlertCircle className="h-4 w-4 text-red-500" />
-          )}
-          {paymentStatus === "REFUNDED" && (
-            <CheckCircle className="h-4 w-4 text-blue-500" />
-          )}
-          {paymentStatus === "PAID_TO_DEVELOPER" && (
-            <CheckCircle className="h-4 w-4 text-green-500" />
-          )}
-          <span className={`
-            ${paymentStatus === "FUNDS_BLOCKED" ? "text-green-600" : ""}
-            ${paymentStatus === "FAILED" ? "text-red-600" : ""}
-            ${paymentStatus === "REFUNDED" ? "text-blue-600" : ""}
-            ${paymentStatus === "PAID_TO_DEVELOPER" ? "text-green-600" : ""}
-          `}>
-            {getPaymentStatusMessage()}
-          </span>
-        </div>
-      )}
-      
-      {error && (
-        <div className="flex items-center text-red-600 text-sm mt-2">
-          <AlertCircle className="h-4 w-4 mr-1" />
-          {error}
-        </div>
-      )}
+        
+        {error && (
+          <div className="flex items-center text-red-600 text-sm mt-2">
+            <AlertCircle className="h-4 w-4 mr-1" />
+            {error}
+          </div>
+        )}
+      </div>
+
+      <div className="mt-6">
+        <h3 className="text-lg font-semibold mb-3">Communication</h3>
+        
+        {isChatEnabled() ? (
+          <div className="chat-section">
+            {/* Chat component or UI */}
+            <ChatComponent applicationId={application.id} />
+          </div>
+        ) : (
+          <div className="p-4 bg-gray-50 rounded-md text-center">
+            <p className="text-gray-600">
+              Chat is only available for applications that are shortlisted, accepted, 
+              in progress, completed, or submitted.
+            </p>
+          </div>
+        )}
+      </div>
     </div>
   );
 };
 
-export default RazorpayPayment;
+export default ApplicationDetail;

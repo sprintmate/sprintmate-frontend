@@ -13,6 +13,7 @@
     "deploy": "gh-pages -d dist"
   },
   "dependencies": {
+    "@hookform/resolvers": "^5.0.1",
     "@radix-ui/react-avatar": "^1.1.6",
     "@radix-ui/react-dialog": "^1.1.6",
     "@radix-ui/react-label": "^2.1.4",
@@ -23,6 +24,7 @@
     "@tailwindcss/vite": "^4.0.17",
     "axios": "^1.8.4",
     "chart.js": "^4.4.8",
+    "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "framer-motion": "^11.0.12",
     "lucide-react": "^0.486.0",
@@ -36,7 +38,8 @@
     "react-intersection-observer": "^9.8.0",
     "react-router-dom": "^7.5.0",
     "shadcn": "^2.4.0-canary.17",
-    "tailwind-merge": "^3.2.0"
+    "tailwind-merge": "^3.2.0",
+    "zod": "^3.24.3"
   },
   "devDependencies": {
     "@eslint/js": "^9.21.0",
