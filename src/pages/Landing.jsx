@@ -158,18 +158,18 @@ function Landing() {
                   variant="primary"
                   size="lg"
                   className="group shadow-lg shadow-blue-500/20"
-                  onClick={() => navigate('/company/login')}
+                  onClick={() => navigate('/signup')}
                 >
-                  <span className="mr-2">Hire Developers</span>
+                  <span className="mr-2">Get Started</span>
                   <ArrowUpRight className="group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform" size={18} />
                 </Button>
-                <Link to="/developer/login">
+                <Link to="/developer/login"> {/* Updated from "/login" to "/developer/login" */}
                   <Button
                     variant="secondary"
                     size="lg"
                     className="shadow-md hover:shadow-lg transition-shadow"
                   >
-                    Join as Developer
+                    Sign In
                   </Button>
                 </Link>
               </motion.div>
@@ -830,7 +830,7 @@ function Landing() {
                   </motion.div>
                 </div>
 
-                {/* CTA Buttons */}
+                {/* CTA Buttons in lower section */}
                 <motion.div
                   className="flex flex-col sm:flex-row gap-4 justify-center mt-16 md:mt-24"
                   initial={{ opacity: 0, y: 20 }}
@@ -842,10 +842,10 @@ function Landing() {
                     variant="primary"
                     size="lg"
                     className="group relative overflow-hidden bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 border-0 shadow-xl shadow-blue-500/20"
-                    onClick={() => navigate('/company/login')}
+                    onClick={() => navigate('/signup')}
                   >
                     <span className="relative z-10 flex items-center justify-center">
-                      Start Hiring
+                      Create Account
                       <ArrowRight className="ml-2 group-hover:translate-x-1 transition-transform" size={18} />
                     </span>
                     <motion.div
@@ -855,23 +855,6 @@ function Landing() {
                       transition={{ duration: 0.3 }}
                     />
                   </Button>
-                  <Link to="/developer/login">
-                    <Button
-                      variant="secondary"
-                      size="lg"
-                      className="group relative overflow-hidden bg-white hover:bg-gray-50 text-gray-900 border-gray-200 shadow-lg"
-                    >
-                      <span className="relative z-10 flex items-center justify-center">
-                        Join as Developer
-                      </span>
-                      <motion.div
-                        className="absolute inset-0 bg-gray-50"
-                        initial={{ x: "-100%" }}
-                        whileHover={{ x: 0 }}
-                        transition={{ duration: 0.3 }}
-                      />
-                    </Button>
-                  </Link>
                 </motion.div>
               </FadeIn>
             </div>

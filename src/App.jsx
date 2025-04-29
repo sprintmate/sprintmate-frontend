@@ -1,11 +1,12 @@
 import React, { Suspense } from 'react';
-import { Routes, Route } from 'react-router-dom';
+import { Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from './contexts/AuthContext'
 import './index.css'
 import OAuthCallback from './pages/OAuthCallback';
 import { Toaster } from 'react-hot-toast';
 import Login from './pages/Login';
 import ProtectedRoute from './components/ProtectedRoute';
+import Signup from "./pages/Signup";
 
 const Landing = React.lazy(() => import('./pages/Landing'))
 const DeveloperDashboard = React.lazy(() => import('./pages/DeveloperDashboard'))
@@ -28,6 +29,12 @@ const App = () => {
             <Route path="/developer/login" element={<Login />} />
             <Route path="/company/login" element={<Login />} />
             <Route path="/oauth/callback" element={<OAuthCallback />} />
+            
+            {/* Add new general login route that redirects to developer login by default */}
+            <Route 
+              path="/login" 
+              element={<Navigate to="/developer/login" replace />} 
+            />
             
             {/* Protected Routes */}
             <Route
@@ -62,6 +69,12 @@ const App = () => {
                 </ProtectedRoute>
               }
             />
+            {/* Add the new unified signup route */}
+            <Route path="/signup" element={<Signup />} />
+            
+            {/* Keep existing signup routes for backward compatibility */}
+            <Route path="/developer/signup" element={<Signup />} />
+            <Route path="/company/signup" element={<Signup />} />
           </Routes>
         </Suspense>
       </div>
