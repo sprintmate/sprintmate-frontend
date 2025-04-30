@@ -16,10 +16,9 @@ import {
   Monitor,
   FileText,
   Briefcase,
-  GitHub,
-  Linkedin,
   Image
 } from 'lucide-react';
+import { FaGithub, FaLinkedin } from 'react-icons/fa';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -623,7 +622,7 @@ const DeveloperProfileRegistration = () => {
                   <motion.div variants={itemVariants} className="space-y-4">
                     <div className="space-y-2">
                       <Label htmlFor="github" className="text-gray-700">
-                        <GitHub className="inline-block mr-2 h-4 w-4" />
+                        <FaGithub className="inline-block mr-2 h-4 w-4" />
                         GitHub URL (Optional)
                       </Label>
                       <Input
@@ -638,7 +637,7 @@ const DeveloperProfileRegistration = () => {
                     
                     <div className="space-y-2">
                       <Label htmlFor="linkedin" className="text-gray-700">
-                        <Linkedin className="inline-block mr-2 h-4 w-4" />
+                        <FaLinkedin className="inline-block mr-2 h-4 w-4" />
                         LinkedIn URL (Optional)
                       </Label>
                       <Input

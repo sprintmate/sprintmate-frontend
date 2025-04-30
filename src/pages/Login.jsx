@@ -34,6 +34,7 @@ const Login = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const userType = location.pathname.includes('company') ? 'company' : 'developer';
+  const oauthRole = userType === 'company' ? 'CORPORATE' : 'DEVELOPER';
 
   const handleChange = (e) => {
     setFormData({
@@ -76,12 +77,12 @@ const Login = () => {
   };
 
   const handleGoogleLogin = () => {
-    authUtils.setOAuthRole(userType);
+    authUtils.setOAuthRole(oauthRole);
     window.location.href = `${import.meta.env.VITE_API_BASE_URL}/oauth2/authorization/google?role=${userType}`;
   };
 
   const handleGithubLogin = () => {
-    authUtils.setOAuthRole(userType);
+    authUtils.setOAuthRole(oauthRole);
     window.location.href = `${import.meta.env.VITE_API_BASE_URL}/oauth2/authorization/github?role=${userType}`;
   };
 

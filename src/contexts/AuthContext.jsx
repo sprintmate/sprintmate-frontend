@@ -9,11 +9,12 @@ import {
   fetchUserProfile,
   setToken
 } from '../services/authService';
+import { authUtils } from '../utils/authUtils';
 
 const AuthContext = createContext(null);
 
 export const AuthProvider = ({ children }) => {
-  const [token, setToken] = useState(localStorage.getItem("token"));
+  const [token, setToken] = useState(authUtils.getAuthToken());
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -38,49 +39,31 @@ export const AuthProvider = ({ children }) => {
 
   // Fetch current user data
   const fetchUserData = useCallback(async () => {
-    if (!token) {
+    console.log("Fetching user data with token:", token);
+    console.log("AuthUtils token:", authUtils.getAuthToken());
+    const currentToken = authUtils.getAuthToken();
+    if (!currentToken) {
       setLoading(false);
       return;
     }
 
     try {
-      const response = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/v1/users/profile`, {
-        headers: {
-          Authorization: token
-        }
-      });
-
-      const userData = response.data;
-      console.log("User data fetched:", userData);
-      
+      const userData = await fetchUserProfile(currentToken);
       setUser(userData);
+      setToken(currentToken);
       
-      // Store user profile in localStorage for offline access
-      localStorage.setItem("userProfile", JSON.stringify(userData));
-
-      // Check if profile needs completion
-      if (isProfileIncomplete(userData)) {
-        console.log("Profile is incomplete, needs registration");
-        // Store a flag indicating profile needs completion
-        localStorage.setItem("needsProfileCompletion", "true");
-        
-        // Store the user ID for the registration page
-        localStorage.setItem("userId", userData.userId || userData.externalId);
-      } else {
-        localStorage.removeItem("needsProfileCompletion");
+      if (userData.role === "CORPORATE") {
+        const companyData = await getCompanyProfile(currentToken);
+        setCompanyProfile(companyData);
       }
-
     } catch (err) {
       console.error("Error fetching user data:", err);
-      setError("Failed to fetch user data");
-      // Clear token if the request fails due to invalid token
-      if (err.response && (err.response.status === 401 || err.response.status === 403)) {
-        logout();
-      }
+      setError(err.message);
+      clearAuthData();
     } finally {
       setLoading(false);
     }
-  }, [token, isProfileIncomplete]);
+  }, [token]);
 
   // Login user with token
   const login = useCallback((newToken) => {
