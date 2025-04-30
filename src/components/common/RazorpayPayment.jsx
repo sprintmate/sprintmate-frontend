@@ -13,9 +13,9 @@ const RazorpayPayment = ({
   applicationId, 
   onSuccess, 
   onError, 
-  buttonText = "Block Funds", // Changed default text from "Accept & Pay" to "Block Funds"
+  buttonText = "Accept & Pay", 
   buttonClassName = "",
-  paymentStatus = "IN_PROGRESS" // Add paymentStatus prop with default value
+  taskId = null // This prop should now be passed from parent component
 }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -23,6 +23,11 @@ const RazorpayPayment = ({
   
   const url = import.meta.env.VITE_API_BASE_URL;
   const token = getToken();
+  
+  // Log task ID on component mount for debugging
+  useEffect(() => {
+    console.log("RazorpayPayment component mounted with taskId:", taskId, "applicationId:", applicationId);
+  }, [taskId, applicationId]);
   
   // Load Razorpay script when component mounts
   useEffect(() => {
@@ -49,47 +54,54 @@ const RazorpayPayment = ({
     };
   }, []);
 
-  // Function to determine if payment button should be shown
-  const shouldShowPaymentButton = () => {
-    // Only show payment button when status is IN_PROGRESS
-    return paymentStatus === "IN_PROGRESS";
-  };
-
-  // Function to get appropriate button message based on status
-  const getPaymentStatusMessage = () => {
-    switch(paymentStatus) {
-      case "FUNDS_BLOCKED":
-        return "Funds have been blocked";
-      case "FAILED":
-        return "Payment failed. Please try again.";
-      case "REFUNDED":
-        return "Payment was refunded";
-      case "PAID_TO_DEVELOPER":
-        return "Payment completed";
-      default:
-        return null;
-    }
-  };
-
   // Function to handle complete payment flow
   const handlePayment = async () => {
     try {
       setIsLoading(true);
       setError(null);
       
+      // Store the passed taskId if available
+      console.log("Starting payment process with taskId:", taskId);
+      
       // STEP 1: Create payment hold/create API
       console.log("Creating payment hold...");
+      const payloadData = { taskApplicationId: applicationId };
+      
+      // Add taskId to request payload if available
+      if (taskId) {
+        payloadData.taskId = taskId;
+      }
+      
       const createResponse = await axios.post(
         `${url}/v1/order/payments/hold`,
-        { taskApplicationId: applicationId },
+        payloadData,
         { headers: { Authorization: `${token}` } }
       );
       
       console.log("Payment hold created:", createResponse.data);
       
-      if (!createResponse.data || !createResponse.data.paymentId || !createResponse.data.externalOrderId) {
-        throw new Error("Payment creation failed. Missing payment details in response.");
+      // Extract task ID from the response if possible
+      let responseTaskId = null;
+      if (createResponse.data) {
+        responseTaskId = createResponse.data.taskId || 
+                        createResponse.data.task?.id || 
+                        createResponse.data.application?.taskId;
+        
+        console.log("Task ID extracted from response:", responseTaskId);
+        
+        // Try to parse taskId from applicationId if it follows a pattern like "taskId-applicationNumber"
+        if (!responseTaskId && applicationId && applicationId.includes('-')) {
+          const possibleTaskId = applicationId.split('-')[0];
+          if (possibleTaskId) {
+            console.log("Extracted possible taskId from applicationId pattern:", possibleTaskId);
+            responseTaskId = possibleTaskId;
+          }
+        }
       }
+      
+      // Save the most reliable taskId we have
+      const effectiveTaskId = taskId || responseTaskId;
+      console.log("Using effective taskId for payment process:", effectiveTaskId);
       
       // Store the complete payment data
       setPaymentData(createResponse.data);
@@ -101,9 +113,8 @@ const RazorpayPayment = ({
         currency, 
         externalOrderId,
         amountBreakdown
-        // Don't extract taskId here as it might not be in the initial response
       } = createResponse.data;
-      
+
       // Store paymentId for later use in capturing payment
       const paymentIdForCapture = paymentId;
       
@@ -166,36 +177,84 @@ const RazorpayPayment = ({
             if (captureResponse.data.status === 'HELD' || captureResponse.data.status === 'CREATED') {
               // STEP 3: Update the application status to ACCEPTED after successful payment capture
               try {
-                // Extract taskId and applicationId from capture response
-                const responseTaskId = captureResponse.data.taskId;
-                // Use the applicationId from the response, falling back to the prop if needed
-                const responseApplicationId = captureResponse.data.applicationId || applicationId;
+                // Re-check for the most reliable taskId
+                const statusUpdateTaskId = taskId || responseTaskId || 
+                                          captureResponse.data?.taskId ||
+                                          captureResponse.data?.task?.id ||
+                                          paymentData?.taskId ||
+                                          paymentData?.task?.id ||
+                                          effectiveTaskId;
                 
-                console.log("Extracted from capture response - taskId:", responseTaskId, "applicationId:", responseApplicationId);
+                console.log("Using task ID for status update:", statusUpdateTaskId);
                 
-                if (!responseTaskId || !responseApplicationId) {
-                  console.error("Missing taskId or applicationId in capture response:", captureResponse.data);
-                  throw new Error("Cannot update application status: Missing taskId or applicationId");
-                }
-                
-                // Make the status update API call with the extracted IDs
-                console.log(`Updating application status to ACCEPTED for task ${responseTaskId}, application ${responseApplicationId}...`);
-                
-                const statusUpdateResponse = await axios.patch(
-                  `${url}/v1/tasks/${responseTaskId}/applications/${responseApplicationId}/status`,
-                  { status: "ACCEPTED" },
-                  { 
-                    headers: { 
-                      Authorization: `${token}`,
-                      'Content-Type': 'application/json'
-                    } 
+                if (!statusUpdateTaskId) {
+                  console.warn("Task ID not found, trying alternative API endpoint");
+                  
+                  // Try a different API structure that doesn't require taskId
+                  try {
+                    console.log(`Attempting alternative endpoint for application ${applicationId}`);
+                    const alternativeResponse = await axios.patch(
+                      `${url}/v1/applications/${applicationId}/status`,
+                      { status: "ACCEPTED" },
+                      { headers: { Authorization: `${token}`, 'Content-Type': 'application/json' } }
+                    );
+                    
+                    console.log("Alternative API call successful:", alternativeResponse.data);
+                  } catch (altError) {
+                    console.error("Alternative API call failed:", altError);
+                    
+                    // If both approaches fail, try to extract task ID from URL if available
+                    const urlPathMatch = window.location.pathname.match(/\/tasks\/([^\/]+)/);
+                    if (urlPathMatch && urlPathMatch[1]) {
+                      const urlTaskId = urlPathMatch[1];
+                      console.log("Extracted taskId from URL:", urlTaskId);
+                      
+                      try {
+                        const urlBasedResponse = await axios.patch(
+                          `${url}/v1/tasks/${urlTaskId}/applications/${applicationId}/status`,
+                          { status: "ACCEPTED" },
+                          { headers: { Authorization: `${token}`, 'Content-Type': 'application/json' } }
+                        );
+                        
+                        console.log("URL-based task ID API call successful:", urlBasedResponse.data);
+                      } catch (urlError) {
+                        console.error("URL-based task ID API call failed:", urlError);
+                      }
+                    }
                   }
-                );
-                
-                console.log("Application status update successful:", statusUpdateResponse.data);
+                } else {
+                  // We have a task ID, use the standard API endpoint
+                  console.log(`Updating application status to ACCEPTED for task ${statusUpdateTaskId}, application ${applicationId}...`);
+                  
+                  // Add timeout to ensure payment processing is complete
+                  await new Promise(resolve => setTimeout(resolve, 1000));
+                  
+                  const statusUpdateResponse = await axios.patch(
+                    `${url}/v1/tasks/${statusUpdateTaskId}/applications/${applicationId}/status`,
+                    { status: "ACCEPTED" },
+                    { headers: { Authorization: `${token}`, 'Content-Type': 'application/json' } }
+                  );
+                  
+                  console.log("Application status update successful:", statusUpdateResponse.data);
+                }
               } catch (statusUpdateError) {
                 console.error("Error updating application status:", statusUpdateError);
                 console.error("Error details:", statusUpdateError.response?.data || "No response data");
+                
+                // Try direct API call to accept the application
+                try {
+                  console.log("Attempting direct accept API call");
+                  const directAcceptResponse = await axios.post(
+                    `${url}/v1/applications/${applicationId}/accept`,
+                    {},
+                    { headers: { Authorization: `${token}`, 'Content-Type': 'application/json' } }
+                  );
+                  
+                  console.log("Direct accept API call successful:", directAcceptResponse.data);
+                } catch (directError) {
+                  console.error("Direct accept API call failed:", directError);
+                }
+                
                 console.log("Will continue with success flow despite status update error");
               }
               
@@ -278,50 +337,25 @@ const RazorpayPayment = ({
         </div>
       )}
 
-      {shouldShowPaymentButton() ? (
-        <Button
-          onClick={handlePayment}
-          disabled={isLoading}
-          className={`flex items-center gap-2 ${buttonClassName} ${
-            isLoading ? 'opacity-70 cursor-not-allowed' : ''
-          }`}
-        >
-          {isLoading ? (
-            <>
-              <Loader2 className="h-4 w-4 animate-spin" />
-              Processing...
-            </>
-          ) : (
-            <>
-              <DollarSign className="h-4 w-4" />
-              {buttonText}
-            </>
-          )}
-        </Button>
-      ) : (
-        <div className="flex items-center gap-2 text-sm">
-          {paymentStatus === "FUNDS_BLOCKED" && (
-            <CheckCircle className="h-4 w-4 text-green-500" />
-          )}
-          {paymentStatus === "FAILED" && (
-            <AlertCircle className="h-4 w-4 text-red-500" />
-          )}
-          {paymentStatus === "REFUNDED" && (
-            <CheckCircle className="h-4 w-4 text-blue-500" />
-          )}
-          {paymentStatus === "PAID_TO_DEVELOPER" && (
-            <CheckCircle className="h-4 w-4 text-green-500" />
-          )}
-          <span className={`
-            ${paymentStatus === "FUNDS_BLOCKED" ? "text-green-600" : ""}
-            ${paymentStatus === "FAILED" ? "text-red-600" : ""}
-            ${paymentStatus === "REFUNDED" ? "text-blue-600" : ""}
-            ${paymentStatus === "PAID_TO_DEVELOPER" ? "text-green-600" : ""}
-          `}>
-            {getPaymentStatusMessage()}
-          </span>
-        </div>
-      )}
+      <Button
+        onClick={handlePayment}
+        disabled={isLoading}
+        className={`flex items-center gap-2 ${buttonClassName} ${
+          isLoading ? 'opacity-70 cursor-not-allowed' : ''
+        }`}
+      >
+        {isLoading ? (
+          <>
+            <Loader2 className="h-4 w-4 animate-spin" />
+            Processing...
+          </>
+        ) : (
+          <>
+            <DollarSign className="h-4 w-4" />
+            {buttonText}
+          </>
+        )}
+      </Button>
       
       {error && (
         <div className="flex items-center text-red-600 text-sm mt-2">

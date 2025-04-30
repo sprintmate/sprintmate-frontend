@@ -68,7 +68,7 @@ const ApplicationDetailsModal = ({ isOpen, onClose, application, onStatusUpdate 
       
       const response = await axios.post(url, {}, {
         headers: {
-          'Authorization': `Bearer ${token}`,
+          'Authorization': `${token}`,
           'Content-Type': 'application/json'
         }
       });

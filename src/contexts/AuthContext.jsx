@@ -1,4 +1,5 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import axios from 'axios';
 import { 
   getToken, 
   getUserProfile, 
@@ -12,102 +13,107 @@ import {
 const AuthContext = createContext(null);
 
 export const AuthProvider = ({ children }) => {
+  const [token, setToken] = useState(localStorage.getItem("token"));
   const [user, setUser] = useState(null);
-  const [companyProfile, setCompanyProfile] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-
-  // Initialize on mount
-  useEffect(() => {
-    const initialize = async () => {
-      try {
-        const hasToken = initializeAuth();
-        
-        if (hasToken) {
-          // Try to get stored profile data first
-          const storedUser = getUserProfile();
-          const storedCompany = getCompanyProfile(); // This is now properly implemented
-          
-          if (storedUser) {
-            setUser(storedUser);
-            if (storedCompany) {
-              setCompanyProfile(storedCompany);
-            }
-            setIsAuthenticated(true);
-          } else {
-            // If no stored profile, fetch it from API
-            try {
-              const profileData = await fetchUserProfile();
-              setUser(profileData);
-              
-              if (profileData.companyProfiles?.length > 0) {
-                setCompanyProfile(profileData.companyProfiles[0]);
-              }
-              
-              setIsAuthenticated(true);
-            } catch (error) {
-              console.error("Error fetching profile on init:", error);
-              clearAuthData();
-              setIsAuthenticated(false);
-            }
-          }
-        }
-      } catch (error) {
-        console.error("Auth initialization error:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    initialize();
-  }, []);
-
-  // Login function - properly clears previous data
-  const login = (token, userData) => {
-    // Clear any existing auth data
-    clearAuthData();
+  const [error, setError] = useState(null);
+  const [companyProfile, setCompanyProfile] = useState(null);
+  
+  // Check if profile is incomplete
+  const isProfileIncomplete = useCallback((userData) => {
+    if (!userData) return false;
     
-    // Set the new token
-    setToken(token);
-    
-    // Set user data
-    if (userData) {
-      setUser(userData);
-      
-      if (userData.companyProfiles?.length > 0) {
-        setCompanyProfile(userData.companyProfiles[0]);
-      }
+    if (userData.role === "CORPORATE" && 
+        (!userData.companyProfiles || userData.companyProfiles.length === 0)) {
+      return true;
     }
     
-    setIsAuthenticated(true);
-  };
+    if (userData.role === "DEVELOPER" && 
+        (!userData.developerProfiles || userData.developerProfiles.length === 0)) {
+      return true;
+    }
+    
+    return false;
+  }, []);
 
-  // Logout function
-  const logout = () => {
-    clearAuthData();
-    setUser(null);
-    setCompanyProfile(null);
-    setIsAuthenticated(false);
-  };
+  // Fetch current user data
+  const fetchUserData = useCallback(async () => {
+    if (!token) {
+      setLoading(false);
+      return;
+    }
 
-  // Refresh user profile
-  const refreshUserProfile = async () => {
     try {
-      setLoading(true);
-      const profileData = await fetchUserProfile();
-      setUser(profileData);
+      const response = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/v1/users/profile`, {
+        headers: {
+          Authorization: token
+        }
+      });
+
+      const userData = response.data;
+      console.log("User data fetched:", userData);
       
-      if (profileData.companyProfiles?.length > 0) {
-        setCompanyProfile(profileData.companyProfiles[0]);
+      setUser(userData);
+      
+      // Store user profile in localStorage for offline access
+      localStorage.setItem("userProfile", JSON.stringify(userData));
+
+      // Check if profile needs completion
+      if (isProfileIncomplete(userData)) {
+        console.log("Profile is incomplete, needs registration");
+        // Store a flag indicating profile needs completion
+        localStorage.setItem("needsProfileCompletion", "true");
+        
+        // Store the user ID for the registration page
+        localStorage.setItem("userId", userData.userId || userData.externalId);
+      } else {
+        localStorage.removeItem("needsProfileCompletion");
       }
-      
-      return profileData;
-    } catch (error) {
-      console.error("Error refreshing profile:", error);
-      throw error;
+
+    } catch (err) {
+      console.error("Error fetching user data:", err);
+      setError("Failed to fetch user data");
+      // Clear token if the request fails due to invalid token
+      if (err.response && (err.response.status === 401 || err.response.status === 403)) {
+        logout();
+      }
     } finally {
       setLoading(false);
     }
+  }, [token, isProfileIncomplete]);
+
+  // Login user with token
+  const login = useCallback((newToken) => {
+    localStorage.setItem("token", newToken);
+    setToken(newToken);
+  }, []);
+
+  // Logout user
+  const logout = useCallback(() => {
+    localStorage.removeItem("token");
+    localStorage.removeItem("userProfile");
+    localStorage.removeItem("needsProfileCompletion");
+    localStorage.removeItem("userId");
+    setToken(null);
+    setUser(null);
+  }, []);
+
+  // Effect to fetch user data when token changes
+  useEffect(() => {
+    fetchUserData();
+  }, [fetchUserData]);
+
+  // Value to provide through context
+  const value = {
+    token,
+    user,
+    loading,
+    error,
+    companyProfile,
+    isProfileIncomplete,
+    login,
+    logout,
+    refreshUser: fetchUserData,
   };
 
   return (
@@ -115,11 +121,11 @@ export const AuthProvider = ({ children }) => {
       value={{ 
         user, 
         companyProfile,
-        isAuthenticated, 
+        isAuthenticated: !!token, 
         loading,
         login,
         logout,
-        refreshUserProfile
+        refreshUserProfile: fetchUserData
       }}
     >
       {children}

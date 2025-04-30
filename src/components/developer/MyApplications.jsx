@@ -467,7 +467,7 @@ const MyApplications = () => {
       const baseUrl = import.meta.env.VITE_API_BASE_URL || 'https://round-georgianna-sprintmate-8451e6d8.koyeb.app';
       const response = await axios.get(`${baseUrl}/v1/developers/applications`, {
         headers: {
-          'Authorization': token.startsWith('Bearer ') ? token : `Bearer ${token}`
+          'Authorization': token.startsWith('Bearer ') ? token : `${token}`
         },
         // Add timeout to prevent hanging requests
         timeout: 15000

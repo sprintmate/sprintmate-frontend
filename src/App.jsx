@@ -1,18 +1,20 @@
 import React, { Suspense } from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
-import { AuthProvider } from './contexts/AuthContext'
-import './index.css'
+import { AuthProvider } from './contexts/AuthContext';
+import './index.css';
 import OAuthCallback from './pages/OAuthCallback';
 import { Toaster } from 'react-hot-toast';
 import Login from './pages/Login';
 import ProtectedRoute from './components/ProtectedRoute';
-import Signup from "./pages/Signup";
+import ProfileCompletionChecker from './components/ProfileCompletionChecker';
 
-const Landing = React.lazy(() => import('./pages/Landing'))
-const DeveloperDashboard = React.lazy(() => import('./pages/DeveloperDashboard'))
-const CreateDeveloperProfile = React.lazy(() => import('./pages/CreateDeveloperProfile'))
-const CompanyDashboard = React.lazy(() => import('./pages/CompanyDashboard'))
+const Landing = React.lazy(() => import('./pages/Landing'));
+const DeveloperDashboard = React.lazy(() => import('./pages/DeveloperDashboard'));
+const CreateDeveloperProfile = React.lazy(() => import('./pages/CreateDeveloperProfile'));
+const CompanyDashboard = React.lazy(() => import('./pages/CompanyDashboard'));
 const DeveloperProfilePage = React.lazy(() => import('./components/developer/DeveloperProfilePage'));
+const CompanyProfileRegistration = React.lazy(() => import('./pages/CompanyProfileRegistration'));
+const DeveloperProfileRegistration = React.lazy(() => import('./pages/DeveloperProfileRegistration'));
 
 const App = () => {
   return (
@@ -30,11 +32,15 @@ const App = () => {
             <Route path="/company/login" element={<Login />} />
             <Route path="/oauth/callback" element={<OAuthCallback />} />
             
-            {/* Add new general login route that redirects to developer login by default */}
-            <Route 
-              path="/login" 
-              element={<Navigate to="/developer/login" replace />} 
-            />
+            {/* Handle both routes for OAuth redirects */}
+            <Route path="/auth/callback" element={<OAuthCallback />} />
+            
+            {/* Add login route that redirects to developer login by default */}
+            <Route path="/login" element={<Navigate to="/developer/login" replace />} />
+            
+            {/* Profile registration routes - These should NOT be protected */}
+            <Route path="/complete-company-profile/:userId" element={<CompanyProfileRegistration />} />
+            <Route path="/complete-developer-profile/:userId" element={<DeveloperProfileRegistration />} />
             
             {/* Protected Routes */}
             <Route
@@ -69,12 +75,6 @@ const App = () => {
                 </ProtectedRoute>
               }
             />
-            {/* Add the new unified signup route */}
-            <Route path="/signup" element={<Signup />} />
-            
-            {/* Keep existing signup routes for backward compatibility */}
-            <Route path="/developer/signup" element={<Signup />} />
-            <Route path="/company/signup" element={<Signup />} />
           </Routes>
         </Suspense>
       </div>

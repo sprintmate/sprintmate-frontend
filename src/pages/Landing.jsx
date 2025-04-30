@@ -2,7 +2,6 @@ import React, { useRef, useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { Button } from "@/components/ui/button";
 import { Link } from 'react-router-dom';
-import { useConfig } from '../contexts/ConfigContext';
 import {
   Card,
   CardContent,
@@ -67,9 +66,6 @@ import CustomCursor from "@/components/ui/CustomCursor";
 import { useNavigate } from "react-router-dom";
 
 function Landing() {
-  // Get config data from context
-  const { config } = useConfig();
-  
   // Refs for scroll animations
   const navigate = useNavigate();
   const metricsRef = useRef(null);
@@ -117,7 +113,7 @@ function Landing() {
     <div className="min-h-screen overflow-x-hidden bg-white">
       {!isMobile && <CustomCursor />}
 
-      {/* Hero Section - Now with dynamic tagline from config */}
+      {/* Hero Section - Improved responsiveness */}
       <motion.section
         className="hero-gradient relative overflow-hidden py-16 md:py-28"
         initial={{ opacity: 0 }}
@@ -145,7 +141,7 @@ function Landing() {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.5, delay: 0.1 }}
               >
-                {config.tagline}
+                Less Chaos, More Code
               </motion.h1>
 
               <motion.div 
@@ -158,18 +154,18 @@ function Landing() {
                   variant="primary"
                   size="lg"
                   className="group shadow-lg shadow-blue-500/20"
-                  onClick={() => navigate('/signup')}
+                  onClick={() => navigate('/company/login')}
                 >
-                  <span className="mr-2">Get Started</span>
+                  <span className="mr-2">Hire Developers</span>
                   <ArrowUpRight className="group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform" size={18} />
                 </Button>
-                <Link to="/developer/login"> {/* Updated from "/login" to "/developer/login" */}
+                <Link to="/developer/login">
                   <Button
                     variant="secondary"
                     size="lg"
                     className="shadow-md hover:shadow-lg transition-shadow"
                   >
-                    Sign In
+                    Join as Developer
                   </Button>
                 </Link>
               </motion.div>
@@ -199,7 +195,6 @@ function Landing() {
                         ></motion.div>
                       </motion.div>
                     ))}
-
                   </div>
                   <motion.div>
                     <div className="flex items-center">
@@ -830,7 +825,7 @@ function Landing() {
                   </motion.div>
                 </div>
 
-                {/* CTA Buttons in lower section */}
+                {/* CTA Buttons */}
                 <motion.div
                   className="flex flex-col sm:flex-row gap-4 justify-center mt-16 md:mt-24"
                   initial={{ opacity: 0, y: 20 }}
@@ -842,10 +837,10 @@ function Landing() {
                     variant="primary"
                     size="lg"
                     className="group relative overflow-hidden bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 border-0 shadow-xl shadow-blue-500/20"
-                    onClick={() => navigate('/signup')}
+                    onClick={() => navigate('/company/login')}
                   >
                     <span className="relative z-10 flex items-center justify-center">
-                      Create Account
+                      Start Hiring
                       <ArrowRight className="ml-2 group-hover:translate-x-1 transition-transform" size={18} />
                     </span>
                     <motion.div
@@ -855,6 +850,23 @@ function Landing() {
                       transition={{ duration: 0.3 }}
                     />
                   </Button>
+                  <Link to="/developer/login">
+                    <Button
+                      variant="secondary"
+                      size="lg"
+                      className="group relative overflow-hidden bg-white hover:bg-gray-50 text-gray-900 border-gray-200 shadow-lg"
+                    >
+                      <span className="relative z-10 flex items-center justify-center">
+                        Join as Developer
+                      </span>
+                      <motion.div
+                        className="absolute inset-0 bg-gray-50"
+                        initial={{ x: "-100%" }}
+                        whileHover={{ x: 0 }}
+                        transition={{ duration: 0.3 }}
+                      />
+                    </Button>
+                  </Link>
                 </motion.div>
               </FadeIn>
             </div>
@@ -885,7 +897,7 @@ function Landing() {
         />
       ))}
 
-      {/* Modern Professional Footer with dynamic data from config */}
+      {/* Modern Professional Footer */}
       <footer className="relative mt-20">
         {/* Modern gradient separator */}
         <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-gray-200 to-transparent"></div>
@@ -903,52 +915,39 @@ function Landing() {
                   Transform your development workflow with our elite talent network. Experience seamless collaboration and exceptional results.
                 </p>
                 <div className="flex gap-4">
-                  {/* Social Media Links - Now Dynamic from Config */}
-                  {config.linkedInUrl && (
+                  {[
+                    {
+                      href: "https://www.linkedin.com/in/shashant-kashyap-b812a0155/",
+                      icon: (
+                        <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
+                          <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z" />
+                        </svg>
+                      ),
+                      label: "LinkedIn"
+                    },
+                    {
+                      href: "https://www.instagram.com/kashyapshashant",
+                      icon: (
+                        <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
+                          <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z" />
+                        </svg>
+                      ),
+                      label: "Instagram"
+                    }
+                  ].map((social, index) => (
                     <motion.a
-                      href={config.linkedInUrl.startsWith('http') ? config.linkedInUrl : `https://${config.linkedInUrl}`}
+                      key={index}
+                      href={social.href}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="p-2 rounded-lg text-gray-600 hover:text-blue-600 hover:bg-blue-50 transition-all"
                       whileHover={{ y: -2 }}
                       whileTap={{ scale: 0.95 }}
-                      aria-label="LinkedIn"
+                      aria-label={social.label}
                     >
-                      <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
-                        <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z" />
-                      </svg>
+                      {social.icon}
                     </motion.a>
-                  )}
-                  {config.githubUrl && (
-                    <motion.a
-                      href={config.githubUrl.startsWith('http') ? config.githubUrl : `https://${config.githubUrl}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="p-2 rounded-lg text-gray-600 hover:text-blue-600 hover:bg-blue-50 transition-all"
-                      whileHover={{ y: -2 }}
-                      whileTap={{ scale: 0.95 }}
-                      aria-label="GitHub"
-                    >
-                      <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
-                        <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
-                      </svg>
-                    </motion.a>
-                  )}
-                  {config.instagramUrl && (
-                    <motion.a
-                      href={config.instagramUrl.startsWith('http') ? config.instagramUrl : `https://${config.instagramUrl}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="p-2 rounded-lg text-gray-600 hover:text-blue-600 hover:bg-blue-50 transition-all"
-                      whileHover={{ y: -2 }}
-                      whileTap={{ scale: 0.95 }}
-                      aria-label="Instagram"
-                    >
-                      <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
-                        <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z" />
-                      </svg>
-                    </motion.a>
-                  )}
+                  ))}
                 </div>
               </div>
 
@@ -992,7 +991,7 @@ function Landing() {
                 </nav>
               </div>
 
-              {/* Contact Form with dynamic email */}
+              {/* Contact Form */}
               <div className="col-span-2 md:col-span-4">
                 <h4 className="font-semibold mb-4">Get in Touch</h4>
                 <form
@@ -1000,11 +999,7 @@ function Landing() {
                   onSubmit={(e) => {
                     e.preventDefault();
                     const message = e.target.message.value;
-                    // Use first email from config if available, otherwise use fallback
-                    const email = config.emails && config.emails.length > 0 
-                      ? config.emails[0] 
-                      : "shashant.kashyap999@gmail.com";
-                    window.location.href = `mailto:${email}?subject=Contact Request&body=${encodeURIComponent(message)}`;
+                    window.location.href = `mailto:shashant.kashyap999@gmail.com?subject=Contact Request&body=${encodeURIComponent(message)}`;
                   }}
                 >
                   <Textarea
@@ -1022,29 +1017,10 @@ function Landing() {
                   </Button>
                 </form>
                 <div className="mt-4 text-sm text-gray-600">
-                  {config.emails && config.emails.length > 0 && (
-                    <p className="flex items-center gap-2">
-                      <MessageSquare className="w-4 h-4" />
-                      {config.emails[0]}
-                    </p>
-                  )}
-                  {config.phoneNumbers && config.phoneNumbers.length > 0 && (
-                    <p className="flex items-center gap-2 mt-1">
-                      <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M22 16.92V19.92C22 20.4704 21.7893 20.9996 21.4142 21.3746C21.0391 21.7497 20.5099 21.96 19.96 21.96C16.4223 21.96 12.9867 20.6359 10.1214 18.2972C7.47433 16.1527 5.29474 13.3175 3.86 10.0001C2.53 6.58011 1.95 3.14218 2 0.0400073C2 -0.50981 2.21071 -1.03902 2.58579 -1.41409C2.96086 -1.78917 3.49007 -1.99988 4.04 -1.99988H7.04C8.07978 -1.99988 8.9503 -1.24422 9.08 -0.220007C9.23958 0.986595 9.54629 2.17446 10 3.31995C10.3338 4.21339 10.1446 5.22332 9.51 5.86005L8.09 7.28006C9.44053 10.5308 12.1698 13.26 15.42 14.6101L16.84 13.1901C17.4767 12.5555 18.4867 12.3663 19.38 12.7001C20.5256 13.1538 21.7135 13.4605 22.92 13.62C23.9554 13.7502 24.7169 14.6283 24.71 15.6701L22 16.92Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                      </svg>
-                      {config.phoneNumbers[0]}
-                    </p>
-                  )}
-                  {config.address && (
-                    <p className="flex items-center gap-2 mt-1">
-                      <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M21 10C21 17 12 23 12 23C12 23 3 17 3 10C3 7.61305 3.94821 5.32387 5.63604 3.63604C7.32387 1.94821 9.61305 1 12 1C14.3869 1 16.6761 1.94821 18.364 3.63604C20.0518 5.32387 21 7.61305 21 10Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                        <path d="M12 13C13.6569 13 15 11.6569 15 10C15 8.34315 13.6569 7 12 7C10.3431 7 9 8.34315 9 10C9 11.6569 10.3431 13 12 13Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                      </svg>
-                      {config.address}
-                    </p>
-                  )}
+                  <p className="flex items-center gap-2">
+                    <MessageSquare className="w-4 h-4" />
+                    shashant.kashyap999@gmail.com
+                  </p>
                 </div>
               </div>
             </div>

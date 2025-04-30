@@ -27,7 +27,7 @@ const ProjectsList = () => {
         `${import.meta.env.VITE_API_BASE_URL}/v1/projects`,
         {
           headers: {
-            'Authorization': `Bearer ${token}`
+            'Authorization': `${token}`
           }
         }
       );

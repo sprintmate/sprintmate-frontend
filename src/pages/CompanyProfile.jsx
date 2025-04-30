@@ -11,7 +11,7 @@ export default function CompanyProfile() {
 
   const navigate = useNavigate()
 
-  const url = import.meta.env.VITE_API_BASE_URL ;
+  const url = import.meta.env.VITE_API_BASE_URL;
   
   useEffect(() => {
     const fetchProfile = async () => {
@@ -19,13 +19,17 @@ export default function CompanyProfile() {
         // Try to get profile from localStorage first
         const storedProfile = localStorage.getItem("userProfile");
         if (storedProfile) {
-          setProfile(JSON.parse(storedProfile));
+          const parsedProfile = JSON.parse(storedProfile);
+          setProfile(parsedProfile);
+          
+          // Check if profile registration is incomplete
+          checkProfileCompletion(parsedProfile);
           setLoading(false);
           return;
         }
         
         // If not in localStorage, fetch from API
-        const token = localStorage.getItem("authToken");
+        const token = localStorage.getItem("authToken") || localStorage.getItem("token");
         if (!token) {
           throw new Error("Authentication token not found");
         }
@@ -41,9 +45,12 @@ export default function CompanyProfile() {
           localStorage.setItem("userProfile", JSON.stringify(response.data));
           
           // Store externalId separately for easy access in other components
-          if (response.data.externalId) {
-            localStorage.setItem("userId", response.data.externalId);
+          if (response.data.externalId || response.data.userId) {
+            localStorage.setItem("userId", response.data.externalId || response.data.userId);
           }
+          
+          // Check if profile registration is incomplete
+          checkProfileCompletion(response.data);
         }
       } catch (err) {
         console.error("Error fetching profile:", err);
@@ -54,7 +61,24 @@ export default function CompanyProfile() {
     };
     
     fetchProfile();
-  }, []);
+  }, [navigate]);
+  
+  // Function to check if the profile registration is complete
+  const checkProfileCompletion = (profileData) => {
+    if (!profileData) return;
+    
+    const userId = profileData.externalId || profileData.userId;
+    
+    if (profileData.role === "CORPORATE" && (!profileData.companyProfiles || profileData.companyProfiles.length === 0)) {
+      console.log("Company profile incomplete, redirecting to registration");
+      // Redirect to company registration page
+      navigate(`/complete-company-profile/${userId}`);
+    } else if (profileData.role === "DEVELOPER" && (!profileData.developerProfiles || profileData.developerProfiles.length === 0)) {
+      console.log("Developer profile incomplete, redirecting to registration");
+      // Redirect to developer registration page
+      navigate(`/complete-developer-profile/${userId}`);
+    }
+  };
   
   if (loading) {
     return (

@@ -8,7 +8,7 @@ const getHeaders = () => {
   const token = getToken();
   return {
     headers: {
-      'Authorization': token ? `Bearer ${token}` : '',
+      'Authorization': token ? `${token}` : '',
       'Content-Type': 'application/json'
     }
   };
