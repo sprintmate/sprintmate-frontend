@@ -16,7 +16,8 @@ import {
   Monitor,
   FileText,
   Briefcase,
-  Image
+  Image,
+  User
 } from 'lucide-react';
 import { FaGithub, FaLinkedin } from 'react-icons/fa';
 import { Button } from '@/components/ui/button';
@@ -28,18 +29,22 @@ import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Badge } from '@/components/ui/badge';
 
-// Available options for work types
+// Available options for work types (enums from backend)
 const availabilityOptions = [
   { value: "FULL_TIME", label: "Full Time" },
   { value: "PART_TIME", label: "Part Time" },
-  { value: "CONTRACT", label: "Contract" },
-  { value: "FREELANCE", label: "Freelance" }
+  { value: "WEEKENDS_ONLY", label: "Weekends Only" },
+  { value: "UNAVAILABLE", label: "Unavailable" }
 ];
 
 const workTypeOptions = [
   { value: "REMOTE", label: "Remote" },
   { value: "ONSITE", label: "Onsite" },
-  { value: "HYBRID", label: "Hybrid" }
+  { value: "HYBRID", label: "Hybrid" },
+  { value: "CONTRACT", label: "Contract" },
+  { value: "FREELANCE", label: "Freelance" },
+  { value: "FULL_TIME", label: "Full Time" },
+  { value: "OPEN_TO_ALL", label: "Open to All" }
 ];
 
 // List of popular skills for suggestions
@@ -122,13 +127,14 @@ const DeveloperProfileRegistration = () => {
   const uploadFile = async (fileToUpload, fileType) => {
     try {
       setIsLoading(true);
-      
+
       const formData = new FormData();
       formData.append('file', fileToUpload);
-      
+      formData.append('type', "LATEST_RESUME");
+
       const token = localStorage.getItem('authToken') || localStorage.getItem('token');
       const response = await axios.post(
-        `${import.meta.env.VITE_API_BASE_URL}/v1/file/upload`, 
+        `${import.meta.env.VITE_API_BASE_URL}/v1/documents/upload`, 
         formData, 
         {
           headers: {
@@ -137,13 +143,14 @@ const DeveloperProfileRegistration = () => {
           }
         }
       );
-      
-      if (response.data && response.data.fileId) {
+
+      // Use externalId from response as fileId
+      if (response.data && response.data.externalId) {
         if (fileType === 'resume') {
-          setResumeFileId(response.data.fileId);
+          setResumeFileId(response.data.externalId);
           toast.success('Resume uploaded successfully!');
         } else if (fileType === 'profilePic') {
-          setProfilePicFileId(response.data.fileId);
+          setProfilePicFileId(response.data.externalId);
           toast.success('Profile picture uploaded successfully!');
         }
       }
@@ -210,12 +217,12 @@ const DeveloperProfileRegistration = () => {
     
     try {
       setIsLoading(true);
-      
+
       const payload = {
         skills: skills.join(','),
         resume: resumeFileId,
-        availability: availability,
-        preferredWorkType: workType,
+        availability: availability, // Enum value
+        preferredWorkType: workType, // Enum value
         about: about,
         portfolio: {
           LATEST_RESUME: resumeFileId
@@ -236,7 +243,7 @@ const DeveloperProfileRegistration = () => {
       }
       
       const token = localStorage.getItem('authToken') || localStorage.getItem('token');
-      await axios.post(
+      const response = await axios.post(
         `${import.meta.env.VITE_API_BASE_URL}/v1/developers`,
         payload,
         {
@@ -246,17 +253,15 @@ const DeveloperProfileRegistration = () => {
           }
         }
       );
-      
+
       // Clear stored profile to force a refresh on next load
       localStorage.removeItem('userProfile');
-      
+
       toast.success('Developer profile created successfully!');
-      
-      // Redirect to dashboard or profile page
-      setTimeout(() => {
-        navigate('/developer/dashboard');
-      }, 1500);
-      
+
+      // Navigate to developer dashboard immediately on API success
+      navigate('/developer/dashboard', { replace: true });
+
     } catch (error) {
       console.error('Error creating developer profile:', error);
       toast.error(error.response?.data?.message || 'Failed to create developer profile');

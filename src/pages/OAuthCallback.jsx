@@ -31,17 +31,41 @@ const OAuthCallback = () => {
 
         updateUserRole(userData.userId, role, token);
         userData = await fetchUserProfile(token);
-        authUtils.setUserProfile(userData);
+        // Only call login, which should persist to localStorage and update context
+        if (typeof login === "function") {
+          login(userData); // <-- Ensure context and localStorage are updated!
+        }
+        // Remove redundant setUserProfile if login does it
+        // authUtils.setUserProfile(userData);
+
         const isIncomplete = checkProfileCompleteness(userData);
-        if (isIncomplete) {
-          toast('Please complete your profile', { icon: 'ℹ️' });
-          navigate(getRedirectPath(userData));
+
+        // If profile is complete, go directly to dashboard
+        if (!isIncomplete) {
+          toast.success('Successfully signed in!');
+          authUtils.removeOAuthRole();
+
+
+          
+          if (userData.companyProfiles && userData.companyProfiles.length > 0) {
+
+
+            console.log("*************" , userData.companyProfiles && userData.companyProfiles.length > 0);
+            navigate("/company/dashboard");
+            return;
+          } else if (userData.developerProfiles && userData.developerProfiles.length > 0) {
+            navigate("/developer/dashboard", { replace: true });
+            return;
+          }
+          // fallback
+          navigate(getDashboardPath(userData.role), { replace: true });
           return;
         }
 
-        toast.success('Successfully signed in!');
-        authUtils.removeOAuthRole();
-        navigate(getDashboardPath(userData.role));
+        // If profile is incomplete, send to registration
+        toast('Please complete your profile', { icon: 'ℹ️' });
+        navigate(getRedirectPath(userData));
+        return;
       } catch (err) {
         const token = authUtils.getAuthToken();
         console.error("Primary profile load failed: ", err , 'token',token);

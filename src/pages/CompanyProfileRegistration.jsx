@@ -88,14 +88,19 @@ const CompanyProfileRegistration = () => {
   const uploadFile = async (fileToUpload) => {
     try {
       setIsLoading(true);
-      
+
       const formData = new FormData();
       formData.append('file', fileToUpload);
-      
+      formData.append('type', 'LOGO');
+
       const token = localStorage.getItem('authToken') || localStorage.getItem('token');
+      const uploadUrl = `${import.meta.env.VITE_API_BASE_URL}/v1/documents/upload`;
+      // Log the upload URL for debugging
+      console.log('Uploading to:', uploadUrl);
+
       const response = await axios.post(
-        `${import.meta.env.VITE_API_BASE_URL}/v1/file/upload`, 
-        formData, 
+        uploadUrl,
+        formData,
         {
           headers: {
             'Authorization': token,
@@ -103,14 +108,21 @@ const CompanyProfileRegistration = () => {
           }
         }
       );
-      
-      if (response.data && response.data.fileId) {
-        setFileId(response.data.fileId);
+
+      // Use externalId from response as fileId
+      if (response.data && response.data.externalId) {
+        setFileId(response.data.externalId);
         toast.success('Logo uploaded successfully!');
       }
     } catch (error) {
+      // Improved error logging
       console.error('Error uploading file:', error);
-      toast.error('Failed to upload logo. Please try again.');
+      if (error.response) {
+        console.error('Upload error response:', error.response);
+        toast.error(`Failed to upload logo: ${error.response.status} ${error.response.statusText}`);
+      } else {
+        toast.error('Failed to upload logo. Please try again.');
+      }
     } finally {
       setIsLoading(false);
     }

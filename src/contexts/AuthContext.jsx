@@ -65,10 +65,21 @@ export const AuthProvider = ({ children }) => {
     }
   }, [token]);
 
-  // Login user with token
-  const login = useCallback((newToken) => {
-    localStorage.setItem("token", newToken);
-    setToken(newToken);
+  // Login user with token or userData
+  const login = useCallback((userDataOrToken) => {
+    if (typeof userDataOrToken === "string") {
+      // If only token is provided, just set token
+      localStorage.setItem("token", userDataOrToken);
+      setToken(userDataOrToken);
+    } else if (userDataOrToken && typeof userDataOrToken === "object") {
+      // If userData is provided, set user and persist
+      setUser(userDataOrToken);
+      localStorage.setItem("userProfile", JSON.stringify(userDataOrToken));
+      if (userDataOrToken.token) {
+        localStorage.setItem("token", userDataOrToken.token);
+        setToken(userDataOrToken.token);
+      }
+    }
   }, []);
 
   // Logout user
@@ -97,20 +108,11 @@ export const AuthProvider = ({ children }) => {
     login,
     logout,
     refreshUser: fetchUserData,
+    isAuthenticated: !!token,
   };
 
   return (
-    <AuthContext.Provider 
-      value={{ 
-        user, 
-        companyProfile,
-        isAuthenticated: !!token, 
-        loading,
-        login,
-        logout,
-        refreshUserProfile: fetchUserData
-      }}
-    >
+    <AuthContext.Provider value={value}>
       {children}
     </AuthContext.Provider>
   );
