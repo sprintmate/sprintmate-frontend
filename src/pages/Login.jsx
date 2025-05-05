@@ -78,7 +78,7 @@ const Login = () => {
         console.log("user profile ", userProfile, 'userType', userType);
         authUtils.setUserProfile(userProfile);
         toast.success(isSignUp ? 'Signup successful!' : 'Login successful!');
-        const redirectPath = getPostLoginRedirectPath(userProfile);
+        const redirectPath = await getPostLoginRedirectPath(userProfile);
         console.log("redirectPath " , redirectPath);
 
         if (redirectPath.includes('complete')) {

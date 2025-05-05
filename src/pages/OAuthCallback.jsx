@@ -34,7 +34,7 @@ const OAuthCallback = () => {
         updateUserRole(userData.userId, role, token);
         userData = await fetchUserProfile(token);
         authUtils.setUserProfile(userData);
-        const redirectPath = getPostLoginRedirectPath(userData);
+        const redirectPath = await getPostLoginRedirectPath(userData);
 
         if (redirectPath.includes('complete')) {
           toast('Please complete your profile', { icon: 'ℹ️' });

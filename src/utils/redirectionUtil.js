@@ -1,30 +1,36 @@
 // redirectUtils.js
 
 import { authUtils } from './authUtils';
+import { fetchUserProfile } from '../api/userService';
 
-export const getPostLoginRedirectPath = (userData) => {
-  if (!userData) return '/';
+export const getPostLoginRedirectPath = async () => {
+  try {
+    const userData = await fetchUserProfile();
+    if (!userData) return '/';
 
-  const role = userData.role || authUtils.getOAuthRole();
-  const userId = userData.userId;
+    const role = userData.role || authUtils.getOAuthRole();
+    const userId = userData.userId;
 
-  const isComplete = isProfileComplete(userData);
+    const isComplete = isProfileComplete(userData);
 
-  if (isComplete) {
-    if (role === "CORPORATE" && userData.companyProfiles?.length > 0) {
-      return "/company/dashboard";
-    } else if (role === "DEVELOPER" && userData.developerProfiles?.length > 0) {
-      return "/developer/dashboard";
+    if (isComplete) {
+      if (role === "CORPORATE" && userData.companyProfiles?.length > 0) {
+        return "/company/dashboard";
+      } else if (role === "DEVELOPER" && userData.developerProfiles?.length > 0) {
+        return "/developer/dashboard";
+      }
+
+      // fallback dashboard path
+      return role === "DEVELOPER" ? "/developer/dashboard" : "/company/dashboard";
     }
-    // fallback dashboard path
-    return role === "DEVELOPER" ? "/developer/dashboard" : "/company/dashboard";
-  }
 
-  // Incomplete profile redirection
-  if (role === "CORPORATE") {
-    return `/complete-company-profile/${userId}`;
-  } else {
-    return `/complete-developer-profile/${userId}`;
+    // Incomplete profile redirection
+    return role === "CORPORATE"
+      ? `/complete-company-profile/${userId}`
+      : `/complete-developer-profile/${userId}`;
+  } catch (error) {
+    console.error("Failed to get user profile for redirection:", error);
+    return '/';
   }
 };
 
