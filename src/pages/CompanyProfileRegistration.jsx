@@ -20,6 +20,8 @@ import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
+import { authUtils } from '../utils/authUtils';
+import { createCompanyProfile } from '../api/companyService';
 
 const industries = [
   { value: 'Tech', label: 'Technology' },
@@ -165,27 +167,13 @@ const CompanyProfileRegistration = () => {
         about
       };
       
-      const token = localStorage.getItem('authToken') || localStorage.getItem('token');
-      await axios.post(
-        `${import.meta.env.VITE_API_BASE_URL}/v1/users/${userId}/company-profile`,
-        payload,
-        {
-          headers: {
-            'Authorization': token,
-            'Content-Type': 'application/json'
-          }
-        }
-      );
-      
-      // Clear stored profile to force a refresh on next load
-      localStorage.removeItem('userProfile');
+      const token = authUtils.getAuthToken();
+      await createCompanyProfile(userId,payload);
+
+      authUtils.removeUserProfile();
       
       toast.success('Company profile created successfully!');
-      
-      // Redirect to dashboard or profile page
-      setTimeout(() => {
-        navigate('/company/dashboard');
-      }, 1500);
+      navigate('/company/dashboard');
       
     } catch (error) {
       console.error('Error creating company profile:', error);
@@ -194,6 +182,7 @@ const CompanyProfileRegistration = () => {
       setIsLoading(false);
     }
   };
+
 
   const goToNextStep = () => {
     if (currentStep === 1) {

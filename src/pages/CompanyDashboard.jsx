@@ -1280,7 +1280,7 @@ const UserProfile = () => {
                 )}
               </p>
             </div>
-            <div className="flex gap-3"> px-8">
+            <div className="flex gap-3 px-8">
               <Button
                 variant="outline" 
                 size="sm" 

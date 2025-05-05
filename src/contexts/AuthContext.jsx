@@ -1,46 +1,39 @@
-import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
-import axios from 'axios';
-import { 
-  getToken, 
-  getUserProfile, 
+import React, {
+  createContext,
+  useContext,
+  useState,
+  useEffect,
+  useCallback,
+} from 'react';
+
+import {
   getCompanyProfile,
-  clearAuthData, 
-  initializeAuth,
-  fetchUserProfile,
-  setToken
+  clearAuthData,
+  getDeveloperProfile,
 } from '../services/authService';
+
+import { fetchUserProfile } from '../api/userService';
+
 import { authUtils } from '../utils/authUtils';
+
+import { isProfileComplete } from '../utils/redirectionUtil';
 
 const AuthContext = createContext(null);
 
 export const AuthProvider = ({ children }) => {
-  const [token, setToken] = useState(authUtils.getAuthToken());
+  const [tokenState, setTokenState] = useState(authUtils.getAuthToken());
   const [user, setUser] = useState(null);
+  const [companyProfile, setCompanyProfile] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [companyProfile, setCompanyProfile] = useState(null);
-  
-  // Check if profile is incomplete
+
+  // Helper to check if the profile is incomplete
   const isProfileIncomplete = useCallback((userData) => {
-    if (!userData) return false;
-    
-    if (userData.role === "CORPORATE" && 
-        (!userData.companyProfiles || userData.companyProfiles.length === 0)) {
-      return true;
-    }
-    
-    if (userData.role === "DEVELOPER" && 
-        (!userData.developerProfiles || userData.developerProfiles.length === 0)) {
-      return true;
-    }
-    
-    return false;
+    return !isProfileComplete(userData);
   }, []);
 
-  // Fetch current user data
+  // Fetch user and company profile data
   const fetchUserData = useCallback(async () => {
-    console.log("Fetching user data with token:", token);
-    console.log("AuthUtils token:", authUtils.getAuthToken());
     const currentToken = authUtils.getAuthToken();
     if (!currentToken) {
       setLoading(false);
@@ -48,67 +41,66 @@ export const AuthProvider = ({ children }) => {
     }
 
     try {
-      const userData = await fetchUserProfile(currentToken);
+      const userData = await fetchUserProfile();
       setUser(userData);
-      setToken(currentToken);
-      
-      if (userData.role === "CORPORATE") {
+      setTokenState(currentToken); // Sync token to state
+
+      if (userData.role === 'CORPORATE') {
         const companyData = await getCompanyProfile(currentToken);
         setCompanyProfile(companyData);
-      }
+      } 
     } catch (err) {
-      console.error("Error fetching user data:", err);
+      console.error('Error fetching user data:', err);
       setError(err.message);
       clearAuthData();
+      setUser(null);
+      setTokenState(null);
     } finally {
       setLoading(false);
     }
-  }, [token]);
+  }, []);
 
-  // Login user with token or userData
+  // Login with token or user object
   const login = useCallback((userDataOrToken) => {
-    if (typeof userDataOrToken === "string") {
-      // If only token is provided, just set token
-      localStorage.setItem("token", userDataOrToken);
-      setToken(userDataOrToken);
-    } else if (userDataOrToken && typeof userDataOrToken === "object") {
-      // If userData is provided, set user and persist
+    if (typeof userDataOrToken === 'string') {
+      localStorage.setItem('token', userDataOrToken);
+      setTokenState(userDataOrToken);
+    } else if (typeof userDataOrToken === 'object') {
+      const { token: newToken } = userDataOrToken;
       setUser(userDataOrToken);
-      localStorage.setItem("userProfile", JSON.stringify(userDataOrToken));
-      if (userDataOrToken.token) {
-        localStorage.setItem("token", userDataOrToken.token);
-        setToken(userDataOrToken.token);
+      localStorage.setItem('userProfile', JSON.stringify(userDataOrToken));
+
+      if (newToken) {
+        localStorage.setItem('token', newToken);
+        setTokenState(newToken);
       }
     }
   }, []);
 
-  // Logout user
+  // Logout
   const logout = useCallback(() => {
-    localStorage.removeItem("token");
-    localStorage.removeItem("userProfile");
-    localStorage.removeItem("needsProfileCompletion");
-    localStorage.removeItem("userId");
-    setToken(null);
+    clearAuthData();
+    setTokenState(null);
     setUser(null);
+    setCompanyProfile(null);
   }, []);
 
-  // Effect to fetch user data when token changes
+  // Fetch user data on initial load and when token changes
   useEffect(() => {
     fetchUserData();
   }, [fetchUserData]);
 
-  // Value to provide through context
   const value = {
-    token,
+    token: tokenState,
     user,
     loading,
     error,
     companyProfile,
+    isAuthenticated: !!tokenState,
     isProfileIncomplete,
     login,
     logout,
     refreshUser: fetchUserData,
-    isAuthenticated: !!token,
   };
 
   return (
@@ -118,6 +110,7 @@ export const AuthProvider = ({ children }) => {
   );
 };
 
+// Custom hook to access Auth context
 export const useAuth = () => {
   const context = useContext(AuthContext);
   if (!context) {

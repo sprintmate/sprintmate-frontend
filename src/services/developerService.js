@@ -1,5 +1,6 @@
 // src/services/developerService.js
 import { apiFetch } from "@/lib/apiClient";
+import httpInstance from "../api/axiosInstance";
 
 // User Profile
 export async function getUserProfile() {
@@ -7,12 +8,26 @@ export async function getUserProfile() {
 }
 
 // Developer Profile
+// export const createDeveloperProfile = async (profileData) => {
+//   return apiFetch('/v1/developers', {
+//     method: 'POST',
+//     body: JSON.stringify(profileData)
+//   });
+// };
+
+
+
 export const createDeveloperProfile = async (profileData) => {
-  return apiFetch('/v1/developers', {
-    method: 'POST',
-    body: JSON.stringify(profileData)
-  });
+  try {
+    const response = await httpInstance.post('/v1/developers', profileData);
+    console.log("response ", response)
+    return response.data;
+  } catch (error) {
+    console.error('Error creating user:', error);
+    throw error;
+  }
 };
+
 
 export const getDeveloperProfile = async (developerId) => {
   return apiFetch(`/v1/developers/${developerId}`);

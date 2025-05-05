@@ -64,6 +64,7 @@ import image8 from "../assets/image8.webp";
 import image9 from "../assets/image9.webp";
 import CustomCursor from "@/components/ui/CustomCursor";
 import { useNavigate } from "react-router-dom";
+import { authUtils } from "../utils/authUtils";
 
 function Landing() {
   // Refs for scroll animations
@@ -83,16 +84,18 @@ function Landing() {
 
   // Scroll progress animations
   const { scrollYProgress } = useScroll();
-  
+
   // Check if device is mobile
   useEffect(() => {
+    // Clear localStorage and sessionStorage
+    authUtils.clearAllData();
     const checkMobile = () => {
       setIsMobile(window.innerWidth < 768);
     };
-    
+
     checkMobile();
     window.addEventListener('resize', checkMobile);
-    
+
     return () => {
       window.removeEventListener('resize', checkMobile);
     };
@@ -127,7 +130,7 @@ function Landing() {
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 xl:px-16 relative z-10">
           <div className="flex flex-col md:flex-row items-center gap-8 md:gap-12">
             <motion.div className="md:w-1/2 space-y-4 text-center md:text-left">
-              <motion.div 
+              <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.5 }}
@@ -135,7 +138,7 @@ function Landing() {
                 <Badge variant="blue" className="mb-2 px-3 py-1.5 text-sm">✨ Connecting Talents Worldwide</Badge>
               </motion.div>
 
-              <motion.h1 
+              <motion.h1
                 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold leading-tight mb-4 bg-clip-text text-transparent bg-gradient-to-r from-gray-900 to-gray-700"
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -144,7 +147,7 @@ function Landing() {
                 Less Chaos, More Code
               </motion.h1>
 
-              <motion.div 
+              <motion.div
                 className="flex flex-col sm:flex-row gap-3 pt-4 justify-center md:justify-start"
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -170,7 +173,7 @@ function Landing() {
                 </Link>
               </motion.div>
 
-              <motion.div 
+              <motion.div
                 className="pt-5 flex justify-center md:justify-start"
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
@@ -234,6 +237,7 @@ function Landing() {
                 {/* Floating elements with glass effect */}
                 <AnimatePresence>
                   <motion.div
+                    key="projects"
                     className="absolute -left-4 bottom-16 glass-effect p-3 rounded-xl shadow-blue flex items-center gap-2"
                     animate={{ y: [0, -15, 0] }}
                     transition={{ duration: 6, repeat: Infinity, delay: 1 }}
@@ -246,6 +250,7 @@ function Landing() {
                   </motion.div>
 
                   <motion.div
+                    key="countries"
                     className="absolute top-16 -right-2 glass-effect p-3 rounded-xl shadow-blue flex items-center gap-2"
                     animate={{ y: [0, -15, 0] }}
                     transition={{ duration: 6, repeat: Infinity, delay: 2 }}
@@ -258,6 +263,7 @@ function Landing() {
                   </motion.div>
 
                   <motion.div
+                    key="developers"
                     className="absolute top-1/2 left-0 glass-effect p-3 rounded-xl shadow-blue flex items-center gap-2"
                     animate={{ y: [0, -15, 0] }}
                     transition={{ duration: 6, repeat: Infinity, delay: 1.5 }}
@@ -269,6 +275,7 @@ function Landing() {
                     <span className="text-sm font-medium">10k+ Developers</span>
                   </motion.div>
                 </AnimatePresence>
+
               </div>
             </motion.div>
           </div>

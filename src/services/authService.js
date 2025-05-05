@@ -63,6 +63,19 @@ export const getCompanyProfile = () => {
   }
 };
 
+export const getDeveloperProfile = () => {
+  try {
+    const userProfile = getUserProfile();
+    if (userProfile && userProfile.developerProfiles && userProfile.developerProfiles.length > 0) {
+      return userProfile.developerProfiles[0];
+    }
+    return null;
+  } catch (error) {
+    console.error("Error getting company profile:", error);
+    return null;
+  }
+};
+
 // Fetch user profile with better error handling and logging
 export const fetchUserProfile = async () => {
   try {

@@ -4,6 +4,8 @@ import { useAuth } from '../contexts/AuthContext';
 import axios from 'axios';
 import { toast } from 'react-hot-toast';
 import { authUtils } from '../utils/authUtils';
+import { getPostLoginRedirectPath } from '../utils/redirectionUtil';
+
 
 const OAuthCallback = () => {
   const navigate = useNavigate();
@@ -31,40 +33,17 @@ const OAuthCallback = () => {
 
         updateUserRole(userData.userId, role, token);
         userData = await fetchUserProfile(token);
-        // Only call login, which should persist to localStorage and update context
-        if (typeof login === "function") {
-          login(userData); // <-- Ensure context and localStorage are updated!
-        }
-        // Remove redundant setUserProfile if login does it
-        // authUtils.setUserProfile(userData);
+        authUtils.setUserProfile(userData);
+        const redirectPath = getPostLoginRedirectPath(userData);
 
-        const isIncomplete = checkProfileCompleteness(userData);
-
-        // If profile is complete, go directly to dashboard
-        if (!isIncomplete) {
+        if (redirectPath.includes('complete')) {
+          toast('Please complete your profile', { icon: 'ℹ️' });
+        } else {
           toast.success('Successfully signed in!');
           authUtils.removeOAuthRole();
-
-
-          
-          if (userData.companyProfiles && userData.companyProfiles.length > 0) {
-
-
-            console.log("*************" , userData.companyProfiles && userData.companyProfiles.length > 0);
-            navigate("/company/dashboard");
-            return;
-          } else if (userData.developerProfiles && userData.developerProfiles.length > 0) {
-            navigate("/developer/dashboard", { replace: true });
-            return;
-          }
-          // fallback
-          navigate(getDashboardPath(userData.role), { replace: true });
-          return;
         }
-
-        // If profile is incomplete, send to registration
-        toast('Please complete your profile', { icon: 'ℹ️' });
-        navigate(getRedirectPath(userData));
+        
+        navigate(redirectPath, { replace: true });
         return;
       } catch (err) {
         const token = authUtils.getAuthToken();
@@ -110,32 +89,6 @@ const updateUserRole = async (userId, role, token) => {
   }
 };
 
-const checkProfileCompleteness = (userData) => {
-  if (!userData) return true;
-
-  const roleProfileMap = {
-    CORPORATE: 'companyProfiles',
-    DEVELOPER: 'developerProfiles',
-  };
-
-  const profileKey = roleProfileMap[userData.role];
-  const profiles = userData[profileKey];
-  const isIncomplete = !Array.isArray(profiles) || profiles.length === 0;
-  console.log(`${userData.role} profile is incomplete:`, isIncomplete);
-  return isIncomplete;
-};
-
-const getRedirectPath = (userData) => {
-  const userId = userData.userId;
-  const role = userData.role;
-  if (role === "CORPORATE") return `/complete-company-profile/${userId}`;
-  return `/complete-developer-profile/${userId}`;
-};
-
-const getDashboardPath = (role) => {
-  const finalRole = authUtils.getOAuthRole() || role;
-  return finalRole === "DEVELOPER" ? "/developer/dashboard" : "/company/dashboard";
-};
 
 const LoadingView = () => (
   <div className="min-h-screen flex flex-col items-center justify-center p-4">

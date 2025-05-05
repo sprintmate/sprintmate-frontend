@@ -3,10 +3,10 @@ import React, { useState, useRef, useEffect } from 'react';
 import { Routes, Route, useLocation, useNavigate, Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import axios from 'axios';
-import { 
-  Home, 
-  CheckSquare, 
-  Briefcase, 
+import {
+  Home,
+  CheckSquare,
+  Briefcase,
   Search,
   Bell,
   User,
@@ -27,17 +27,18 @@ import MyApplications from '@/components/developer/MyApplications';
 import SettingsPage from '@/components/developer/SettingsPage';
 import DeveloperProfile from '@/components/developer/DeveloperProfile';
 import NotFound from '@/components/developer/NotFound';
+import { authUtils } from '../utils/authUtils';
+import { fetchUserProfile } from '../api/userService';
 
 // Sidebar link component
 const SidebarLink = ({ to, icon: Icon, label, isActive, isExpanded }) => {
   return (
     <Link
       to={to}
-      className={`flex items-center py-3 px-3 rounded-lg transition-colors ${
-        isActive 
-          ? 'bg-blue-50 text-blue-600 font-medium' 
+      className={`flex items-center py-3 px-3 rounded-lg transition-colors ${isActive
+          ? 'bg-blue-50 text-blue-600 font-medium'
           : 'text-gray-700 hover:bg-gray-100'
-      }`}
+        }`}
     >
       <Icon size={20} className={isActive ? 'text-blue-600' : 'text-gray-500'} />
       {isExpanded && (
@@ -71,29 +72,18 @@ const DeveloperDashboard = () => {
   useEffect(() => {
     const fetchDeveloperProfile = async () => {
       try {
-        const storedProfile = localStorage.getItem("userProfile");
+        const storedProfile = await fetchUserProfile();
+        console.log("fetched user profile from developer dashboard " , storedProfile)
         if (storedProfile) {
-          const profileData = JSON.parse(storedProfile);
-          setDeveloper(profileData);
-          setIsLoading(false);
-        } else {
-          const token = localStorage.getItem("authToken");
-          if (!token) {
-            navigate('/developer/login');
-            return;
-          }
-
-          const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || "https://round-georgianna-sprintmate-8451e6d8.koyeb.app";
-          const response = await axios.get(`${apiBaseUrl}/v1/users/profile`, {
-            headers: {
-              'Authorization': token
-            }
-          });
-          
-          if (response.data) {
-            setDeveloper(response.data);
-            localStorage.setItem("userProfile", JSON.stringify(response.data));
-          }
+          setDeveloper(storedProfile);
+          authUtils.setUserProfile(storedProfile);
+          return;
+        }
+  
+        const token = authUtils.getAuthToken();
+        if (!token) {
+          navigate('/developer/login');
+          return;
         }
       } catch (error) {
         console.error("Error fetching developer profile:", error);
@@ -101,9 +91,10 @@ const DeveloperDashboard = () => {
         setIsLoading(false);
       }
     };
-
+  
     fetchDeveloperProfile();
   }, [navigate]);
+  
 
   // Close sidebar when clicking outside on mobile
   useEffect(() => {
@@ -129,9 +120,7 @@ const DeveloperDashboard = () => {
   }, [location.pathname]);
 
   const handleLogout = () => {
-    localStorage.removeItem("authToken");
-    localStorage.removeItem("userProfile");
-    localStorage.removeItem("userType");
+    authUtils.clearAllData();
     navigate('/developer/login');
   };
 
@@ -178,13 +167,13 @@ const DeveloperDashboard = () => {
           />
         )}
       </AnimatePresence>
-      
+
       {/* Sidebar */}
       <motion.aside
         ref={sidebarRef}
         className={`fixed inset-y-0 left-0 z-30 bg-white shadow-md flex flex-col border-r border-blue-100
                   h-screen overflow-hidden lg:relative lg:translate-x-0 ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}`}
-        animate={{ 
+        animate={{
           width: (isSidebarExpanded || isMobileMenuOpen) ? 240 : 80,
           transition: { duration: 0.3, ease: "easeInOut" }
         }}
@@ -206,9 +195,8 @@ const DeveloperDashboard = () => {
           >
             <ArrowRight
               size={20}
-              className={`transform transition-transform ${
-                isSidebarExpanded ? '' : 'rotate-180'
-              }`}
+              className={`transform transition-transform ${isSidebarExpanded ? '' : 'rotate-180'
+                }`}
             />
           </button>
           <button
@@ -218,7 +206,7 @@ const DeveloperDashboard = () => {
             <X size={20} />
           </button>
         </div>
-        
+
         {/* Nav links */}
         <nav className="flex-1 py-6 space-y-1 px-3 overflow-y-auto">
           {navLinks.map((link) => (
@@ -232,10 +220,10 @@ const DeveloperDashboard = () => {
             />
           ))}
         </nav>
-        
+
         {/* User profile section */}
         <div className={`p-4 border-t border-blue-100 ${(isSidebarExpanded || isMobileMenuOpen) ? 'px-4' : 'px-3'}`}>
-          <div 
+          <div
             onClick={() => navigate('/developer/dashboard/profile')}
             className={`flex items-center cursor-pointer hover:bg-gray-100 ${isRouteActive('/developer/dashboard/profile') ? 'bg-blue-50 text-blue-600' : ''} rounded-lg p-2 transition-colors`}
           >
@@ -253,7 +241,7 @@ const DeveloperDashboard = () => {
               </div>
             )}
           </div>
-          
+
           {(isSidebarExpanded || isMobileMenuOpen) && (
             <button
               onClick={handleLogout}
@@ -265,12 +253,12 @@ const DeveloperDashboard = () => {
           )}
         </div>
       </motion.aside>
-      
+
       {/* Main content */}
-      <motion.main 
+      <motion.main
         className="flex-1 min-w-0 h-screen overflow-y-auto"
-        animate={{ 
-          marginLeft: isSidebarExpanded ? 0 : 0 
+        animate={{
+          marginLeft: isSidebarExpanded ? 0 : 0
         }}
         transition={{ duration: 0.3 }}
       >
@@ -284,17 +272,17 @@ const DeveloperDashboard = () => {
               >
                 <Menu size={24} />
               </button>
-              
+
               <div className="ml-4 lg:ml-0">
                 <h2 className="text-lg font-semibold text-gray-800">
                   {location.pathname.includes('/projects') ? 'Available Projects' :
-                   location.pathname.includes('/applications') ? 'My Applications' :
-                   location.pathname.includes('/profile') ? 'Developer Profile' :
-                   location.pathname.includes('/settings') ? 'Settings' : 'Dashboard'}
+                    location.pathname.includes('/applications') ? 'My Applications' :
+                      location.pathname.includes('/profile') ? 'Developer Profile' :
+                        location.pathname.includes('/settings') ? 'Settings' : 'Dashboard'}
                 </h2>
               </div>
             </div>
-            
+
             <div className="flex items-center gap-4">
               <div className="relative">
                 <button className="p-2 rounded-md text-gray-500 hover:text-gray-700 hover:bg-gray-100">
@@ -302,7 +290,7 @@ const DeveloperDashboard = () => {
                 </button>
                 <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
               </div>
-              
+
               <div className="hidden md:flex items-center bg-gray-100 rounded-lg py-1.5 px-2 gap-2">
                 <Search size={16} className="text-gray-500" />
                 <input
@@ -314,7 +302,7 @@ const DeveloperDashboard = () => {
             </div>
           </div>
         </header>
-        
+
         {/* Page content */}
         <div className="py-4 h-[calc(100vh-4rem)] overflow-y-auto">
           <Routes>

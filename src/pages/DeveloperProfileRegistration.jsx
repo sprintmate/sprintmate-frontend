@@ -28,6 +28,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Badge } from '@/components/ui/badge';
+import { authUtils } from '../utils/authUtils';
 
 // Available options for work types (enums from backend)
 const availabilityOptions = [
@@ -49,7 +50,7 @@ const workTypeOptions = [
 
 // List of popular skills for suggestions
 const popularSkills = [
-  "JavaScript", "Python", "Java", "React", "Node.js", "Angular", "Vue.js", 
+  "JavaScript", "Python", "Java", "React", "Node.js", "Angular", "Vue.js",
   "PHP", "Ruby", "C#", ".NET", "AWS", "Azure", "Docker", "Kubernetes",
   "TypeScript", "Go", "Rust", "Swift", "Kotlin", "SQL", "MongoDB", "Firebase"
 ];
@@ -59,7 +60,7 @@ const DeveloperProfileRegistration = () => {
   const navigate = useNavigate();
   const resumeInputRef = useRef(null);
   const profilePicInputRef = useRef(null);
-  
+
   const [skills, setSkills] = useState([]);
   const [currentSkill, setCurrentSkill] = useState('');
   const [availability, setAvailability] = useState('');
@@ -75,27 +76,27 @@ const DeveloperProfileRegistration = () => {
   const [linkedinUrl, setLinkedinUrl] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [currentStep, setCurrentStep] = useState(1);
-  
+
   // Animation variants
   const containerVariants = {
     hidden: { opacity: 0 },
-    visible: { 
-      opacity: 1, 
-      transition: { 
-        staggerChildren: 0.1 
-      } 
+    visible: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.1
+      }
     }
   };
-  
+
   const itemVariants = {
     hidden: { y: 20, opacity: 0 },
-    visible: { 
-      y: 0, 
-      opacity: 1, 
-      transition: { 
-        type: "spring", 
-        stiffness: 100 
-      } 
+    visible: {
+      y: 0,
+      opacity: 1,
+      transition: {
+        type: "spring",
+        stiffness: 100
+      }
     }
   };
 
@@ -104,21 +105,20 @@ const DeveloperProfileRegistration = () => {
     if (selectedFile) {
       setResumeFile(selectedFile);
       setResumeFileName(selectedFile.name);
-      
       // Upload resume file immediately
       uploadFile(selectedFile, 'resume');
     }
   };
-  
+
   const handleProfilePicChange = (e) => {
     const selectedFile = e.target.files[0];
     if (selectedFile) {
       setProfilePicFile(selectedFile);
-      
+
       // Create a preview URL for the image
       const previewURL = URL.createObjectURL(selectedFile);
       setProfilePicPreview(previewURL);
-      
+
       // Upload profile pic immediately
       uploadFile(selectedFile, 'profilePic');
     }
@@ -134,8 +134,8 @@ const DeveloperProfileRegistration = () => {
 
       const token = localStorage.getItem('authToken') || localStorage.getItem('token');
       const response = await axios.post(
-        `${import.meta.env.VITE_API_BASE_URL}/v1/documents/upload`, 
-        formData, 
+        `${import.meta.env.VITE_API_BASE_URL}/v1/documents/upload`,
+        formData,
         {
           headers: {
             'Authorization': token,
@@ -188,33 +188,33 @@ const DeveloperProfileRegistration = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
     // Validate form
     if (skills.length === 0) {
       toast.error('Please add at least one skill');
       return;
     }
-    
+
     if (!availability) {
       toast.error('Please select your availability');
       return;
     }
-    
+
     if (!workType) {
       toast.error('Please select your preferred work type');
       return;
     }
-    
+
     if (!about.trim()) {
       toast.error('Please provide information about yourself');
       return;
     }
-    
+
     if (!resumeFileId) {
       toast.error('Please upload your resume');
       return;
     }
-    
+
     try {
       setIsLoading(true);
 
@@ -228,21 +228,21 @@ const DeveloperProfileRegistration = () => {
           LATEST_RESUME: resumeFileId
         }
       };
-      
+
       // Add optional fields if they exist
       if (profilePicFileId) {
         payload.portfolio.PROFILE_PIC = profilePicFileId;
       }
-      
+
       if (githubUrl) {
         payload.portfolio.GITHUB = githubUrl;
       }
-      
+
       if (linkedinUrl) {
         payload.portfolio.LINKEDIN = linkedinUrl;
       }
-      
-      const token = localStorage.getItem('authToken') || localStorage.getItem('token');
+
+      const token = authUtils.getAuthToken();
       const response = await axios.post(
         `${import.meta.env.VITE_API_BASE_URL}/v1/developers`,
         payload,
@@ -254,12 +254,10 @@ const DeveloperProfileRegistration = () => {
         }
       );
 
-      // Clear stored profile to force a refresh on next load
-      localStorage.removeItem('userProfile');
+      authUtils.removeUserProfile();
 
       toast.success('Developer profile created successfully!');
-
-      // Navigate to developer dashboard immediately on API success
+      console.log("navigating to developer dashboard")
       navigate('/developer/dashboard', { replace: true });
 
     } catch (error) {
@@ -290,7 +288,7 @@ const DeveloperProfileRegistration = () => {
         return;
       }
     }
-    
+
     setCurrentStep(currentStep + 1);
   };
 
@@ -313,7 +311,7 @@ const DeveloperProfileRegistration = () => {
       <div className="absolute top-40 left-20 w-64 h-64 bg-indigo-400 rounded-full mix-blend-multiply filter blur-3xl opacity-10 animate-blob"></div>
       <div className="absolute top-40 right-20 w-72 h-72 bg-blue-300 rounded-full mix-blend-multiply filter blur-3xl opacity-10 animate-blob animation-delay-2000"></div>
       <div className="absolute -bottom-8 left-1/2 transform -translate-x-1/2 w-72 h-72 bg-teal-300 rounded-full mix-blend-multiply filter blur-3xl opacity-10 animate-blob animation-delay-4000"></div>
-      
+
       <motion.div
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
@@ -321,7 +319,7 @@ const DeveloperProfileRegistration = () => {
         className="max-w-3xl w-full"
       >
         <div className="text-center mb-8">
-          <motion.div 
+          <motion.div
             className="inline-block"
             initial={{ y: -20, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
@@ -348,7 +346,7 @@ const DeveloperProfileRegistration = () => {
             Showcase your skills and experience to connect with ideal projects
           </motion.p>
         </div>
-        
+
         {/* Progress steps */}
         <div className="mb-8">
           <div className="flex items-center justify-center">
@@ -357,9 +355,8 @@ const DeveloperProfileRegistration = () => {
                 initial={{ scale: 0 }}
                 animate={{ scale: 1 }}
                 transition={{ delay: 0.5, type: "spring" }}
-                className={`w-10 h-10 rounded-full flex items-center justify-center ${
-                  currentStep >= 1 ? 'bg-indigo-600 text-white' : 'bg-gray-200 text-gray-600'
-                }`}
+                className={`w-10 h-10 rounded-full flex items-center justify-center ${currentStep >= 1 ? 'bg-indigo-600 text-white' : 'bg-gray-200 text-gray-600'
+                  }`}
               >
                 1
               </motion.div>
@@ -368,9 +365,8 @@ const DeveloperProfileRegistration = () => {
                 initial={{ scale: 0 }}
                 animate={{ scale: 1 }}
                 transition={{ delay: 0.6, type: "spring" }}
-                className={`w-10 h-10 rounded-full flex items-center justify-center ${
-                  currentStep >= 2 ? 'bg-indigo-600 text-white' : 'bg-gray-200 text-gray-600'
-                }`}
+                className={`w-10 h-10 rounded-full flex items-center justify-center ${currentStep >= 2 ? 'bg-indigo-600 text-white' : 'bg-gray-200 text-gray-600'
+                  }`}
               >
                 2
               </motion.div>
@@ -379,9 +375,8 @@ const DeveloperProfileRegistration = () => {
                 initial={{ scale: 0 }}
                 animate={{ scale: 1 }}
                 transition={{ delay: 0.7, type: "spring" }}
-                className={`w-10 h-10 rounded-full flex items-center justify-center ${
-                  currentStep >= 3 ? 'bg-indigo-600 text-white' : 'bg-gray-200 text-gray-600'
-                }`}
+                className={`w-10 h-10 rounded-full flex items-center justify-center ${currentStep >= 3 ? 'bg-indigo-600 text-white' : 'bg-gray-200 text-gray-600'
+                  }`}
               >
                 3
               </motion.div>
@@ -393,7 +388,7 @@ const DeveloperProfileRegistration = () => {
             <div className="w-28 text-center">About You</div>
           </div>
         </div>
-        
+
         <Card className="shadow-xl border-indigo-100">
           <CardHeader>
             <CardTitle>
@@ -407,7 +402,7 @@ const DeveloperProfileRegistration = () => {
               {currentStep === 3 && "Tell us more about your experience and expertise"}
             </CardDescription>
           </CardHeader>
-          
+
           <CardContent>
             <form onSubmit={handleSubmit}>
               {/* Step 1: Skills & Availability */}
@@ -433,21 +428,21 @@ const DeveloperProfileRegistration = () => {
                         onKeyDown={handleSkillKeyDown}
                         className="border-gray-300 focus:ring-indigo-500 focus:border-indigo-500"
                       />
-                      <Button 
-                        type="button" 
+                      <Button
+                        type="button"
                         onClick={handleAddSkill}
                         className="ml-2 bg-indigo-600 hover:bg-indigo-700"
                       >
                         Add
                       </Button>
                     </div>
-                    
+
                     {/* Skills tags */}
                     <div className="flex flex-wrap gap-2 mt-3">
                       {skills.map((skill, index) => (
-                        <Badge 
-                          key={index} 
-                          variant="secondary" 
+                        <Badge
+                          key={index}
+                          variant="secondary"
                           className="bg-indigo-100 text-indigo-800 hover:bg-indigo-200 cursor-pointer"
                           onClick={() => removeSkill(skill)}
                         >
@@ -456,15 +451,15 @@ const DeveloperProfileRegistration = () => {
                         </Badge>
                       ))}
                     </div>
-                    
+
                     {/* Popular skills suggestions */}
                     <div className="mt-2">
                       <p className="text-xs text-gray-500">Popular skills:</p>
                       <div className="flex flex-wrap gap-1 mt-1">
                         {popularSkills.filter(skill => !skills.includes(skill)).slice(0, 10).map((skill, index) => (
-                          <Badge 
-                            key={index} 
-                            variant="outline" 
+                          <Badge
+                            key={index}
+                            variant="outline"
                             className="cursor-pointer hover:bg-indigo-50"
                             onClick={() => {
                               if (!skills.includes(skill)) {
@@ -478,7 +473,7 @@ const DeveloperProfileRegistration = () => {
                       </div>
                     </div>
                   </motion.div>
-                  
+
                   <motion.div variants={itemVariants} className="space-y-4">
                     <div className="space-y-2">
                       <Label className="text-gray-700">
@@ -496,7 +491,7 @@ const DeveloperProfileRegistration = () => {
                         ))}
                       </RadioGroup>
                     </div>
-                    
+
                     <div className="space-y-2">
                       <Label className="text-gray-700">
                         <Monitor className="inline-block mr-2 h-4 w-4" />
@@ -514,7 +509,7 @@ const DeveloperProfileRegistration = () => {
                       </RadioGroup>
                     </div>
                   </motion.div>
-                  
+
                   <motion.div variants={itemVariants} className="bg-indigo-50 p-4 rounded-lg border border-indigo-100">
                     <div className="flex items-start">
                       <div className="flex-shrink-0">
@@ -544,8 +539,8 @@ const DeveloperProfileRegistration = () => {
                       <FileText className="inline-block mr-2 h-4 w-4" />
                       Upload Resume
                     </Label>
-                    
-                    <div 
+
+                    <div
                       className="flex flex-col items-center justify-center border-2 border-dashed border-gray-300 rounded-lg p-6 bg-gray-50 hover:bg-gray-100 transition-colors cursor-pointer"
                       onClick={() => resumeInputRef.current.click()}
                     >
@@ -578,22 +573,22 @@ const DeveloperProfileRegistration = () => {
                       />
                     </div>
                   </motion.div>
-                  
+
                   <motion.div variants={itemVariants}>
                     <Label className="text-gray-700 mb-2 block">
                       <Image className="inline-block mr-2 h-4 w-4" />
                       Profile Picture (Optional)
                     </Label>
-                    
-                    <div 
+
+                    <div
                       className="flex flex-col items-center justify-center border-2 border-dashed border-gray-300 rounded-lg p-6 bg-gray-50 hover:bg-gray-100 transition-colors cursor-pointer"
                       onClick={() => profilePicInputRef.current.click()}
                     >
                       {profilePicPreview ? (
                         <div className="relative w-32 h-32 mb-2 rounded-full overflow-hidden">
-                          <img 
-                            src={profilePicPreview} 
-                            alt="Profile preview" 
+                          <img
+                            src={profilePicPreview}
+                            alt="Profile preview"
                             className="w-full h-full object-cover"
                           />
                         </div>
@@ -606,7 +601,7 @@ const DeveloperProfileRegistration = () => {
                       <p className="text-sm font-medium text-indigo-600">
                         {profilePicPreview ? 'Change picture' : 'Upload profile picture'}
                       </p>
-                      
+
                       <input
                         type="file"
                         ref={profilePicInputRef}
@@ -614,7 +609,7 @@ const DeveloperProfileRegistration = () => {
                         accept="image/*"
                         className="hidden"
                       />
-                      
+
                       {profilePicFileId && (
                         <div className="flex items-center mt-2 text-sm text-green-600">
                           <CheckCircle className="h-4 w-4 mr-1" />
@@ -623,7 +618,7 @@ const DeveloperProfileRegistration = () => {
                       )}
                     </div>
                   </motion.div>
-                  
+
                   <motion.div variants={itemVariants} className="space-y-4">
                     <div className="space-y-2">
                       <Label htmlFor="github" className="text-gray-700">
@@ -639,7 +634,7 @@ const DeveloperProfileRegistration = () => {
                         className="border-gray-300 focus:ring-indigo-500 focus:border-indigo-500"
                       />
                     </div>
-                    
+
                     <div className="space-y-2">
                       <Label htmlFor="linkedin" className="text-gray-700">
                         <FaLinkedin className="inline-block mr-2 h-4 w-4" />
@@ -655,7 +650,7 @@ const DeveloperProfileRegistration = () => {
                       />
                     </div>
                   </motion.div>
-                  
+
                   <motion.div variants={itemVariants} className="bg-blue-50 p-4 rounded-lg border border-blue-100">
                     <div className="flex items-start">
                       <div className="flex-shrink-0">
@@ -694,7 +689,7 @@ const DeveloperProfileRegistration = () => {
                       required
                     />
                   </motion.div>
-                  
+
                   <motion.div variants={itemVariants} className="bg-teal-50 p-4 rounded-lg border border-teal-100">
                     <div className="flex items-start">
                       <div className="flex-shrink-0">
@@ -711,11 +706,11 @@ const DeveloperProfileRegistration = () => {
                       </div>
                     </div>
                   </motion.div>
-                  
+
                   <motion.div variants={itemVariants}>
                     <div className="border border-indigo-100 rounded-lg p-4">
                       <h3 className="text-sm font-medium text-gray-900 mb-3">Profile Preview</h3>
-                      
+
                       <div className="flex gap-4">
                         <div className="w-16 h-16 rounded-full overflow-hidden bg-indigo-100 flex-shrink-0">
                           {profilePicPreview ? (
@@ -726,7 +721,7 @@ const DeveloperProfileRegistration = () => {
                             </div>
                           )}
                         </div>
-                        
+
                         <div className="flex-1">
                           <div className="font-medium text-gray-900">Your Name</div>
                           <div className="text-sm text-gray-600 mt-1 flex flex-wrap gap-1">
@@ -756,7 +751,7 @@ const DeveloperProfileRegistration = () => {
               )}
             </form>
           </CardContent>
-          
+
           <CardFooter className="flex justify-between">
             <Button
               type="button"
@@ -766,19 +761,19 @@ const DeveloperProfileRegistration = () => {
             >
               Back
             </Button>
-            
+
             {currentStep < 3 ? (
-              <Button 
-                type="button" 
+              <Button
+                type="button"
                 onClick={goToNextStep}
                 className="bg-indigo-600 hover:bg-indigo-700 text-white"
               >
                 Continue
               </Button>
             ) : (
-              <Button 
-                type="submit" 
-                disabled={isLoading} 
+              <Button
+                type="submit"
+                disabled={isLoading}
                 className="bg-indigo-600 hover:bg-indigo-700 text-white"
                 onClick={handleSubmit}
               >

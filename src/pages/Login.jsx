@@ -1,23 +1,26 @@
 import { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import axios from 'axios';
 import { toast } from 'react-hot-toast';
 import { authUtils } from '@/utils/authUtils';
 import { motion, AnimatePresence } from 'framer-motion';
-import { 
-  Code, 
-  User, 
-  Lock, 
-  Eye, 
-  EyeOff, 
-  ArrowRight, 
-  CheckCircle2, 
-  XCircle, 
-  Github, 
-  ChevronLeft, 
-  Sparkles 
+import {
+  Code,
+  User,
+  Lock,
+  Eye,
+  EyeOff,
+  ArrowRight,
+  CheckCircle2,
+  XCircle,
+  Github,
+  ChevronLeft,
+  Sparkles
 } from 'lucide-react';
 import { FaGoogle, FaGithub } from 'react-icons/fa';
+import { createUser, generateToken, fetchUserProfile } from '../api/userService';
+import { getPostLoginRedirectPath } from '../utils/redirectionUtil';
+
+
 
 const Login = () => {
   const [formData, setFormData] = useState({
@@ -30,7 +33,7 @@ const Login = () => {
   const [success, setSuccess] = useState('');
   const [isSignUp, setIsSignUp] = useState(false);
   const [name, setName] = useState('');
-  
+
   const navigate = useNavigate();
   const location = useLocation();
   const userType = location.pathname.includes('company') ? 'company' : 'developer';
@@ -48,33 +51,54 @@ const Login = () => {
     setLoading(true);
 
     try {
-      const response = await axios.post(
-        `${import.meta.env.VITE_API_BASE_URL}/v1/tokens`,
-        {
-          email: formData.email,
-          cred: formData.cred
-        },
-        {
-          headers: {
-            'Content-Type': 'application/json',
-            'Accept': 'application/json, text/plain, */*'
-          }
-        }
-      );
+      let tokenResponse;
 
-      if (response.data.token) {
-        authUtils.setAuthToken(response.data.token);
-        authUtils.setUserProfile(response.data.user);
-        toast.success('Login successful!');
-        navigate(`/${userType}/dashboard`);
+      if (isSignUp) {
+        await createUser({
+          name,
+          email: formData.email,
+          role: oauthRole,
+          cred: formData.cred
+        });
+
+        toast.success("Account created! Logging in...");
       }
+
+      tokenResponse = await generateToken({
+        email: formData.email,
+        cred: formData.cred
+      });
+
+      console.log('token response ', tokenResponse)
+
+      if (tokenResponse?.token) {
+        console.log('inside if block ', tokenResponse)
+        authUtils.setAuthToken(tokenResponse.token);
+        const userProfile = await fetchUserProfile();
+        console.log("user profile ", userProfile, 'userType', userType);
+        authUtils.setUserProfile(userProfile);
+        toast.success(isSignUp ? 'Signup successful!' : 'Login successful!');
+        const redirectPath = getPostLoginRedirectPath(userProfile);
+        console.log("redirectPath " , redirectPath);
+
+        if (redirectPath.includes('complete')) {
+          toast('Please complete your profile', { icon: 'ℹ️' });
+        } else {
+          toast.success('Successfully signed in!');
+          authUtils.removeOAuthRole();
+        }
+
+        navigate(redirectPath, { replace: true });
+      }
+
     } catch (error) {
-      console.error('Login error:', error);
-      toast.error(error.response?.data?.message || 'Login failed. Please try again.');
+      console.error('Auth error:', error);
+      toast.error(error.response?.data?.message || 'Something went wrong.');
     } finally {
       setLoading(false);
     }
   };
+
 
   const handleGoogleLogin = () => {
     authUtils.setOAuthRole(oauthRole);
@@ -110,9 +134,9 @@ const Login = () => {
   // Animation variants
   const containerVariants = {
     hidden: { opacity: 0 },
-    visible: { 
+    visible: {
       opacity: 1,
-      transition: { 
+      transition: {
         staggerChildren: 0.1,
         delayChildren: 0.2
       }
@@ -139,8 +163,8 @@ const Login = () => {
               <Code size={24} className="text-blue-600" />
               <span>SprintFlow</span>
             </div>
-            <button 
-              onClick={() => navigate('/')} 
+            <button
+              onClick={() => navigate('/')}
               className="flex items-center text-sm text-gray-600 hover:text-blue-600 transition-colors"
             >
               <ChevronLeft size={16} className="mr-1" />
@@ -150,50 +174,50 @@ const Login = () => {
         </div>
       </header>
 
-      <motion.div 
+      <motion.div
         className="flex-1 flex items-center justify-center px-4 py-12"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ duration: 0.5 }}
       >
         <div className="w-full max-w-lg">
-          <motion.div 
+          <motion.div
             variants={containerVariants}
             initial="hidden"
             animate="visible"
             className="relative"
           >
             {/* Floating decorative elements */}
-            <motion.div 
+            <motion.div
               className="absolute -top-6 -left-6 sm:-top-10 sm:-left-10 w-16 h-16 rounded-full bg-blue-300 opacity-10 blur-xl"
-              animate={{ 
+              animate={{
                 scale: [1, 1.2, 1],
                 rotate: [0, 90, 180, 270, 360],
                 opacity: [0.1, 0.15, 0.1]
               }}
-              transition={{ 
-                duration: 10, 
+              transition={{
+                duration: 10,
                 repeat: Infinity,
                 ease: "linear"
               }}
             />
-            <motion.div 
+            <motion.div
               className="absolute -bottom-6 -right-6 sm:-bottom-10 sm:-right-10 w-20 h-20 rounded-full bg-indigo-400 opacity-10 blur-xl"
-              animate={{ 
+              animate={{
                 scale: [1, 1.1, 1],
                 x: [0, 10, 0],
                 y: [0, -10, 0],
                 opacity: [0.1, 0.2, 0.1]
               }}
-              transition={{ 
-                duration: 8, 
+              transition={{
+                duration: 8,
                 repeat: Infinity,
                 ease: "easeInOut"
               }}
             />
 
             {/* Main card */}
-            <motion.div 
+            <motion.div
               className="bg-white/90 backdrop-blur-sm shadow-xl border border-blue-100 rounded-2xl overflow-hidden"
               variants={itemVariants}
             >
@@ -212,8 +236,8 @@ const Login = () => {
                     {isSignUp ? `Create ${userType === 'company' ? 'Company' : 'Developer'} Account` : `${userType === 'company' ? 'Company' : 'Developer'} Login`}
                   </motion.h2>
                   <motion.p variants={itemVariants} className="mt-2 text-sm text-gray-600">
-                    {isSignUp 
-                      ? `Join our platform as a ${userType === 'company' ? 'company' : 'developer'} and start your journey` 
+                    {isSignUp
+                      ? `Join our platform as a ${userType === 'company' ? 'company' : 'developer'} and start your journey`
                       : `Access your ${userType === 'company' ? 'company' : 'developer'} dashboard`}
                   </motion.p>
                 </div>
@@ -221,7 +245,7 @@ const Login = () => {
                 {/* Success message */}
                 <AnimatePresence>
                   {success && (
-                    <motion.div 
+                    <motion.div
                       className="mb-6 p-3 bg-green-50 border border-green-200 rounded-lg"
                       initial={{ opacity: 0, y: -10 }}
                       animate={{ opacity: 1, y: 0 }}
@@ -238,7 +262,7 @@ const Login = () => {
                 {/* Error message */}
                 <AnimatePresence>
                   {error && (
-                    <motion.div 
+                    <motion.div
                       className="mb-6 p-3 bg-red-50 border border-red-200 rounded-lg"
                       initial={{ opacity: 0, y: -10 }}
                       animate={{ opacity: 1, y: 0 }}
@@ -255,7 +279,7 @@ const Login = () => {
                 <form onSubmit={handleSubmit} className="space-y-5">
                   <AnimatePresence mode="wait">
                     {isSignUp && (
-                      <motion.div 
+                      <motion.div
                         key="name-field"
                         initial={{ opacity: 0, height: 0 }}
                         animate={{ opacity: 1, height: 'auto' }}
@@ -284,8 +308,8 @@ const Login = () => {
                   </AnimatePresence>
 
                   <motion.div className="space-y-1" variants={itemVariants}>
-                    <motion.label 
-                      htmlFor="email" 
+                    <motion.label
+                      htmlFor="email"
                       className="block text-sm font-medium text-gray-700"
                       variants={formLabelVariants}
                       initial="initial"
@@ -295,7 +319,7 @@ const Login = () => {
                     </motion.label>
                     <div className="relative">
                       <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                        <motion.span 
+                        <motion.span
                           className="text-gray-400"
                           whileHover={{ rotate: 10 }}
                         >
@@ -413,7 +437,7 @@ const Login = () => {
                 </div>
 
                 {/* Toggle login/signup */}
-                <motion.div 
+                <motion.div
                   variants={itemVariants}
                   className="mt-6 text-center text-sm"
                 >
@@ -431,7 +455,7 @@ const Login = () => {
 
                 {/* User type specific highlights */}
                 {!isSignUp && (
-                  <motion.div 
+                  <motion.div
                     variants={itemVariants}
                     className="mt-8 pt-6 border-t border-gray-100"
                   >
@@ -440,21 +464,21 @@ const Login = () => {
                       <p className="text-sm font-medium text-gray-900">
                         {userType === 'company' ? 'Company Benefits' : 'Developer Benefits'}
                       </p>
-                    </div> 
+                    </div>
                     <div className="grid grid-cols-2 gap-3">
-                      {(userType === 'company' 
+                      {(userType === 'company'
                         ? [
-                            "Find top talent",
-                            "Manage projects",
-                            "Track progress",
-                            "Secure payments"
-                          ]
+                          "Find top talent",
+                          "Manage projects",
+                          "Track progress",
+                          "Secure payments"
+                        ]
                         : [
-                            "Find exciting projects",
-                            "Build your portfolio",
-                            "Flexible remote work",
-                            "Secure payments"
-                          ]
+                          "Find exciting projects",
+                          "Build your portfolio",
+                          "Flexible remote work",
+                          "Secure payments"
+                        ]
                       ).map((benefit, i) => (
                         <motion.div
                           key={i}

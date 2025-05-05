@@ -3,7 +3,6 @@ import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
 import { resolve } from 'path'
 
-// https://vite.dev/config/
 export default defineConfig({
   plugins: [react(), tailwindcss()],
   resolve: {
@@ -12,9 +11,4 @@ export default defineConfig({
     },
   },
   base: '/',
-  build: {
-    rollupOptions: {
-      external: ['@radix-ui/react-label']
-    }
-  }
 })
