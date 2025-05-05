@@ -6,6 +6,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/components/ui/use-toast';
 import axios from 'axios';
 import { authUtils } from '@/utils/authUtils';
+import { isSuccessStatus } from '../../utils/applicationUtils';
 
 
 const TaskApplicationModal = ({ isOpen, onClose, taskId, onSuccess }) => {
@@ -74,33 +75,17 @@ const TaskApplicationModal = ({ isOpen, onClose, taskId, onSuccess }) => {
     
     try {
       // Get developer ID from local storage with error handling
-      const userProfileStr = localStorage.getItem('userProfile');
+      const userProfile = authUtils.getUserProfile();
       if (!userProfileStr) {
         throw new Error('User profile not found. Please log in again.');
       }
-      
-      let userProfile;
-      try {
-        userProfile = JSON.parse(userProfileStr);
-      } catch (err) {
-        console.error("Error parsing user profile:", err);
-        throw new Error('Invalid user profile data. Please log in again.');
-      }
-      
-      if (!userProfile) {
-        throw new Error('User profile is empty. Please log in again.');
-      }
-      
+  
       let developerId;
       
       // Extract developerId from the profile with fallbacks
       if (userProfile.developerProfiles && userProfile.developerProfiles.length > 0) {
         developerId = userProfile.developerProfiles[0].externalId;
-      } else if (userProfile.userId) {
-        developerId = userProfile.userId;
-      } else if (userProfile.externalId) {
-        developerId = userProfile.externalId;
-      } else {
+      }  else {
         throw new Error('Developer ID not found in profile. Please update your profile.');
       }
       
@@ -134,7 +119,7 @@ const TaskApplicationModal = ({ isOpen, onClose, taskId, onSuccess }) => {
         }
       );
       
-      if (response.status === 200 || response.status === 201) {
+      if(isSuccessStatus(response.status)) {
         setSuccess(true);
         // Wait a moment before closing to show success animation
         setTimeout(() => {

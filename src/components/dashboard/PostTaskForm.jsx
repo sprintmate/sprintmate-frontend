@@ -7,6 +7,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import { X, ArrowRight, ArrowLeft, Search, Plus, AlertCircle, Calendar, Check, XCircle, CheckSquare, Square } from 'lucide-react';
 import axios from 'axios';
+import { postTask } from '../../api/companyService';
 
 // Custom checkbox component
 const CustomCheckbox = ({ id, checked, onCheckedChange, label }) => {
@@ -339,13 +340,10 @@ const PostTaskForm = () => {
           TASK_ATTACHMENT: attachmentIds
         } : {}
       };
+            
+      const postTaskResponse = await postTask(companyId,payload);
       
-      const url = import.meta.env.VITE_API_BASE_URL 
-      
-      // Make API request
-      const response = await axios.post(`${url}/v1/company-profiles/${companyId}/tasks`, payload);
-      
-      if (response.status === 200 || response.status === 201) {
+      if (postTaskResponse) {
         toast({
           title: "Task Posted Successfully",
           description: "Your task has been submitted successfully!",

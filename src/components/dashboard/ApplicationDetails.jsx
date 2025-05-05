@@ -4,26 +4,26 @@ import { useAuth } from '../../contexts/AuthContext';
 import axios from 'axios';
 import { getToken } from '../../services/authService';
 
-import { 
-  User, Calendar, Clock, ChevronLeft, Award, 
+import {
+  User, Calendar, Clock, ChevronLeft, Award,
   Briefcase, CheckCircle, XCircle, Filter, Search,
   DollarSign, Star, Download, ArrowUpRight,
   MessageSquare, FileText, AlertCircle, ExternalLink,
-  ChevronRight, Send, X, Phone, Video, MoreVertical, 
+  ChevronRight, Send, X, Phone, Video, MoreVertical,
   Paperclip, Smile, Image, ChevronDown, Play, Pause
 } from 'lucide-react';
-import { 
-  Card, 
-  CardContent, 
-  CardDescription, 
-  CardFooter, 
-  CardHeader, 
-  CardTitle 
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle
 } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { 
+import {
   Select,
   SelectContent,
   SelectItem,
@@ -31,14 +31,19 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 
-import image3 from "../../assets/image3.webp"; 
+import image3 from "../../assets/image3.webp";
 import ChatPanel from '../common/ChatPanel';
 import RazorpayPayment from '../common/RazorpayPayment';
+import { updateApplicationStatus, acceptApplicationStatus } from '../../api/taskApplicationService';
+
+import { refundPayment } from '../../api/paymentService';
+
+import { reloadPage } from '../../utils/applicationUtils';
 
 // Status badge component
 const StatusBadge = ({ status }) => {
   const getStatusInfo = () => {
-    switch(status?.toLowerCase()) {
+    switch (status?.toLowerCase()) {
       case 'pending':
       case 'applied':
         return { color: 'bg-yellow-100 text-yellow-800', icon: <Clock size={14} className="mr-1" /> };
@@ -56,9 +61,9 @@ const StatusBadge = ({ status }) => {
         return { color: 'bg-gray-100 text-gray-800', icon: <FileText size={14} className="mr-1" /> };
     }
   };
-  
+
   const { color, icon } = getStatusInfo();
-  
+
   return (
     <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${color}`}>
       {icon}
@@ -76,7 +81,7 @@ const SimpleAvatar = ({ name, profilePicture, className = "h-12 w-12" }) => {
       </div>
     );
   }
-  
+
   // Use image3 as fallback if no profile picture
   return (
     <div className={`${className} rounded-full overflow-hidden border border-gray-200 shadow-sm`}>
@@ -91,15 +96,15 @@ const ApplicationCard = ({ application, onViewDetails }) => {
       <CardContent className="p-5">
         <div className="flex items-start justify-between">
           <div className="flex items-center space-x-4">
-            <SimpleAvatar 
+            <SimpleAvatar
               name={application.applicant.name}
               profilePicture={application.applicant.profilePicture}
             />
-            
+
             <div>
               <h3 className="font-medium text-gray-900">{application.applicant.name}</h3>
               <div className="text-sm text-gray-500">{application.applicant.title || 'Software Developer'}</div>
-              
+
               <div className="flex items-center mt-1 space-x-3 text-xs text-gray-500">
                 <div className="flex items-center">
                   <Calendar size={12} className="mr-1" />
@@ -109,7 +114,7 @@ const ApplicationCard = ({ application, onViewDetails }) => {
               </div>
             </div>
           </div>
-          
+
           <div className="flex flex-col items-end">
             <div className="flex items-center mb-2">
               <div className="flex mr-2">
@@ -129,7 +134,7 @@ const ApplicationCard = ({ application, onViewDetails }) => {
             </div>
           </div>
         </div>
-        
+
         <div className="mt-4">
           <div className="text-sm font-medium text-gray-700">Skills</div>
           <div className="mt-1 flex flex-wrap gap-1">
@@ -140,12 +145,12 @@ const ApplicationCard = ({ application, onViewDetails }) => {
             ))}
           </div>
         </div>
-        
+
         <div className="mt-4 pt-3 border-t border-gray-100 flex justify-between items-center">
           <div className="text-sm text-gray-600">
             {application.coverLetter ? application.coverLetter.substring(0, 60) + '...' : 'No cover letter provided'}
           </div>
-          
+
           <Button variant="outline" size="sm" className="text-blue-600" onClick={() => onViewDetails(application.id)}>
             View Details
             <ArrowUpRight size={14} className="ml-1" />
@@ -163,11 +168,10 @@ const SimpleTabs = ({ tabs, activeTab, onChange }) => {
       {tabs.map((tab) => (
         <button
           key={tab.value}
-          className={`px-4 py-2 text-sm font-medium ${
-            activeTab === tab.value
+          className={`px-4 py-2 text-sm font-medium ${activeTab === tab.value
               ? "border-b-2 border-blue-500 text-blue-600"
               : "text-gray-500 hover:text-gray-700"
-          }`}
+            }`}
           onClick={() => onChange(tab.value)}
         >
           {tab.label}
@@ -180,9 +184,9 @@ const SimpleTabs = ({ tabs, activeTab, onChange }) => {
 // Main ApplicationDetails component
 const ApplicationDetails = () => {
   const { taskId } = useParams();
- 
+
   const navigate = useNavigate();
-  
+
   const [applications, setApplications] = useState([]);
   const [task, setTask] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -201,31 +205,31 @@ const ApplicationDetails = () => {
 
   // Add state for payment success
   const [paymentSuccessful, setPaymentSuccessful] = useState(false);
-  
+
   const url = import.meta.env.VITE_API_BASE_URL
 
   const token = getToken()
-  
+
   // Fetch applications for the task
   useEffect(() => {
     const fetchApplications = async () => {
       setIsLoading(true);
       try {
         const response = await axios.get(
-          `${url}/v1/tasks/${taskId}/applications?page=${currentPage}&size=${pageSize}`, 
+          `${url}/v1/tasks/${taskId}/applications?page=${currentPage}&size=${pageSize}`,
           {
             headers: { Authorization: `${token}` }
           }
         );
-        
+
         // Extract applications from the paginated response
         const { content, totalPages: totalPagesFromApi, totalElements } = response.data;
-        
+
         // If we have at least one application, set the task from the first application
         if (content && content.length > 0) {
           setTask(content[0].task);
         }
-        
+
         setApplications(content || []);
         setTotalPages(totalPagesFromApi || 1);
       } catch (err) {
@@ -235,12 +239,12 @@ const ApplicationDetails = () => {
         setIsLoading(false);
       }
     };
-    
+
     if (taskId) {
       fetchApplications();
     }
   }, [taskId, token, currentPage, pageSize]);
-  
+
   // Filter applications based on search term and status
   const filteredApplications = applications.filter(app => {
     // We need to check if developer has name property or use externalId as fallback
@@ -249,46 +253,45 @@ const ApplicationDetails = () => {
     const statusMatch = statusFilter === 'all' || app.status?.toUpperCase() === statusFilter.toUpperCase();
     return nameMatch && statusMatch;
   });
-  
+
   // Handle application details view
   const handleViewDetails = (applicationId) => {
     const application = applications.find(app => app.externalId === applicationId);
     setSelectedApplication(application);
   };
-  
+
   // Handle going back to dashboard - Updated to use browser history
   const handleBackToDashboard = () => {
     // Use browser's history to go back to the previous page
     // This ensures we respect the navigation path the user took to get here
     navigate(-1);
   };
-  
+
   // Handle page change
   const handlePageChange = (newPage) => {
     // API pagination is 0-based
     setCurrentPage(newPage);
   };
-  
+
   // Updated function to handle application status updates
   const handleStatusUpdate = async (applicationId, newStatus) => {
     try {
       setIsLoading(true);
-      
+
       // Use the actual status values in the API call (no mapping needed now)
-      await axios.patch(
-        `${url}/v1/tasks/${taskId}/applications/${applicationId}/status`,
-        { status: newStatus },
-        { headers: { Authorization: `${token}` }}
-      );
-      
-      // Update local state to reflect the change
-      setApplications(applications.map(app => 
-        app.externalId === applicationId ? {...app, status: newStatus} : app
-      ));
-      
+
+      await updateApplicationStatus(taskId, applicationId, newStatus);
+
+      // // Update local state to reflect the change
+      // setApplications(applications.map(app => 
+      //   app.externalId === applicationId ? {...app, status: newStatus} : app
+      // ));
+
+      // Use the utility to reload the page
+      reloadPage();
       // Show success message
       console.log(`Application ${applicationId} updated to ${newStatus}`);
-      
+
     } catch (err) {
       console.error('Error updating application status:', err);
       // Show error message
@@ -297,39 +300,47 @@ const ApplicationDetails = () => {
       setIsLoading(false);
     }
   };
-  
+
   // Function to open chat with specific developer
   const handleOpenChat = (developer) => {
     setActiveChatDeveloper(developer);
     setChatOpen(true);
   };
-  
+
   // Handle payment success
   const handlePaymentSuccess = async (paymentData) => {
     try {
       // Update local state to reflect acceptance
-      setApplications(applications.map(app => {
-        if (app.externalId === paymentData.applicationId) {
-          return { ...app, status: 'HIRED' };
-        }
-        return app;
-      }));
-      
-      setPaymentSuccessful(true);
-      
+      console.log("handlePaymentSuccess payment data ", paymentData)
+      // setApplications(applications.map(app => {
+      //   if (app.externalId === paymentData.applicationId) {
+      //     return { ...app, status: 'HIRED' };
+      //   }
+      //   return app;
+      // }));
+      reloadPage();
+      const response = await acceptApplicationStatus(paymentData.taskId, paymentData.applicationId);
+      if (response) {
+        setPaymentSuccessful(true);
+      } else {
+        setPaymentSuccessful(false);
+        const refundPaymentResponse = refundPayment(paymentData.paymentId);
+        console.log("payment refunded {}", refundPaymentResponse);
+        // refund payment to user again
+      }
       // You could add a toast notification here
       console.log('Payment successful!', paymentData);
     } catch (error) {
       console.error('Error updating application status after payment', error);
     }
   };
-  
+
   // Handle payment error
   const handlePaymentError = (error) => {
     console.error('Payment failed', error);
     // You could add a toast notification here
   };
-  
+
   // Loading state
   if (isLoading) {
     return (
@@ -363,7 +374,7 @@ const ApplicationDetails = () => {
       </div>
     );
   }
-  
+
   // Error state
   if (error) {
     return (
@@ -390,7 +401,7 @@ const ApplicationDetails = () => {
       </div>
     );
   }
-  
+
   return (
     <div className="p-8 max-w-7xl mx-auto bg-gradient-to-b from-white to-gray-50">
       {/* Enhanced Header section */}
@@ -408,7 +419,7 @@ const ApplicationDetails = () => {
             </p>
           </div>
         </div>
-        
+
         <div className="flex gap-2">
           <Button variant="outline" className="gap-1 border-blue-200 hover:bg-blue-50 hover:text-blue-700">
             <Download size={16} />
@@ -420,7 +431,7 @@ const ApplicationDetails = () => {
           </Button>
         </div>
       </div>
-      
+
       {/* Enhanced Task info card */}
       {task && (
         <Card className="mb-6 border-blue-100 bg-gradient-to-r from-blue-50/40 to-indigo-50/40 overflow-hidden relative shadow-sm">
@@ -467,19 +478,19 @@ const ApplicationDetails = () => {
           </CardContent>
         </Card>
       )}
-      
+
       {/* Enhanced Filters and search section */}
       <div className="flex flex-col md:flex-row gap-4 mb-6 bg-white p-4 rounded-lg shadow-sm border border-gray-100">
         <div className="relative flex-grow">
           <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-gray-500" />
-          <Input 
-            placeholder="Search applicants..." 
+          <Input
+            placeholder="Search applicants..."
             className="pl-8 border-gray-200 focus:border-blue-300"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
         </div>
-        
+
         <div className="w-full md:w-64">
           <Select value={statusFilter} onValueChange={setStatusFilter}>
             <SelectTrigger className="border-gray-200 focus:border-blue-300">
@@ -500,10 +511,10 @@ const ApplicationDetails = () => {
           </Select>
         </div>
       </div>
-      
+
       {/* Enhanced Tabs */}
       <div className="bg-white rounded-t-lg shadow-sm border border-gray-100 border-b-0">
-        <SimpleTabs 
+        <SimpleTabs
           tabs={[
 
             { value: 'all', label: `All Applications (${applications.length})` },
@@ -515,7 +526,7 @@ const ApplicationDetails = () => {
           onChange={setActiveTab}
         />
       </div>
-      
+
       {/* Application list with enhanced UI */}
       <div className="bg-white rounded-b-lg p-6 shadow-sm border border-gray-100 mb-6">
         {filteredApplications.length > 0 ? (
@@ -526,9 +537,9 @@ const ApplicationDetails = () => {
                   <div className="flex flex-col md:flex-row">
                     {/* Left sidebar with developer info */}
                     <div className="bg-gray-50 p-5 md:w-1/4 border-r border-gray-100 flex flex-col items-center justify-center space-y-3">
-                      <SimpleAvatar 
+                      <SimpleAvatar
                         name={application.developer?.name || "Developer"}
-                        profilePicture={application.developer?.portfolio?.PROFILE_PIC ? 
+                        profilePicture={application.developer?.portfolio?.PROFILE_PIC ?
                           `${url}/v1/files/${application.developer.portfolio.PROFILE_PIC}` : undefined}
                         className="h-20 w-20"
                       />
@@ -543,16 +554,16 @@ const ApplicationDetails = () => {
                       </div>
                       <div className="flex justify-center space-x-2 mt-2">
                         {application.developer?.portfolio?.GITHUB && (
-                          <a href={application.developer.portfolio.GITHUB} target="_blank" rel="noopener noreferrer" 
-                             className="text-gray-500 hover:text-blue-600 transition-colors">
+                          <a href={application.developer.portfolio.GITHUB} target="_blank" rel="noopener noreferrer"
+                            className="text-gray-500 hover:text-blue-600 transition-colors">
                             <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                               <path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"></path>
                             </svg>
                           </a>
                         )}
                         {application.developer?.portfolio?.LINKEDIN && (
-                          <a href={application.developer.portfolio.LINKEDIN} target="_blank" rel="noopener noreferrer" 
-                             className="text-gray-500 hover:text-blue-600 transition-colors">
+                          <a href={application.developer.portfolio.LINKEDIN} target="_blank" rel="noopener noreferrer"
+                            className="text-gray-500 hover:text-blue-600 transition-colors">
                             <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                               <path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"></path>
                               <rect x="2" y="9" width="4" height="12"></rect>
@@ -562,7 +573,7 @@ const ApplicationDetails = () => {
                         )}
                       </div>
                     </div>
-                    
+
                     {/* Main content area */}
                     <div className="p-5 flex-1">
                       <div className="flex flex-col md:flex-row justify-between">
@@ -580,7 +591,7 @@ const ApplicationDetails = () => {
                               ))}
                             </div>
                           </div>
-                          
+
                           {/* Application info */}
                           <div className="flex flex-wrap items-center gap-4 text-sm text-gray-600 mb-3">
                             <div className="flex items-center">
@@ -598,13 +609,13 @@ const ApplicationDetails = () => {
                             </div>
                           </div>
                         </div>
-                        
+
                         {/* Resume button */}
                         {application.developer?.portfolio?.LATEST_RESUME && (
                           <div className="md:text-right my-3 md:my-0">
-                            <a 
+                            <a
                               href={`${url}/v1/files/${application.developer.portfolio.LATEST_RESUME}`}
-                              target="_blank" 
+                              target="_blank"
                               rel="noopener noreferrer"
                               className="inline-flex items-center px-3 py-1 rounded-md border border-blue-200 text-blue-600 bg-blue-50 hover:bg-blue-100 transition-colors text-sm font-medium"
                             >
@@ -614,7 +625,7 @@ const ApplicationDetails = () => {
                           </div>
                         )}
                       </div>
-                      
+
                       {/* Proposal */}
                       <div className="mt-4 border-t border-gray-100 pt-4">
                         <div className="text-sm font-medium text-gray-500 mb-2 flex items-center">
@@ -624,14 +635,14 @@ const ApplicationDetails = () => {
                           {application.proposal || 'No proposal provided'}
                         </div>
                       </div>
-                      
+
                       {/* Action buttons with Accept option for SHORTLISTED */}
                       <div className="mt-4 pt-4 border-t border-gray-100 flex justify-end space-x-3">
                         {application.status === 'APPLIED' && (
                           <>
-                            <Button 
-                              variant="outline" 
-                              size="sm" 
+                            <Button
+                              variant="outline"
+                              size="sm"
                               className="border-red-200 text-red-600 hover:bg-red-50 hover:text-red-700"
                               onClick={() => handleStatusUpdate(application.externalId, 'REJECTED')}
                               disabled={isLoading}
@@ -648,9 +659,9 @@ const ApplicationDetails = () => {
                                 </>
                               )}
                             </Button>
-                            <Button 
-                              variant="outline" 
-                              size="sm" 
+                            <Button
+                              variant="outline"
+                              size="sm"
                               className="border-blue-200 text-blue-600 hover:bg-blue-50 hover:text-blue-700"
                               onClick={() => handleStatusUpdate(application.externalId, 'SHORTLISTED')}
                               disabled={isLoading}
@@ -669,20 +680,20 @@ const ApplicationDetails = () => {
                             </Button>
                           </>
                         )}
-                        
+
                         {application.status === 'SHORTLISTED' && (
                           <div className="flex space-x-3">
-                            <Button 
-                              variant="outline" 
-                              size="sm" 
+                            <Button
+                              variant="outline"
+                              size="sm"
                               className="border-green-200 text-green-600 hover:bg-green-50 hover:text-green-700 animate-pulse-subtle"
                               onClick={() => handleOpenChat(application.developer)}
                             >
                               <MessageSquare size={14} className="mr-1.5" />
                               Chat with Developer
                             </Button>
-                            
-                            <RazorpayPayment 
+
+                            <RazorpayPayment
                               applicationId={application.externalId}
                               onSuccess={handlePaymentSuccess}
                               onError={handlePaymentError}
@@ -691,7 +702,7 @@ const ApplicationDetails = () => {
                             />
                           </div>
                         )}
-                        
+
                         {application.status !== 'APPLIED' && application.status !== 'SHORTLISTED' && (
                           <div className="text-sm text-gray-500 italic">
                             This application is currently in {application.status.toLowerCase()} status
@@ -703,7 +714,7 @@ const ApplicationDetails = () => {
                 </CardContent>
               </Card>
             ))}
-            
+
             {/* Enhanced Pagination */}
             {totalPages > 1 && (
               <div className="flex items-center justify-center mt-8">
@@ -717,7 +728,7 @@ const ApplicationDetails = () => {
                   >
                     <ChevronLeft size={16} />
                   </Button>
-                  
+
                   {Array.from({ length: Math.min(totalPages, 5) }).map((_, i) => {
                     // Show current page and adjacent pages for larger page counts
                     let pageNumber = i;
@@ -730,22 +741,21 @@ const ApplicationDetails = () => {
                         pageNumber = currentPage - 2 + i;
                       }
                     }
-                    
+
                     return (
                       <button
                         key={pageNumber}
-                        className={`px-4 py-2 text-sm font-medium ${
-                          currentPage === pageNumber 
+                        className={`px-4 py-2 text-sm font-medium ${currentPage === pageNumber
                             ? 'bg-blue-50 text-blue-600 border-r border-gray-200 focus:z-10'
                             : 'text-gray-700 border-r border-gray-200 hover:bg-gray-50 focus:z-10'
-                        }`}
+                          }`}
                         onClick={() => handlePageChange(pageNumber)}
                       >
                         {pageNumber + 1}
                       </button>
                     );
                   })}
-                  
+
                   <Button
                     variant="ghost"
                     size="sm"
@@ -767,7 +777,7 @@ const ApplicationDetails = () => {
               </div>
               <h3 className="text-xl font-medium text-gray-900 mb-2">No applications found</h3>
               <p className="text-gray-500 mb-6">
-                {searchTerm || statusFilter !== 'all' 
+                {searchTerm || statusFilter !== 'all'
                   ? 'Try adjusting your filters to see more results'
                   : 'You haven\'t received any applications for this task yet.'}
               </p>
@@ -781,15 +791,15 @@ const ApplicationDetails = () => {
           </Card>
         )}
       </div>
-      
+
       {/* Chat panel */}
-      <ChatPanel 
+      <ChatPanel
         user={activeChatDeveloper}
-        isOpen={chatOpen} 
+        isOpen={chatOpen}
         onClose={() => setChatOpen(false)}
         apiBaseUrl={url}
       />
-      
+
       {/* Payment success notification */}
       {paymentSuccessful && (
         <div className="fixed bottom-4 right-4 bg-green-50 border border-green-200 rounded-lg p-4 shadow-lg flex items-start space-x-3 z-50 max-w-md">
@@ -797,9 +807,9 @@ const ApplicationDetails = () => {
           <div>
             <h3 className="font-medium text-green-800">Payment Successful</h3>
             <p className="text-green-600 text-sm">Your payment has been processed and the application has been accepted.</p>
-            <Button 
-              variant="link" 
-              className="text-xs p-0 h-auto text-green-700" 
+            <Button
+              variant="link"
+              className="text-xs p-0 h-auto text-green-700"
               onClick={() => setPaymentSuccessful(false)}
             >
               Dismiss
