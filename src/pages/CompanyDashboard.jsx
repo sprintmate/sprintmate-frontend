@@ -67,6 +67,10 @@ import CompanyViewDashboard from '@/components/dashboard/CompanyViewDashboard';
 
 // Import the new ApplicationDetails component
 import ApplicationDetails from '@/components/dashboard/ApplicationDetails';
+import { NAV_LINKS } from '../config/navLinks';
+import { Role } from '../constants/Role';
+import DeveloperPayments from './DeveloperPayments';
+
 
 // New DashboardHome component that uses our professional dashboard
 const DashboardHome = () => (
@@ -1402,33 +1406,23 @@ const UserProfile = () => {
   );
 };
 
-// Sidebar Link Component for better organization and styling
-const SidebarLink = ({ to, icon, label, isExpanded, isActive }) => {
-  return (     <NavLink
+
+const SidebarLink = ({ to, icon: Icon, label, isActive, isExpanded }) => {
+  return (
+    <Link
       to={to}
-      className={({ isActive }) => `flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-200
-        ${isActive 
-          ? 'bg-gradient-to-r from-blue-50 to-blue-100 text-blue-600 font-medium border-r-4 border-blue-600' 
-          : 'text-gray-600 hover:bg-blue-50/50 hover:text-blue-600'
+      className={`flex items-center py-3 px-3 rounded-lg transition-colors ${isActive
+          ? 'bg-blue-50 text-blue-600 font-medium'
+          : 'text-gray-700 hover:bg-gray-100'
         }`}
     >
-      <div className={`${isActive ? 'text-blue-600' : 'text-gray-500'}`}>
-        {icon}
-      </div>
-      <AnimatePresence mode="wait">
-        {isExpanded && (
-          <motion.span
-            initial={{ opacity: 0, width: 0 }}
-            animate={{ opacity: 1, width: 'auto' }}
-            exit={{ opacity: 0, width: 0 }}
-            transition={{ duration: 0.2 }}
-            className="whitespace-nowrap overflow-hidden"
-          >
-            {label}
-          </motion.span>
-        )}
-      </AnimatePresence>
-    </NavLink>
+      <Icon size={20} className={isActive ? 'text-blue-600' : 'text-gray-500'} />
+      {isExpanded && (
+        <span className="ml-3 transition-opacity duration-200">
+          {label}
+        </span>
+      )}
+    </Link>
   );
 };
 
@@ -1482,23 +1476,35 @@ const CompanyDashboard = () => {
     }
   };
 
-  // Navbar links configuration - using absolute paths for proper routing
-  const navLinks = [
-    { to: "/company/dashboard", icon: <Home size={20} />, label: 'Dashboard' },
-    { to: "/company/dashboard/tasks", icon: <CheckSquare size={20} />, label: 'My Tasks' },
-    { to: "/company/dashboard/post-task", icon: <FileText size={20} />, label: 'Post Task' },
-    { to: "/company/dashboard/applications", icon: <Users size={20} />, label: 'Applications' },
-    { to: "/company/dashboard/settings", icon: <Settings size={20} />, label: 'Settings' }
-  ];
+  // // Navbar links configuration - using absolute paths for proper routing
+  // const navLinks = [
+  //   { to: "/company/dashboard", icon: <Home size={20} />, label: 'Dashboard' },
+  //   { to: "/company/dashboard/tasks", icon: <CheckSquare size={20} />, label: 'My Tasks' },
+  //   { to: "/company/dashboard/post-task", icon: <FileText size={20} />, label: 'Post Task' },
+  //   { to: "/company/dashboard/applications", icon: <Users size={20} />, label: 'Applications' },
+  //   { to: "/company/dashboard/settings", icon: <Settings size={20} />, label: 'Settings' }
+  // ];
 
-  // Get the current active link
+  const navLinks = NAV_LINKS[Role.COMPANY.toLowerCase()]
+  
+  // // Get the current active link
   const getActiveRoute = () => {
     const currentPath = location.pathname;
-    const activeLink = navLinks.find(link => 
-      currentPath === link.to || 
+  
+    const activeLink = navLinks.find(link =>
+      currentPath === link.to ||
       (link.to !== "/company/dashboard" && currentPath.includes(link.to))
     );
-    return activeLink ? activeLink.label : 'Dashboard';
+  
+    // Make sure only the label (string) is returned
+    return activeLink?.label || 'Dashboard';
+  };
+
+  const isRouteActive = (path) => {
+    if (path === '/company/dashboard') {
+      return location.pathname === '/company/dashboard';
+    }
+    return location.pathname.includes(path);
   };
 
   return (
@@ -1571,17 +1577,14 @@ const CompanyDashboard = () => {
 
         {/* Nav links - Make this section scrollable if needed */}
         <nav className="flex-1 py-6 space-y-1 px-3 overflow-y-auto">
-          {navLinks.map((link) => (
+        {navLinks.map((link) => (
             <SidebarLink
               key={link.to}
               to={link.to}
               icon={link.icon}
               label={link.label}
+              isActive={isRouteActive(link.to)}
               isExpanded={isSidebarExpanded || isMobileMenuOpen}
-              isActive={
-                link.to === location.pathname || 
-                (link.to !== "/company/dashboard" && location.pathname.includes(link.to))
-              }
             />
           ))}
         </nav>
@@ -1665,7 +1668,9 @@ const CompanyDashboard = () => {
             <Route path="/settings" element={<SettingsPage />} />
             <Route path="/profile" element={<UserProfile />} />
             <Route path="/profile/edit" element={<UserProfile />} />
-            
+
+            <Route path="payments" element={<DeveloperPayments />} />
+          
             {/* New routes for task applications */}
             <Route path="/tasks/:taskId/applications" element={<Applications />} />
             <Route path="/tasks/:taskId/applications/:applicationId" element={<Applications />} />

@@ -29,6 +29,9 @@ import DeveloperProfile from '@/components/developer/DeveloperProfile';
 import NotFound from '@/components/developer/NotFound';
 import { authUtils } from '../utils/authUtils';
 import { fetchUserProfile } from '../api/userService';
+import { NAV_LINKS } from '../config/navLinks';
+import { Role } from '../constants/Role';
+import DeveloperPayments from './DeveloperPayments';
 
 // Sidebar link component
 const SidebarLink = ({ to, icon: Icon, label, isActive, isExpanded }) => {
@@ -60,13 +63,7 @@ const DeveloperDashboard = () => {
   const sidebarRef = useRef(null);
 
   // Navigation links for the sidebar - use full paths to match Routes definition
-  const navLinks = [
-    { to: '/developer/dashboard', icon: Home, label: 'Dashboard' },
-    { to: '/developer/dashboard/projects', icon: Briefcase, label: 'Find Projects' },
-    { to: '/developer/dashboard/applications', icon: CheckSquare, label: 'My Applications' },
-    { to: '/developer/dashboard/profile', icon: User, label: 'Profile' },
-    { to: '/developer/dashboard/settings', icon: Settings, label: 'Settings' },
-  ];
+  const navLinks = NAV_LINKS[Role.DEVELOPER.toLowerCase()]
 
   // Fetch developer profile on mount
   useEffect(() => {
@@ -310,6 +307,7 @@ const DeveloperDashboard = () => {
             <Route path="projects" element={<ProjectsList />} />
             <Route path="applications" element={<MyApplications />} />
             <Route path="settings" element={<SettingsPage />} />
+            <Route path="earnings" element={<DeveloperPayments />} />
             <Route path="profile" element={<DeveloperProfile developer={developer} />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
