@@ -3,17 +3,12 @@ import { fetchPayments } from '../api/paymentService';
 import PaymentTable from '../components/payment/PaymentTable';
 import { Button } from '@/components/ui/button';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
-import { reloadPage } from '../utils/applicationUtils';
 
-const DeveloperPayments = () => {
+const CompanyPayments = () => {
     const [payments, setPayments] = useState([]);
     const [page, setPage] = useState(0);
     const [totalPages, setTotalPages] = useState(0);
     const [isLoading, setIsLoading] = useState(false);
-
-    const handleWithdrawSuccess = () => {
-        reloadPage();
-    };
 
     const handlePageChange = (newPage) => {
         setPage(newPage);
@@ -55,11 +50,9 @@ const DeveloperPayments = () => {
                 totalPages={totalPages}
                 onPageChange={handlePageChange}
                 onFilter={handleFilter}
-                isDeveloperView={true}
-                onWithdrawSuccess={handleWithdrawSuccess} 
             />
         </div>
     );
 };
 
-export default DeveloperPayments;
+export default CompanyPayments;

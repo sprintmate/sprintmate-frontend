@@ -1146,6 +1146,7 @@ const SettingsPage = () => (
 
 // Add ProfileEdit component import};
 import EditProfile from '@/components/profile/EditProfile';
+import CompanyPayments from './CompanyPayments';
 
 // Add UserProfile component
 const UserProfile = () => {
@@ -1669,7 +1670,7 @@ const CompanyDashboard = () => {
             <Route path="/profile" element={<UserProfile />} />
             <Route path="/profile/edit" element={<UserProfile />} />
 
-            <Route path="payments" element={<DeveloperPayments />} />
+            <Route path="payments" element={<CompanyPayments />} />
           
             {/* New routes for task applications */}
             <Route path="/tasks/:taskId/applications" element={<Applications />} />
