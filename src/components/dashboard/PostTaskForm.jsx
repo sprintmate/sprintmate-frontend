@@ -9,6 +9,7 @@ import { X, ArrowRight, ArrowLeft, Search, Plus, AlertCircle, Calendar, Check, X
 import axios from 'axios';
 import { postTask } from '../../api/companyService';
 import { authUtils } from '../../utils/authUtils';
+import { fetchUserProfile } from '../../api/userService';
 
 // Custom checkbox component
 const CustomCheckbox = ({ id, checked, onCheckedChange, label }) => {
@@ -284,9 +285,8 @@ const PostTaskForm = () => {
       
       // One last attempt to get companyId from localStorage
       try {
-        const storedProfile = authUtils.getUserProfile();
-        if (storedProfile) {
-          const parsedProfile = JSON.parse(storedProfile);
+        const parsedProfile = await fetchUserProfile();
+        if (parsedProfile) {
           if (parsedProfile.companyProfiles && parsedProfile.companyProfiles.length > 0) {
             const externalId = parsedProfile.companyProfiles[0].externalId;
             if (externalId) {

@@ -1,33 +1,56 @@
 import React, { useEffect, useState } from 'react';
 import { fetchPayments } from '../api/paymentService';
 import PaymentTable from '../components/payment/PaymentTable';
+import { Button } from '@/components/ui/button';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
 
 const DeveloperPayments = () => {
     const [payments, setPayments] = useState([]);
     const [page, setPage] = useState(0);
     const [totalPages, setTotalPages] = useState(0);
+    const [isLoading, setIsLoading] = useState(false);
+
+    const handlePageChange = (newPage) => {
+        setPage(newPage);
+    };
+
+    const handleFilter = async ({ statuses, search }) => {
+        setIsLoading(true);
+        try {
+            const data = await fetchPayments({ 
+                page, 
+                statuses: statuses.join(','),
+                search: search || undefined
+            });
+            setPayments(data.content);
+            setTotalPages(data.totalPages);
+        } catch (err) {
+            console.error('Error fetching filtered payments:', err);
+        } finally {
+            setIsLoading(false);
+        }
+    };
 
     useEffect(() => {
+        setIsLoading(true);
         fetchPayments({ page })
             .then((data) => {
                 setPayments(data.content);
                 setTotalPages(data.totalPages);
             })
-            .catch((err) => console.error(err));
+            .catch((err) => console.error(err))
+            .finally(() => setIsLoading(false));
     }, [page]);
 
     return (
-        <div style={{ padding: 20 }}>
-            <PaymentTable payments={payments} />
-            <div style={{ marginTop: 20 }}>
-                <button disabled={page === 0} onClick={() => setPage(page - 1)}>
-                    Prev
-                </button>
-                <span style={{ margin: '0 10px' }}>Page {page + 1} of {totalPages}</span>
-                <button disabled={page + 1 >= totalPages} onClick={() => setPage(page + 1)}>
-                    Next
-                </button>
-            </div>
+        <div className="p-6">
+            <PaymentTable 
+                payments={payments} 
+                currentPage={page}
+                totalPages={totalPages}
+                onPageChange={handlePageChange}
+                onFilter={handleFilter}
+            />
         </div>
     );
 };
