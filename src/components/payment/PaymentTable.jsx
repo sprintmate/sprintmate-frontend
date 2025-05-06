@@ -39,6 +39,8 @@ const PaymentTable = ({
     const [withdrawingPaymentId, setWithdrawingPaymentId] = useState(null);
     const [isBankAccountFormOpen, setIsBankAccountFormOpen] = useState(false);
     const [bankDetailsMissing, setBankDetailsMissing] = useState(false);
+    const [missingBankDetailsById, setMissingBankDetailsById] = useState({});
+
 
     const handleFilter = () => {
         onFilter({ statuses: selectedStatuses, search: searchQuery });
@@ -63,16 +65,19 @@ const PaymentTable = ({
             }
         } catch (error) {
             const errorMessage = error?.response?.data?.message || error.message || 'Failed to withdraw funds';
-            
-            // Check for "Bank details not found" error and set the state
-            if (errorMessage === 'Bank details not found') {
-                setBankDetailsMissing(true);
-            }
             toast.error(errorMessage);
+
+            if (errorMessage.toLowerCase().includes("bank details not found")) {
+                setMissingBankDetailsById(prev => ({
+                    ...prev,
+                    [paymentId]: true,
+                }));
+            }
         } finally {
             setWithdrawingPaymentId(null);
         }
     };
+
 
     const openBankAccountForm = () => {
         setIsBankAccountFormOpen(true);
@@ -229,7 +234,7 @@ const PaymentTable = ({
                                                 </td>
                                                 {isDeveloperView && (
                                                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                                        {p.status === 'FAILED' && !bankDetailsMissing && (
+                                                        {p.status === 'FAILED' && !missingBankDetailsById[p.paymentId] && (
                                                             <Button
                                                                 variant="outline"
                                                                 size="sm"
@@ -241,7 +246,7 @@ const PaymentTable = ({
                                                                 {withdrawingPaymentId === p.paymentId ? 'Withdrawing...' : 'Withdraw'}
                                                             </Button>
                                                         )}
-                                                        {bankDetailsMissing && (
+                                                        {missingBankDetailsById[p.paymentId] && (
                                                             <Button
                                                                 variant="outline"
                                                                 size="sm"
@@ -322,7 +327,7 @@ const PaymentTable = ({
 
             {/* Add Bank Account Modal */}
             {isBankAccountFormOpen && (
-                <AddBankAccount 
+                <AddBankAccount
                     onClose={closeBankAccountForm}
                     onSuccess={handleBankAccountSuccess}
                 />

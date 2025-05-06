@@ -9,9 +9,11 @@ import { createBankDetails } from '../../api/paymentService';
 
 const AddBankAccount = ({ onClose, onSuccess }) => {
     const [formData, setFormData] = useState({
+        name: '',
+        email: '',
+        phone: '',
+        ifsc: '',
         accountNumber: '',
-        ifscCode: '',
-        accountHolderName: '',
         bankName: ''
     });
     const [isSubmitting, setIsSubmitting] = useState(false);
@@ -35,7 +37,6 @@ const AddBankAccount = ({ onClose, onSuccess }) => {
                 onSuccess();
             }
         } catch (error) {
-            console.log("errprrr",error);
             const errorMessage = error?.response?.data?.message || error.message || 'Failed to add bank account';
             toast.error(errorMessage);
         } finally {
@@ -62,13 +63,40 @@ const AddBankAccount = ({ onClose, onSuccess }) => {
                     <form onSubmit={handleSubmit}>
                         <CardContent className="space-y-4">
                             <div className="space-y-2">
-                                <Label htmlFor="accountHolderName">Account Holder Name</Label>
+                                <Label htmlFor="name">Full Name</Label>
                                 <Input
-                                    id="accountHolderName"
-                                    name="accountHolderName"
-                                    value={formData.accountHolderName}
+                                    id="name"
+                                    name="name"
+                                    value={formData.name}
                                     onChange={handleChange}
-                                    placeholder="Enter account holder name"
+                                    placeholder="Enter your full name"
+                                    required
+                                    className="w-full"
+                                />
+                            </div>
+
+                            <div className="space-y-2">
+                                <Label htmlFor="email">Email</Label>
+                                <Input
+                                    id="email"
+                                    name="email"
+                                    type="email"
+                                    value={formData.email}
+                                    onChange={handleChange}
+                                    placeholder="Enter your email"
+                                    required
+                                    className="w-full"
+                                />
+                            </div>
+
+                            <div className="space-y-2">
+                                <Label htmlFor="phone">Phone Number</Label>
+                                <Input
+                                    id="phone"
+                                    name="phone"
+                                    value={formData.phone}
+                                    onChange={handleChange}
+                                    placeholder="Enter phone number with country code"
                                     required
                                     className="w-full"
                                 />
@@ -89,11 +117,11 @@ const AddBankAccount = ({ onClose, onSuccess }) => {
                             </div>
 
                             <div className="space-y-2">
-                                <Label htmlFor="ifscCode">IFSC Code</Label>
+                                <Label htmlFor="ifsc">IFSC Code</Label>
                                 <Input
-                                    id="ifscCode"
-                                    name="ifscCode"
-                                    value={formData.ifscCode}
+                                    id="ifsc"
+                                    name="ifsc"
+                                    value={formData.ifsc}
                                     onChange={handleChange}
                                     placeholder="Enter IFSC code"
                                     required
