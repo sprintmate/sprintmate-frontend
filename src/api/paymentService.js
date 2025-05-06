@@ -24,3 +24,44 @@ export const fetchPayments = async ({ page = 0, size = 10, statuses = 'HELD, REL
         throw error;
     }
 }
+
+export const fetchBankDetails = async () => {
+    try {
+        const response = await httpInstance.get(
+            `/v1/payment-instrumentations`
+        );
+        return response.data;
+    } catch (error) {
+        console.error('Error fetchBankDetails payment:', error);
+        throw error;
+    }
+}
+
+
+export const createBankDetails = async (bankData) => {
+    try {
+        const response = await httpInstance.post(
+            `/v1/payment-instrumentations`,
+            bankData
+        );
+        return response.data;
+    } catch (error) {
+        console.error('Error fetchBankDetails payment:', error);
+        throw error;
+    }
+}
+
+
+
+export const withDrawFunds = async (paymentId) => {
+    try {
+        const response = await httpInstance.post(
+            `/v1/order/payments/withdraw`,
+            { paymentId }
+        );
+        return response.data;
+    } catch (error) {
+        console.error('Error withDrawFunds payment:', error);
+        throw error;
+    }
+}

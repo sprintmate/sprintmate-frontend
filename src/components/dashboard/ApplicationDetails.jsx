@@ -356,7 +356,7 @@ const ApplicationDetails = () => {
       //   }
       //   return app;
       // }));
-      // reloadPage();
+      reloadPage();
       const response = await acceptApplicationStatus(paymentData.taskId, paymentData.applicationId);
       if (response) {
         setPaymentSuccessful(true);

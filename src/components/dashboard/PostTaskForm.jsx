@@ -98,12 +98,10 @@ const PostTaskForm = () => {
   const fetchCompanyProfileFromStorage = () => {
     try {
       // Check for userProfile in localStorage
-      const storedProfile = authUtils.getUserProfile();
-      console.log("Stored profile:", storedProfile);
+      const parsedProfile = authUtils.getUserProfile();
+      console.log("Stored profile:", parsedProfile);
       
-      if (storedProfile) {
-        const parsedProfile = JSON.parse(storedProfile);
-        
+      if (parsedProfile) {        
         // Extract companyId from companyProfiles array
         if (parsedProfile.companyProfiles && parsedProfile.companyProfiles.length > 0) {
           const companyExternalId = parsedProfile.companyProfiles[0].externalId;
@@ -112,16 +110,6 @@ const PostTaskForm = () => {
             setCompanyId(companyExternalId);
             return;
           }
-        }
-        
-        // Fallback to other possible ID fields
-        if (parsedProfile.externalId) {
-          setCompanyId(parsedProfile.externalId);
-        } else if (parsedProfile.companyId) {
-          setCompanyId(parsedProfile.companyId);
-        } else {
-          // Last resort - API call
-          fetchCompanyIdFromAPI();
         }
       } else {
         fetchCompanyIdFromAPI();
@@ -134,26 +122,15 @@ const PostTaskForm = () => {
 
   const fetchCompanyIdFromAPI = async () => {
     try {
-      const response = await axios.get('/v1/user-profiles/me');
+      const response = await fetchUserProfile();
       console.log("API response for user profile:", response.data);
       
-      if (response.data && response.data.companyProfiles && response.data.companyProfiles.length > 0) {
-        const companyExternalId = response.data.companyProfiles[0].externalId;
+      if (response && response.companyProfiles && response.companyProfiles.length > 0) {
+        const companyExternalId = response.companyProfiles[0].externalId;
         if (companyExternalId) {
           setCompanyId(companyExternalId);
           return;
         }
-      }
-      
-      // Fallback to other ID fields in API response
-      if (response.data && response.data.companyId) {
-        setCompanyId(response.data.companyId);
-      } else {
-        toast({
-          title: "Profile Error",
-          description: "Couldn't retrieve company profile. Please try again later.",
-          variant: "destructive",
-        });
       }
     } catch (error) {
       console.error("Error fetching user profile:", error);
