@@ -132,7 +132,7 @@ const DeveloperProfileRegistration = () => {
       formData.append('file', fileToUpload);
       formData.append('type', "LATEST_RESUME");
 
-      const token = localStorage.getItem('authToken') || localStorage.getItem('token');
+      const token = authUtils.getAuthToken();
       const response = await axios.post(
         `${import.meta.env.VITE_API_BASE_URL}/v1/documents/upload`,
         formData,

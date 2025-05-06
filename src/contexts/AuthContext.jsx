@@ -48,7 +48,7 @@ export const AuthProvider = ({ children }) => {
       if (userData.role === 'CORPORATE') {
         const companyData = await getCompanyProfile(currentToken);
         setCompanyProfile(companyData);
-      } 
+      }
     } catch (err) {
       console.error('Error fetching user data:', err);
       setError(err.message);
@@ -63,15 +63,15 @@ export const AuthProvider = ({ children }) => {
   // Login with token or user object
   const login = useCallback((userDataOrToken) => {
     if (typeof userDataOrToken === 'string') {
-      localStorage.setItem('token', userDataOrToken);
+      authUtils.setAuthToken(userDataOrToken);
       setTokenState(userDataOrToken);
     } else if (typeof userDataOrToken === 'object') {
       const { token: newToken } = userDataOrToken;
       setUser(userDataOrToken);
-      localStorage.setItem('userProfile', JSON.stringify(userDataOrToken));
+      authUtils.setUserProfile(userDataOrToken);
 
       if (newToken) {
-        localStorage.setItem('token', newToken);
+        authUtils.setAuthToken(newToken);
         setTokenState(newToken);
       }
     }

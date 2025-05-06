@@ -76,7 +76,7 @@ const TaskApplicationModal = ({ isOpen, onClose, taskId, onSuccess }) => {
     try {
       // Get developer ID from local storage with error handling
       const userProfile = authUtils.getUserProfile();
-      if (!userProfileStr) {
+      if (!userProfile) {
         throw new Error('User profile not found. Please log in again.');
       }
   

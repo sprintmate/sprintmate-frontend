@@ -4,57 +4,27 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import axios from 'axios';
-import { 
-  Briefcase, Clock, DollarSign, Calendar, ExternalLink, ChevronDown, 
+import {
+  Briefcase, Clock, DollarSign, Calendar, ExternalLink, ChevronDown,
   Check, X, AlertCircle, Filter, Search, Loader2, Sparkles, User,
   ArrowRight, Github, Linkedin, Code, MessageSquare, Tag, FileCode
 } from 'lucide-react';
 import { getToken } from '../../services/authService';
+import {
+  TaskApplicationStatus,
+  Role,
+  STATUS_LABELS,
+  getAllowedTransitions,
+  canRoleUpdateStatus,
+  STATUS_DIALOG_CONFIG
+} from '../../constants/taskApplicationStatusMachine';
 
-// Confirmation Dialog component
-const ConfirmationDialog = ({ isOpen, onClose, onConfirm, title, message, isLoading }) => {
-  if (!isOpen) return null;
-  
-  return (
-    <div 
-      className="fixed inset-0 z-[9999] flex items-center justify-center bg-black bg-opacity-50"
-      style={{ cursor: 'default' }}
-    >
-      <motion.div
-        initial={{ opacity: 0, scale: 0.95 }}
-        animate={{ opacity: 1, scale: 1 }}
-        exit={{ opacity: 0, scale: 0.95 }}
-        className="bg-white rounded-lg p-6 w-full max-w-md shadow-xl"
-        onClick={(e) => e.stopPropagation()}
-        style={{ cursor: 'default' }}
-      >
-        <h3 className="text-xl font-semibold text-gray-900 mb-2">{title}</h3>
-        <p className="text-gray-600 mb-6">{message}</p>
-        <div className="flex justify-end gap-3">
-          <Button 
-            variant="outline" 
-            onClick={onClose}
-            disabled={isLoading}
-            className="cursor-pointer hover:bg-gray-100"
-            style={{ cursor: isLoading ? 'not-allowed' : 'pointer' }}
-          >
-            Cancel
-          </Button>
-          <Button 
-            variant="destructive" 
-            onClick={onConfirm}
-            disabled={isLoading}
-            className="flex items-center gap-2 cursor-pointer"
-            style={{ cursor: isLoading ? 'not-allowed' : 'pointer' }}
-          >
-            {isLoading && <Loader2 className="h-4 w-4 animate-spin" />}
-            {isLoading ? 'Processing...' : 'Yes, Withdraw'}
-          </Button>
-        </div>
-      </motion.div>
-    </div>
-  );
-};
+import { authUtils } from '../../utils/authUtils';
+import { updateApplicationStatus,withdrawApplication } from '../../api/taskApplicationService';
+import { ApplicationStatus } from '../../constants/ApplicationStatus';
+
+import { ConfirmationDialog } from '../ui/ConfirmationDialogue';
+
 
 // Status badge component with appropriate styling for each status
 const StatusBadge = ({ status }) => {
@@ -69,7 +39,7 @@ const StatusBadge = ({ status }) => {
   };
 
   const { color, icon } = statusConfig[status] || statusConfig['APPLIED'];
-  
+
   return (
     <Badge className={`${color} flex items-center px-2 py-1`} variant="outline">
       {icon}
@@ -81,13 +51,18 @@ const StatusBadge = ({ status }) => {
 // Application card component
 const ApplicationCard = ({ application, index, onStatusUpdate }) => {
   const [isExpanded, setIsExpanded] = useState(false);
-  const [isWithdrawDialogOpen, setIsWithdrawDialogOpen] = useState(false);
+  // const [isWithdrawDialogOpen, setIsWithdrawDialogOpen] = useState(false);
+  const [pendingStatus, setPendingStatus] = useState(null); // e.g., 'WITHDRAWN'
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
-  
+
   const { task, proposal, status, createdAt, externalId: applicationId } = application;
   const taskId = task?.externalId;
-  
+  const role = authUtils.getUserProfile().role;
+  console.log("role fetched from user profile ", role);
+
+
+
   // Check if required data exists and provide fallbacks
   if (!application || !application.task) {
     return null; // Don't render anything if application or task is missing
@@ -108,7 +83,7 @@ const ApplicationCard = ({ application, index, onStatusUpdate }) => {
   // Format date from ISO string
   const formatDate = (dateString) => {
     if (!dateString) return 'No deadline';
-    
+
     try {
       // Check if it's already in the right format
       if (dateString.includes(' ')) {
@@ -116,18 +91,18 @@ const ApplicationCard = ({ application, index, onStatusUpdate }) => {
         const [datePart, timePart] = dateString.split(' ');
         const date = new Date(`${datePart}T${timePart}`);
         if (isNaN(date.getTime())) throw new Error("Invalid date");
-        
+
         return date.toLocaleDateString('en-US', {
           year: 'numeric',
           month: 'short',
           day: 'numeric'
         });
       }
-      
+
       // If it's in ISO format
       const date = new Date(dateString);
       if (isNaN(date.getTime())) throw new Error("Invalid date");
-      
+
       return date.toLocaleDateString('en-US', {
         year: 'numeric',
         month: 'short',
@@ -146,43 +121,32 @@ const ApplicationCard = ({ application, index, onStatusUpdate }) => {
   };
 
   // Handle withdraw application
-  const handleWithdraw = async () => {
+  const handleStatusChange = async (newStatus) => {
     setIsLoading(true);
     setError(null);
-    
+
     try {
-      const token = getToken();
-      if (!token) {
-        throw new Error("Authentication token not found");
+
+      if(newStatus === ApplicationStatus.WITHDRAWN) {
+        const response = await withdrawApplication(taskId,applicationId);
+        console.log('Withdraw response:', response);
+
+      } else {
+        const response = await updateApplicationStatus(taskId,applicationId,newStatus);
+        console.log('update application response:', response);
+
       }
-      
-      const baseUrl = import.meta.env.VITE_API_BASE_URL || 'https://round-georgianna-sprintmate-8451e6d8.koyeb.app';
-      const url = `${baseUrl}/v1/tasks/${taskId}/applications/${applicationId}/withdraw`;
-      
-      console.log('Withdrawing application:', { taskId, applicationId, url });
-      console.log('Using token:', token);
-      
-      // Fix: Use a POST request with proper Authorization header
-      const response = await axios.put(url, {}, {
-        headers: {
-          'Authorization': token.startsWith('Bearer ') ? token : `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        }
-      });
-      
-      console.log('Withdraw response:', response);
-      
       // Close dialog
-      setIsWithdrawDialogOpen(false);
-      
+      // setIsWithdrawDialogOpen(false);
+       setPendingStatus(null);
+
       // Update parent component with new status
       if (onStatusUpdate) {
-        onStatusUpdate(applicationId, 'WITHDRAWN');
+        onStatusUpdate(applicationId, newStatus);
       }
     } catch (error) {
-      console.error('Error withdrawing application:', error);
-      setError(error.response?.data?.message || 'Failed to withdraw application');
-      
+      console.error('Error updating application status :', error);
+      setError(error.response?.data?.message || 'Failed to update application');
       // Don't auto-close on error so user can see the error message
     } finally {
       setIsLoading(false);
@@ -196,14 +160,13 @@ const ApplicationCard = ({ application, index, onStatusUpdate }) => {
       transition={{ duration: 0.4, delay: index * 0.1 }}
       layout
     >
-      <Card className={`overflow-hidden border-l-4 transition-all ${
-        status === 'ACCEPTED' ? 'border-l-green-500' :
+      <Card className={`overflow-hidden border-l-4 transition-all ${status === 'ACCEPTED' ? 'border-l-green-500' :
         status === 'REJECTED' ? 'border-l-red-500' :
-        status === 'WITHDRAWN' ? 'border-l-gray-500' :
-        status === 'COMPLETED' ? 'border-l-purple-500' :
-        status === 'IN_PROGRESS' ? 'border-l-amber-500' :
-        'border-l-blue-500'
-      }`}>
+          status === 'WITHDRAWN' ? 'border-l-gray-500' :
+            status === 'COMPLETED' ? 'border-l-purple-500' :
+              status === 'IN_PROGRESS' ? 'border-l-amber-500' :
+                'border-l-blue-500'
+        }`}>
         <CardContent className="p-0">
           {/* Card Header */}
           <div className="p-5 border-b border-gray-100">
@@ -221,7 +184,7 @@ const ApplicationCard = ({ application, index, onStatusUpdate }) => {
                 <StatusBadge status={status} />
               </div>
             </div>
-            
+
             {/* Tags */}
             <div className="mt-3 flex flex-wrap gap-1.5">
               {getTags().map((tag, i) => (
@@ -236,7 +199,7 @@ const ApplicationCard = ({ application, index, onStatusUpdate }) => {
               </Badge>
             </div>
           </div>
-          
+
           {/* Card Body */}
           <div className="p-5">
             <div className="space-y-4">
@@ -249,7 +212,7 @@ const ApplicationCard = ({ application, index, onStatusUpdate }) => {
                   {safeTask.description}
                 </p>
               </div>
-              
+
               {/* Expanded content */}
               <AnimatePresence>
                 {isExpanded && (
@@ -267,7 +230,7 @@ const ApplicationCard = ({ application, index, onStatusUpdate }) => {
                         <p className="italic">{proposal}</p>
                       </div>
                     </div>
-                    
+
                     {/* Additional details */}
                     <div className="grid grid-cols-2 gap-4 text-sm">
                       <div>
@@ -284,7 +247,7 @@ const ApplicationCard = ({ application, index, onStatusUpdate }) => {
               </AnimatePresence>
             </div>
           </div>
-          
+
           {/* Card Footer */}
           <div className="px-5 py-3 bg-gray-50 border-t border-gray-100 flex justify-between items-center">
             <button
@@ -294,12 +257,12 @@ const ApplicationCard = ({ application, index, onStatusUpdate }) => {
               <ChevronDown className={`w-4 h-4 transition-transform ${isExpanded ? 'rotate-180' : ''}`} />
               {isExpanded ? 'Show less' : 'Show more'}
             </button>
-            
-            <div className="flex gap-2">
+
+            {/* <div className="flex gap-2">
               {status === 'APPLIED' && (
-                <Button 
-                  variant="outline" 
-                  size="sm" 
+                <Button
+                  variant="outline"
+                  size="sm"
                   className="text-red-600 hover:bg-red-50 border-red-200"
                   onClick={() => setIsWithdrawDialogOpen(true)}
                 >
@@ -310,13 +273,40 @@ const ApplicationCard = ({ application, index, onStatusUpdate }) => {
                 View Details
                 <ArrowRight className="w-3 h-3" />
               </Button>
+            </div> */}
+
+            <div className="flex gap-2">
+              {/* View Details (always visible) */}
+              <Button size="sm" className="gap-1">
+                View Details
+                <ArrowRight className="w-3 h-3" />
+              </Button>
+
+              {/* Dynamic Status Transition Buttons */}
+              {getAllowedTransitions(status)
+                .filter((nextStatus) => canRoleUpdateStatus(role, nextStatus))
+                .map((nextStatus) => (
+                  <Button
+                    key={nextStatus}
+                    size="sm"
+                    variant="outline"
+                    onClick={() => {
+                      setPendingStatus(nextStatus);
+                      setError(null);
+                    }}
+                  >
+                    {STATUS_LABELS[nextStatus] || `Move to ${nextStatus}`}
+                  </Button>
+                ))}
             </div>
+
+
           </div>
         </CardContent>
       </Card>
-      
+
       {/* Withdraw Confirmation Dialog */}
-      <AnimatePresence>
+      {/* <AnimatePresence>
         {isWithdrawDialogOpen && (
           <ConfirmationDialog
             isOpen={isWithdrawDialogOpen}
@@ -333,14 +323,36 @@ const ApplicationCard = ({ application, index, onStatusUpdate }) => {
             isLoading={isLoading}
           />
         )}
+      </AnimatePresence> */}
+
+      {/* Dynamic Confirmation Dialog */}
+      <AnimatePresence>
+        {pendingStatus && (
+          <ConfirmationDialog
+            isOpen={!!pendingStatus}
+            onClose={() => {
+              setPendingStatus(null);
+              setError(null);
+            }}
+            onConfirm={(e) => {
+              e?.stopPropagation?.();
+              handleStatusChange(pendingStatus);
+            }}
+            title={STATUS_DIALOG_CONFIG[pendingStatus]?.title || "Confirm Action"}
+            message={error || STATUS_DIALOG_CONFIG[pendingStatus]?.message || ""}
+            confirmText={STATUS_DIALOG_CONFIG[pendingStatus]?.confirmText || "Confirm"}
+            isLoading={isLoading}
+          />
+        )}
       </AnimatePresence>
+
     </motion.div>
   );
 };
 
 // Empty state component
 const EmptyState = () => (
-  <motion.div 
+  <motion.div
     initial={{ opacity: 0, scale: 0.9 }}
     animate={{ opacity: 1, scale: 1 }}
     transition={{ duration: 0.5 }}
@@ -364,14 +376,14 @@ const EmptyState = () => (
 const LoadingState = () => (
   <div className="flex flex-col items-center justify-center py-16">
     <div className="relative w-20 h-20">
-      <motion.div 
+      <motion.div
         className="absolute inset-0 rounded-full border-4 border-t-blue-600 border-blue-200"
         animate={{ rotate: 360 }}
         transition={{ duration: 1.5, repeat: Infinity, ease: "linear" }}
       />
       <motion.div
         className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2"
-        animate={{ 
+        animate={{
           scale: [1, 1.2, 1],
           opacity: [0.5, 1, 0.5]
         }}
@@ -386,7 +398,7 @@ const LoadingState = () => (
 
 // Error state component
 const ErrorState = ({ error, onRetry }) => (
-  <motion.div 
+  <motion.div
     initial={{ opacity: 0, y: 20 }}
     animate={{ opacity: 1, y: 0 }}
     className="bg-red-50 border border-red-200 rounded-lg p-6 flex flex-col items-center max-w-md mx-auto my-8"
@@ -422,19 +434,17 @@ const ApplicationFilter = ({ activeFilter, setActiveFilter, count }) => {
           variant={activeFilter === filter.id ? "default" : "outline"}
           size="sm"
           onClick={() => setActiveFilter(filter.id)}
-          className={`gap-2 ${
-            activeFilter === filter.id 
-              ? "bg-blue-600" 
-              : "hover:bg-blue-50 hover:text-blue-700 border-gray-200"
-          }`}
+          className={`gap-2 ${activeFilter === filter.id
+            ? "bg-blue-600"
+            : "hover:bg-blue-50 hover:text-blue-700 border-gray-200"
+            }`}
         >
           {filter.label}
           {filter.count !== undefined && (
-            <Badge variant="outline" className={`${
-              activeFilter === filter.id 
-                ? "bg-blue-700 text-white border-blue-800" 
-                : "bg-gray-100 text-gray-700 border-gray-200"
-            }`}>
+            <Badge variant="outline" className={`${activeFilter === filter.id
+              ? "bg-blue-700 text-white border-blue-800"
+              : "bg-gray-100 text-gray-700 border-gray-200"
+              }`}>
               {filter.count}
             </Badge>
           )}
@@ -457,13 +467,13 @@ const MyApplications = () => {
   const fetchApplications = async () => {
     setLoading(true);
     setError(null);
-    
+
     try {
       const token = getToken();
       if (!token) {
         throw new Error("Authentication token not found");
       }
-      
+
       const baseUrl = import.meta.env.VITE_API_BASE_URL || 'https://round-georgianna-sprintmate-8451e6d8.koyeb.app';
       const response = await axios.get(`${baseUrl}/v1/developers/applications`, {
         headers: {
@@ -472,7 +482,7 @@ const MyApplications = () => {
         // Add timeout to prevent hanging requests
         timeout: 15000
       });
-      
+
       // Check if response has the expected structure
       if (response.data && Array.isArray(response.data.content)) {
         setApplications(response.data.content);
@@ -503,35 +513,35 @@ const MyApplications = () => {
   // Filter applications based on active filter and search query
   useEffect(() => {
     if (!applications.length) return;
-    
+
     let filtered = [...applications];
-    
+
     // Apply status filter
     if (activeFilter !== 'all') {
       filtered = filtered.filter(app => app.status === activeFilter);
     }
-    
+
     // Apply search filter
     if (searchQuery) {
       const query = searchQuery.toLowerCase();
-      filtered = filtered.filter(app => 
+      filtered = filtered.filter(app =>
         app.task.title.toLowerCase().includes(query) ||
         app.task.description.toLowerCase().includes(query) ||
         (app.task.tags && app.task.tags.toLowerCase().includes(query))
       );
     }
-    
+
     setFilteredApplications(filtered);
   }, [activeFilter, searchQuery, applications]);
 
   // Handle application status update
   const handleStatusUpdate = (applicationId, newStatus) => {
-    const updatedApplications = applications.map(app => 
+    const updatedApplications = applications.map(app =>
       app.externalId === applicationId ? { ...app, status: newStatus } : app
     );
-    
+
     setApplications(updatedApplications);
-    
+
     // This will trigger the useEffect to filter applications
     // based on the updated applications array
   };
@@ -549,7 +559,7 @@ const MyApplications = () => {
           <h1 className="text-2xl font-bold text-gray-900">My Applications</h1>
           <p className="text-gray-600 mt-1">Track and manage your project applications</p>
         </div>
-        
+
         {/* Search bar */}
         <div className="relative w-full md:w-64">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={16} />
@@ -562,29 +572,29 @@ const MyApplications = () => {
           />
         </div>
       </div>
-      
+
       {/* Status filters */}
-      <ApplicationFilter 
-        activeFilter={activeFilter} 
-        setActiveFilter={setActiveFilter} 
+      <ApplicationFilter
+        activeFilter={activeFilter}
+        setActiveFilter={setActiveFilter}
         count={applications.length}
       />
-      
+
       {/* Applications list */}
       <AnimatePresence>
         {filteredApplications.length > 0 ? (
           <motion.div layout className="space-y-4">
             {filteredApplications.map((application, index) => (
-              <ApplicationCard 
-                key={application.externalId} 
-                application={application} 
+              <ApplicationCard
+                key={application.externalId}
+                application={application}
                 index={index}
                 onStatusUpdate={handleStatusUpdate}
               />
             ))}
           </motion.div>
         ) : (
-          <motion.div 
+          <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             className="bg-white rounded-lg border border-gray-200 p-8 text-center"

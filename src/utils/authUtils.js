@@ -1,72 +1,85 @@
-// Auth token management utilities
+import CryptoJS from 'crypto-js';
+
 const AUTH_TOKEN_KEY = 'authToken';
 const USER_PROFILE_KEY = 'userProfile';
 const USER_TYPE_KEY = 'userType';
 const OAUTH_ROLE_KEY = 'oauthRole';
+const CONFIG_KEY = 'configKey';
+
+const ENCRYPTION_SECRET = import.meta.env.VITE_ENCRYPTION_SECRET;
+
+
+if (!ENCRYPTION_SECRET) {
+  throw new Error("Missing VITE_ENCRYPTION_SECRET");
+}
+
+// Encryption utilities
+const encrypt = (data) => {
+  return CryptoJS.AES.encrypt(JSON.stringify(data), ENCRYPTION_SECRET).toString();
+};
+
+const decrypt = (cipherText) => {
+  try {
+    const bytes = CryptoJS.AES.decrypt(cipherText, ENCRYPTION_SECRET);
+    const decrypted = bytes.toString(CryptoJS.enc.Utf8);
+    return JSON.parse(decrypted);
+  } catch (e) {
+    console.error('Decryption failed:', e);
+    return null;
+  }
+};
+
+// LocalStorage wrappers
+const setItem = (key, value) => {
+  localStorage.setItem(key, encrypt(value));
+};
+
+const getItem = (key) => {
+  const item = localStorage.getItem(key);
+  return item ? decrypt(item) : null;
+};
+
+const removeItem = (key) => {
+  localStorage.removeItem(key);
+};
 
 export const authUtils = {
-  // Token management
-  setAuthToken: (token) => {
-    localStorage.setItem(AUTH_TOKEN_KEY, token);
-  },
+  // Auth token
+  setAuthToken: (token) => setItem(AUTH_TOKEN_KEY, token),
+  getAuthToken: () => getItem(AUTH_TOKEN_KEY),
+  removeAuthToken: () => removeItem(AUTH_TOKEN_KEY),
 
-  getAuthToken: () => {
-    return localStorage.getItem(AUTH_TOKEN_KEY);
-  },
+  // User profile
+  setUserProfile: (profile) => setItem(USER_PROFILE_KEY, profile),
+  getUserProfile: () => getItem(USER_PROFILE_KEY),
+  removeUserProfile: () => removeItem(USER_PROFILE_KEY),
 
-  removeAuthToken: () => {
-    localStorage.removeItem(AUTH_TOKEN_KEY);
-  },
+  // App config
+  setAppConfig: (config) => setItem(CONFIG_KEY, config),
+  getAppConfig: () => getItem(CONFIG_KEY),
 
-  // User profile management
-  setUserProfile: (profile) => {
-    localStorage.setItem(USER_PROFILE_KEY, JSON.stringify(profile));
-  },
+  // User type
+  setUserType: (type) => setItem(USER_TYPE_KEY, type),
+  getUserType: () => getItem(USER_TYPE_KEY),
+  removeUserType: () => removeItem(USER_TYPE_KEY),
 
-  getUserProfile: () => {
-    const profile = localStorage.getItem(USER_PROFILE_KEY);
-    return profile ? JSON.parse(profile) : null;
-  },
-
-  removeUserProfile: () => {
-    localStorage.removeItem(USER_PROFILE_KEY);
-  },
-
-  // User type management
-  setUserType: (type) => {
-    localStorage.setItem(USER_TYPE_KEY, type);
-  },
-
-  getUserType: () => {
-    return localStorage.getItem(USER_TYPE_KEY);
-  },
-
-  removeUserType: () => {
-    localStorage.removeItem(USER_TYPE_KEY);
-  },
-
-  // OAuth role management
+  // OAuth role
   setOAuthRole: (role) => {
     console.log("Setting OAuth role:", role);
-    localStorage.setItem(OAUTH_ROLE_KEY, role);
+    setItem(OAUTH_ROLE_KEY, role);
   },
+  getOAuthRole: () => getItem(OAUTH_ROLE_KEY),
+  removeOAuthRole: () => removeItem(OAUTH_ROLE_KEY),
 
-  getOAuthRole: () => {
-    return localStorage.getItem(OAUTH_ROLE_KEY);
-  },
-
-  removeOAuthRole: () => {
-    localStorage.removeItem(OAUTH_ROLE_KEY);
-  },
-
-  // Clear all auth related data
+  // Clear specific auth data
   clearAllAuthData: () => {
-    this.removeAuthToken();
-    this.removeUserProfile();
-    this.removeUserType();
-    this.removeOAuthRole();
+    authUtils.removeAuthToken();
+    authUtils.removeUserProfile();
+    authUtils.removeUserType();
+    authUtils.removeOAuthRole();
   },
 
+  // Clear everything
   clearAllData: () => {
     localStorage.clear();
     sessionStorage.clear();
@@ -74,16 +87,14 @@ export const authUtils = {
       const name = cookie.split("=")[0].trim();
       document.cookie = `${name}=;expires=Thu, 01 Jan 1970 00:00:00 UTC;path=/;`;
     });
-    console.log("cleared all data from session,local");
+    console.log("cleared all data from session, local");
   },
 
-  isAuthenticated: () => {
-    return !!localStorage.getItem(AUTH_TOKEN_KEY);
-  },
+  isAuthenticated: () => !!authUtils.getAuthToken(),
 
   logout: () => {
-    localStorage.removeItem(AUTH_TOKEN_KEY);
-    localStorage.removeItem(USER_PROFILE_KEY);
-    localStorage.removeItem(OAUTH_ROLE_KEY);
+    authUtils.removeAuthToken();
+    authUtils.removeUserProfile();
+    authUtils.removeOAuthRole();
   }
-}; 
+};

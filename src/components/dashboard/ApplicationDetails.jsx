@@ -39,38 +39,82 @@ import { updateApplicationStatus, acceptApplicationStatus } from '../../api/task
 import { refundPayment } from '../../api/paymentService';
 
 import { reloadPage } from '../../utils/applicationUtils';
+import { ApplicationStatus } from '../../constants/ApplicationStatus';
+import { authUtils } from '../../utils/authUtils';
+
+import {
+  TaskApplicationStatus,
+  Role,
+  STATUS_LABELS,
+  getAllowedTransitions,
+  canRoleUpdateStatus,
+  STATUS_DIALOG_CONFIG
+} from '../../constants/taskApplicationStatusMachine';
 
 // Status badge component
-const StatusBadge = ({ status }) => {
-  const getStatusInfo = () => {
-    switch (status?.toLowerCase()) {
-      case 'pending':
-      case 'applied':
-        return { color: 'bg-yellow-100 text-yellow-800', icon: <Clock size={14} className="mr-1" /> };
-      case 'accepted':
-      case 'hired':
-        return { color: 'bg-green-100 text-green-800', icon: <CheckCircle size={14} className="mr-1" /> };
-      case 'rejected':
-      case 'withdrawn':
-        return { color: 'bg-red-100 text-red-800', icon: <XCircle size={14} className="mr-1" /> };
-      case 'shortlisted':
-        return { color: 'bg-blue-100 text-blue-800', icon: <Star size={14} className="mr-1" /> };
-      case 'interviewing':
-        return { color: 'bg-purple-100 text-purple-800', icon: <MessageSquare size={14} className="mr-1" /> };
-      default:
-        return { color: 'bg-gray-100 text-gray-800', icon: <FileText size={14} className="mr-1" /> };
-    }
-  };
+// const StatusBadge = ({ status }) => {
+//   const getStatusInfo = () => {
+//     switch (status?.toLowerCase()) {
+//       case 'pending':
+//       case 'applied':
+//         return { color: 'bg-yellow-100 text-yellow-800', icon: <Clock size={14} className="mr-1" /> };
+//       case 'accepted':
+//       case 'hired':
+//         return { color: 'bg-green-100 text-green-800', icon: <CheckCircle size={14} className="mr-1" /> };
+//       case 'rejected':
+//       case 'withdrawn':
+//         return { color: 'bg-red-100 text-red-800', icon: <XCircle size={14} className="mr-1" /> };
+//       case 'shortlisted':
+//         return { color: 'bg-blue-100 text-blue-800', icon: <Star size={14} className="mr-1" /> };
+//       case 'interviewing':
+//         return { color: 'bg-purple-100 text-purple-800', icon: <MessageSquare size={14} className="mr-1" /> };
+//       default:
+//         return { color: 'bg-gray-100 text-gray-800', icon: <FileText size={14} className="mr-1" /> };
+//     }
+//   };
 
-  const { color, icon } = getStatusInfo();
+//   const { color, icon } = getStatusInfo();
+
+//   return (
+//     <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${color}`}>
+//       {icon}
+//       {status || 'Unknown'}
+//     </span>
+//   );
+// };
+
+const STATUS_MAP = {
+  pending: { color: 'bg-yellow-100 text-yellow-800', icon: <Clock size={14} className="mr-1" /> },
+  applied: { color: 'bg-yellow-100 text-yellow-800', icon: <Clock size={14} className="mr-1" /> },
+  accepted: { color: 'bg-green-100 text-green-800', icon: <CheckCircle size={14} className="mr-1" /> },
+  hired: { color: 'bg-green-100 text-green-800', icon: <CheckCircle size={14} className="mr-1" /> },
+  rejected: { color: 'bg-red-100 text-red-800', icon: <XCircle size={14} className="mr-1" /> },
+  withdrawn: { color: 'bg-red-100 text-red-800', icon: <XCircle size={14} className="mr-1" /> },
+  shortlisted: { color: 'bg-blue-100 text-blue-800', icon: <Star size={14} className="mr-1" /> },
+  interviewing: { color: 'bg-purple-100 text-purple-800', icon: <MessageSquare size={14} className="mr-1" /> },
+};
+
+const formatStatusLabel = (status) => {
+  return status
+    ?.replace(/_/g, ' ')               // replace hyphens with spaces
+    .replace(/\b\w/g, (c) => c.toUpperCase()) || 'Unknown'; // capitalize each word
+};
+
+const StatusBadge = ({ status }) => {
+  const normalizedStatus = status?.toLowerCase();
+  const { color, icon } = STATUS_MAP[normalizedStatus] || {
+    color: 'bg-blue-100 text-blue-800',
+    icon: <FileText size={14} className="mr-1" />,
+  };
 
   return (
     <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${color}`}>
       {icon}
-      {status || 'Unknown'}
+      {formatStatusLabel(status)}
     </span>
   );
 };
+
 
 // Enhanced Avatar component with image3 fallback
 const SimpleAvatar = ({ name, profilePicture, className = "h-12 w-12" }) => {
@@ -169,8 +213,8 @@ const SimpleTabs = ({ tabs, activeTab, onChange }) => {
         <button
           key={tab.value}
           className={`px-4 py-2 text-sm font-medium ${activeTab === tab.value
-              ? "border-b-2 border-blue-500 text-blue-600"
-              : "text-gray-500 hover:text-gray-700"
+            ? "border-b-2 border-blue-500 text-blue-600"
+            : "text-gray-500 hover:text-gray-700"
             }`}
           onClick={() => onChange(tab.value)}
         >
@@ -198,6 +242,10 @@ const ApplicationDetails = () => {
   const [totalPages, setTotalPages] = useState(0);
   const [selectedApplication, setSelectedApplication] = useState(null);
   const [activeTab, setActiveTab] = useState('all');
+  const [pendingStatus, setPendingStatus] = useState(null); // e.g., 'WITHDRAWN'
+
+  const role = authUtils.getUserProfile().role;
+
 
   // Add state for chat panel
   const [chatOpen, setChatOpen] = useState(false);
@@ -277,17 +325,7 @@ const ApplicationDetails = () => {
   const handleStatusUpdate = async (applicationId, newStatus) => {
     try {
       setIsLoading(true);
-
-      // Use the actual status values in the API call (no mapping needed now)
-
       await updateApplicationStatus(taskId, applicationId, newStatus);
-
-      // // Update local state to reflect the change
-      // setApplications(applications.map(app => 
-      //   app.externalId === applicationId ? {...app, status: newStatus} : app
-      // ));
-
-      // Use the utility to reload the page
       reloadPage();
       // Show success message
       console.log(`Application ${applicationId} updated to ${newStatus}`);
@@ -318,7 +356,7 @@ const ApplicationDetails = () => {
       //   }
       //   return app;
       // }));
-      reloadPage();
+      // reloadPage();
       const response = await acceptApplicationStatus(paymentData.taskId, paymentData.applicationId);
       if (response) {
         setPaymentSuccessful(true);
@@ -599,6 +637,7 @@ const ApplicationDetails = () => {
                               Applied {new Date(application.createdAt).toLocaleDateString()}
                             </div>
                             <StatusBadge status={application.status} />
+
                             <div className="flex items-center">
                               <Clock size={14} className="mr-1.5" />
                               {application.developer?.availability?.replace('_', ' ') || 'Not specified'}
@@ -638,7 +677,7 @@ const ApplicationDetails = () => {
 
                       {/* Action buttons with Accept option for SHORTLISTED */}
                       <div className="mt-4 pt-4 border-t border-gray-100 flex justify-end space-x-3">
-                        {application.status === 'APPLIED' && (
+                        {/* {application.status === 'APPLIED' && (
                           <>
                             <Button
                               variant="outline"
@@ -679,9 +718,35 @@ const ApplicationDetails = () => {
                               )}
                             </Button>
                           </>
-                        )}
+                        )} */}
 
-                        {application.status === 'SHORTLISTED' && (
+                        {getAllowedTransitions(application.status)
+                          .filter((nextStatus) => canRoleUpdateStatus(role, nextStatus))
+                          .map((nextStatus) => (
+                            <Button
+                              key={nextStatus}
+                              size="sm"
+                              variant="outline"
+                              onClick={() => handleStatusUpdate(application.externalId, nextStatus)}
+                              disabled={isLoading}
+                            >
+                              {isLoading ? (
+                                <div className="flex items-center">
+                                  <div className="animate-spin mr-1.5 h-4 w-4 border-2 border-red-600 border-t-transparent rounded-full"></div>
+                                  Loading...
+                                </div>
+                              ) : (
+                                <>
+                                  <XCircle size={14} className="mr-1.5" />
+                                  {STATUS_LABELS[nextStatus] || `Move to ${nextStatus}`}
+                                </>
+                              )}
+                            </Button>
+                          ))}
+
+
+
+                        {application.status !== TaskApplicationStatus.WITHDRAWN && (
                           <div className="flex space-x-3">
                             <Button
                               variant="outline"
@@ -693,6 +758,12 @@ const ApplicationDetails = () => {
                               Chat with Developer
                             </Button>
 
+                          </div>
+                        )}
+
+
+                        {application.status === TaskApplicationStatus.SHORTLISTED && (
+                          <div className="flex space-x-3">
                             <RazorpayPayment
                               applicationId={application.externalId}
                               onSuccess={handlePaymentSuccess}
@@ -703,11 +774,11 @@ const ApplicationDetails = () => {
                           </div>
                         )}
 
-                        {application.status !== 'APPLIED' && application.status !== 'SHORTLISTED' && (
+                        {/* {application.status !== 'APPLIED' && application.status !== 'SHORTLISTED' && (
                           <div className="text-sm text-gray-500 italic">
                             This application is currently in {application.status.toLowerCase()} status
                           </div>
-                        )}
+                        )} */}
                       </div>
                     </div>
                   </div>
@@ -746,8 +817,8 @@ const ApplicationDetails = () => {
                       <button
                         key={pageNumber}
                         className={`px-4 py-2 text-sm font-medium ${currentPage === pageNumber
-                            ? 'bg-blue-50 text-blue-600 border-r border-gray-200 focus:z-10'
-                            : 'text-gray-700 border-r border-gray-200 hover:bg-gray-50 focus:z-10'
+                          ? 'bg-blue-50 text-blue-600 border-r border-gray-200 focus:z-10'
+                          : 'text-gray-700 border-r border-gray-200 hover:bg-gray-50 focus:z-10'
                           }`}
                         onClick={() => handlePageChange(pageNumber)}
                       >

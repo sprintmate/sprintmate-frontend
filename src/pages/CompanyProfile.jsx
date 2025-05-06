@@ -3,6 +3,7 @@ import { motion } from 'framer-motion';
 import axios from 'axios';
 import { FaBuilding, FaUser, FaEnvelope, FaIdCard, FaPhone, FaMapMarkerAlt, FaEdit } from 'react-icons/fa';
 import { useNavigate } from 'react-router-dom';
+import { authUtils } from '../utils/authUtils';
 
 export default function CompanyProfile() {
   const [profile, setProfile] = useState(null);
@@ -17,7 +18,7 @@ export default function CompanyProfile() {
     const fetchProfile = async () => {
       try {
         // Try to get profile from localStorage first
-        const storedProfile = localStorage.getItem("userProfile");
+        const storedProfile = authUtils.getUserProfile();
         if (storedProfile) {
           const parsedProfile = JSON.parse(storedProfile);
           setProfile(parsedProfile);
@@ -29,7 +30,7 @@ export default function CompanyProfile() {
         }
         
         // If not in localStorage, fetch from API
-        const token = localStorage.getItem("authToken") || localStorage.getItem("token");
+        const token =  authUtils.getAuthToken();
         if (!token) {
           throw new Error("Authentication token not found");
         }
@@ -42,14 +43,7 @@ export default function CompanyProfile() {
         
         if (response.data) {
           setProfile(response.data);
-          localStorage.setItem("userProfile", JSON.stringify(response.data));
-          
-          // Store externalId separately for easy access in other components
-          if (response.data.externalId || response.data.userId) {
-            localStorage.setItem("userId", response.data.externalId || response.data.userId);
-          }
-          
-          // Check if profile registration is incomplete
+          authUtils.setUserProfile(response.data);
           checkProfileCompletion(response.data);
         }
       } catch (err) {

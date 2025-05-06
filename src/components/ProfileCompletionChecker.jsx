@@ -3,6 +3,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import axios from 'axios';
 import { toast } from 'react-hot-toast';
 import { isProfileIncomplete } from '../utils/oauthHelper';
+import { authUtils } from '../utils/authUtils';
 
 /**
  * Component that checks if a user's profile is complete
@@ -34,7 +35,7 @@ const ProfileCompletionChecker = ({ children }) => {
         }
         
         // Only check if user is logged in
-        const token = localStorage.getItem("token");
+        const token = authUtils.getAuthToken();
         if (!token) {
           setChecking(false);
           return;
@@ -50,7 +51,7 @@ const ProfileCompletionChecker = ({ children }) => {
         
         const userData = response.data;
         console.log("Fresh profile data:", userData);
-        localStorage.setItem("userProfile", JSON.stringify(userData));
+        authUtils.setUserProfile(userData);
         
         // Explicitly check both arrays regardless of role
         const hasDeveloperProfiles = userData.developerProfiles && 

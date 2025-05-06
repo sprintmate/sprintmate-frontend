@@ -12,6 +12,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { Loader2, Shield, Code } from 'lucide-react';
+import { authUtils } from '../utils/authUtils';
 
 const formSchema = z.object({
   name: z.string().min(2, { message: "Name must be at least 2 characters." }),
@@ -24,7 +25,7 @@ const OAuthRegistrationPage = () => {
   const navigate = useNavigate();
   const { login } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
-  const oauthToken = localStorage.getItem('oauthToken');
+  const oauthToken = authUtils.getAuthToken();
   const apiUrl = import.meta.env.VITE_API_BASE_URL;
 
   const form = useForm({

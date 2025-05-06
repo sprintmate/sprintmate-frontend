@@ -20,3 +20,16 @@ export const updateApplicationStatus = async (taskId, applicationId, status) => 
 export const acceptApplicationStatus = async (taskId, applicationId) => {
     return updateApplicationStatus(taskId, applicationId, ApplicationStatus.ACCEPTED);
 };
+
+export const withdrawApplication = async (taskId, applicationId) => {
+    try {
+        const response = await httpInstance.put(
+            `/v1/tasks/${taskId}/applications/${applicationId}/withdraw`,
+            {}
+        );
+        return isSuccessStatus(response.status);
+    } catch (error) {
+        console.error('Error updating application status:', error);
+        throw error;
+    }
+}

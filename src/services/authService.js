@@ -1,6 +1,7 @@
 // src/services/authService.js
 
 import axios from 'axios';
+import { authUtils } from '../utils/authUtils';
 
 const TOKEN_KEY = 'auth_token';
 
@@ -9,7 +10,7 @@ export const setToken = (token) => {
   try {
     // Make sure token has the Bearer prefix for API calls
     const formattedToken = token.startsWith('Bearer ') ? token : `Bearer ${token}`;
-    localStorage.setItem('authToken', formattedToken);
+    authUtils.setAuthToken(formattedToken);
     return true;
   } catch (error) {
     console.error("Error storing auth token:", error);
@@ -20,7 +21,7 @@ export const setToken = (token) => {
 // Get token with proper format
 export const getToken = () => {
   try {
-    return localStorage.getItem('authToken');
+    return authUtils.getAuthToken();
   } catch (error) {
     console.error("Error getting auth token:", error);
     return null;
@@ -30,7 +31,7 @@ export const getToken = () => {
 // Store user profile data in localStorage for easy access
 export const storeUserProfile = (profileData) => {
   try {
-    localStorage.setItem('userProfile', JSON.stringify(profileData));
+    authUtils.setUserProfile(profileData);
     return true;
   } catch (error) {
     console.error("Error storing user profile:", error);
@@ -41,8 +42,8 @@ export const storeUserProfile = (profileData) => {
 // Get stored user profile
 export const getUserProfile = () => {
   try {
-    const profileData = localStorage.getItem('userProfile');
-    return profileData ? JSON.parse(profileData) : null;
+    return authUtils.getUserProfile();
+
   } catch (error) {
     console.error("Error getting user profile:", error);
     return null;
@@ -88,21 +89,21 @@ export const fetchUserProfile = async () => {
 
     const token = getToken();
     const apiBaseUrl = import.meta.env.VITE_API_BASE_URL;
-    
+
     if (!token) {
       console.error("No auth token available for profile fetch");
       throw new Error("Authentication required");
     }
-    
+
     console.log("Fetching profile from API:", `${apiBaseUrl}/v1/users/profile`);
-    
+
     const response = await axios.get(`${apiBaseUrl}/v1/users/profile`, {
       headers: {
         'Authorization': token,
         'Content-Type': 'application/json'
       }
     });
-    
+
     if (response.data) {
       console.log("Profile API response received successfully");
       // Store profile in localStorage for future use

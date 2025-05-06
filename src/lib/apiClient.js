@@ -1,9 +1,11 @@
 // src/lib/apiClient.js
+import { authUtils } from "../utils/authUtils";
+
 const BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://sprintmate-stage.ap-south-1.elasticbeanstalk.com:8080";
 
 // Helper to get token from localStorage (or any storage mechanism you use)
 function getToken() {
-  return localStorage.getItem("authToken");
+  return authUtils.getAuthToken();
 }
 
 export async function apiFetch(path, options = {}) {

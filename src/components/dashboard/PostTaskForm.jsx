@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button';
 import { X, ArrowRight, ArrowLeft, Search, Plus, AlertCircle, Calendar, Check, XCircle, CheckSquare, Square } from 'lucide-react';
 import axios from 'axios';
 import { postTask } from '../../api/companyService';
+import { authUtils } from '../../utils/authUtils';
 
 // Custom checkbox component
 const CustomCheckbox = ({ id, checked, onCheckedChange, label }) => {
@@ -96,7 +97,7 @@ const PostTaskForm = () => {
   const fetchCompanyProfileFromStorage = () => {
     try {
       // Check for userProfile in localStorage
-      const storedProfile = localStorage.getItem('userProfile');
+      const storedProfile = authUtils.getUserProfile();
       console.log("Stored profile:", storedProfile);
       
       if (storedProfile) {
@@ -283,7 +284,7 @@ const PostTaskForm = () => {
       
       // One last attempt to get companyId from localStorage
       try {
-        const storedProfile = localStorage.getItem('userProfile');
+        const storedProfile = authUtils.getUserProfile();
         if (storedProfile) {
           const parsedProfile = JSON.parse(storedProfile);
           if (parsedProfile.companyProfiles && parsedProfile.companyProfiles.length > 0) {

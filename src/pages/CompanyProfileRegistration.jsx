@@ -95,7 +95,7 @@ const CompanyProfileRegistration = () => {
       formData.append('file', fileToUpload);
       formData.append('type', 'LOGO');
 
-      const token = localStorage.getItem('authToken') || localStorage.getItem('token');
+      const token = authUtils.getAuthToken();
       const uploadUrl = `${import.meta.env.VITE_API_BASE_URL}/v1/documents/upload`;
       // Log the upload URL for debugging
       console.log('Uploading to:', uploadUrl);

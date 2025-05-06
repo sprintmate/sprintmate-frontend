@@ -11,7 +11,7 @@ import {
   Loader2, AlertCircle
 } from 'lucide-react';
 import TaskApplicationModal from './TaskApplicationModal';
-import toast from 'react-hot-toast';
+import {toast} from 'react-hot-toast';
 import { authUtils } from '@/utils/authUtils';
 
 const ProjectsList = () => {
@@ -143,11 +143,7 @@ const ProjectsList = () => {
     fetchProjects(pagination.currentPage);
     
     // Show success message
-    toast({
-      title: "Application Successful",
-      description: "Your application has been submitted successfully!",
-      status: "success"
-    });
+    toast.success("Your application has been submitted successfully!");
   };
   
   // Format date from API
