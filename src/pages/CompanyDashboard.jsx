@@ -71,6 +71,8 @@ import { NAV_LINKS } from '../config/navLinks';
 import { Role } from '../constants/Role';
 import DeveloperPayments from './DeveloperPayments';
 
+// Import the new AllTasks component
+import AllTasks from '@/components/dashboard/AllTasks';
 
 // New DashboardHome component that uses our professional dashboard
 const DashboardHome = () => (
@@ -86,7 +88,7 @@ const MyTasks = () => {
   const [activeStat, setActiveStat] = useState('week');
   const [selectedTask, setSelectedTask] = useState(null);
   const scrollRef = useRef(null);
-  const navigate = useNavigate(); // Add useNavigate hook
+  const navigate = useNavigate();
   
   // New states for API integration
   const [companyId, setCompanyId] = useState(null);
@@ -201,16 +203,14 @@ const MyTasks = () => {
     if (companyId) {
       fetchTasks();
     }
-  }, [companyId, currentPage]);
+  }, [companyId]);
 
   // Function to fetch tasks from API
   const fetchTasks = async () => {
     setIsLoading(true);
     try {
-      // Use full absolute URL to the API endpoint to prevent redirection to your frontend
       const apiBaseUrl = import.meta.env.VITE_API_BASE_URL;
       
-      // Check if we have a valid companyId
       if (!companyId) {
         console.error("No company ID available for API call");
         setError("No company ID available. Please try logging in again.");
@@ -218,13 +218,7 @@ const MyTasks = () => {
         return;
       }
       
-      // Debug the URL and companyId
-      console.log("API Base URL:", apiBaseUrl);
-      console.log("Company ID:", companyId);
-      console.log("Attempting to call:", `${apiBaseUrl}/v1/company-profiles/${companyId}/tasks?page=${currentPage}&size=10`);
-      
-      // Add auth headers to ensure authenticated request
-      const token = getToken(); // Make sure getToken function is imported
+      const token = getToken();
       
       if (!token) {
         console.error("No authentication token found");
@@ -234,7 +228,7 @@ const MyTasks = () => {
       }
       
       const response = await axios.get(
-        `${apiBaseUrl}/v1/company-profiles/${companyId}/tasks?page=${currentPage}&size=10`, 
+        `${apiBaseUrl}/v1/company-profiles/${companyId}/tasks?page=0&size=3&sort=updatedAt,desc`, 
         { 
           headers: { 
             'Authorization': token,
@@ -243,93 +237,33 @@ const MyTasks = () => {
         }
       );
       
-      // Log the response
-      console.log("API Response received:", response.status);
-      
       if (response.data) {
-        console.log("API Response:", response.data);
+        const formattedTasks = response.data.content.map(task => ({
+          id: task.externalId,
+          title: task.title,
+          description: task.description,
+          applications: task.applicationsCount || 0,
+          status: task.status,
+          category: task.category,
+          budget: `${task.currency} ${task.budget.toLocaleString()}`,
+          currency: task.currency,
+          amount: task.budget,
+          posted: formatDateRelative(task.createdAt),
+          postedDate: new Date(task.createdAt),
+          deadline: formatDate(task.deadline),
+          deadlineDate: task.deadline ? new Date(task.deadline) : null,
+          techStack: task.tags ? task.tags.split(',').map(tag => tag.trim()) : [],
+          views: Math.floor(Math.random() * 200) + 50,
+          hasAttachments: !!task.attachments && Object.keys(task.attachments).length > 0,
+          attachments: task.attachments || {},
+          ndaRequired: task.ndaRequired
+        }));
         
-        if (response.data.content) {
-          // Map API data to our UI format
-          const formattedTasks = response.data.content.map(task => {
-            // Parse tags if available or default to empty array
-            const tags = task.tags ? task.tags.split(',').map(tag => tag.trim()) : [];
-            
-            // Parse dates properly
-            const createdDate = new Date(task.createdAt.replace(' ', 'T'));
-            const deadlineDate = task.deadline ? new Date(task.deadline.replace(' ', 'T')) : null;
-            
-            // Calculate task duration in days
-            const durationDays = deadlineDate ? 
-              Math.ceil((deadlineDate - createdDate) / (1000 * 60 * 60 * 24)) : 
-              null;
-            
-            return {
-              id: task.externalId,
-              title: task.title,
-              description: task.description,
-              applications: task.applicationsCount || 0,
-              status: task.status === "OPEN" ? "active" : 
-                     task.status === "IN_PROGRESS" ? "reviewing" : 
-                     task.status.toLowerCase(),
-              category: task.category,
-              budget: `${task.currency} ${task.budget.toLocaleString()}`,
-              currency: task.currency,
-              amount: task.budget,
-              posted: formatDateRelative(task.createdAt),
-              postedDate: createdDate,
-              deadline: formatDate(task.deadline),
-              deadlineDate: deadlineDate,
-              techStack: tags,
-              priority: getPriorityFromDeadline(task.deadline),
-              duration: `${durationDays} days`,
-              durationDays: durationDays,
-              views: Math.floor(Math.random() * 200) + 50, // Placeholder since API doesn't provide views
-              hasAttachments: !!task.attachments && Object.keys(task.attachments).length > 0,
-              attachments: task.attachments || {},
-              ndaRequired: task.ndaRequired,
-              // Create placeholder applicants for visual representation
-              applicants: generatePlaceholderApplicants(task.applicationsCount || 0)
-            };
-          });
-          
-          setRecentTasks(formattedTasks);
-          
-          // Set pagination data
-          setTotalPages(response.data.totalPages);
-          setTotalTasks(response.data.totalElements);
-          
-          // Update analytics with real data
-          analytics.totalTasks = response.data.totalElements;
-          analytics.activeTasks = formattedTasks.filter(t => t.status === "active").length;
-          
-          // Calculate applications statistics
-          const totalApplications = formattedTasks.reduce((sum, task) => sum + task.applications, 0);
-          analytics.totalApplications = totalApplications;
-          analytics.avgApplicationsPerTask = totalApplications > 0 && formattedTasks.length > 0 ? 
-            (totalApplications / formattedTasks.length).toFixed(1) : 0;
-        } else {
-          // Handle case where content array is missing
-          setRecentTasks([]);
-          setTotalPages(0);
-          setTotalTasks(0);
-          console.error("API response is missing 'content' array:", response.data);
-        }
+        setRecentTasks(formattedTasks);
+        setTotalTasks(response.data.totalElements);
       }
     } catch (error) {
       console.error("Error fetching tasks:", error);
-      
-      // Enhanced error logging
-      if (error.response) {
-        console.error("Response data:", error.response.data);
-        console.error("Response status:", error.response.status);
-        console.error("Response headers:", error.response.headers);
-      } else if (error.request) {
-        console.error("No response received:", error.request);
-      } else {
-        console.error("Error setting up request:", error.message);
-      }
-      
       setError("Failed to load tasks. Please try again later.");
     } finally {
       setIsLoading(false);
@@ -749,36 +683,15 @@ const MyTasks = () => {
             delay={0.5}
             staggerDelay={0.15}
             actionButton={
-              <div className="flex items-center gap-2">
-                {totalPages > 1 && (
-                  <div className="flex items-center gap-1 mr-2 text-sm text-gray-500">
-                    <Button 
-                      variant="ghost" 
-                      size="sm" 
-                      onClick={() => setCurrentPage(prev => Math.max(0, prev - 1))}
-                      disabled={currentPage === 0 || isLoading}
-                    >
-                      <ChevronLeft size={16} />
-                    </Button>
-                    <span>
-                      Page {currentPage + 1} of {totalPages} 
-                      <span className="hidden sm:inline"> ({totalTasks} total)</span>
-                    </span>
-                    <Button 
-                      variant="ghost" 
-                      size="sm" 
-                      onClick={() => setCurrentPage(prev => Math.min(totalPages - 1, prev + 1))}
-                      disabled={currentPage === totalPages - 1 || isLoading}
-                    >
-                      <ChevronRight size={16} />
-                    </Button>
-                  </div>
-                )}
-                <Button variant="outline" size="sm" className="text-blue-600 hover:text-blue-700 gap-1">
-                  View All
-                  <ChevronRight size={16} />
-                </Button>
-              </div>
+              <Button 
+                variant="outline" 
+                size="sm" 
+                className="text-blue-600 hover:text-blue-700 gap-1"
+                onClick={() => navigate('/company/dashboard/all-tasks')}
+              >
+                View All
+                <ChevronRight size={16} />
+              </Button>
             }
           >
             {/* Loading state - shimmer placeholders */}
@@ -1664,14 +1577,14 @@ const CompanyDashboard = () => {
           <Routes>
             <Route path="/" element={<DashboardHome />} />
             <Route path="/tasks" element={<MyTasks />} />
+            <Route path="/all-tasks" element={<AllTasks />} />
             <Route path="/post-task" element={<PostTask />} />
             <Route path="/applications" element={<Applications />} />
             <Route path="/settings" element={<SettingsPage />} />
             <Route path="/profile" element={<UserProfile />} />
             <Route path="/profile/edit" element={<UserProfile />} />
-
             <Route path="payments" element={<CompanyPayments />} />
-          
+            
             {/* New routes for task applications */}
             <Route path="/tasks/:taskId/applications" element={<Applications />} />
             <Route path="/tasks/:taskId/applications/:applicationId" element={<Applications />} />
