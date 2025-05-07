@@ -71,10 +71,17 @@ const SecureDocumentViewer = ({ documentId }) => {
         {isPreviewable(docInfo.contentType) ? (
           <div className="w-full h-full relative">
             <iframe
-              src={docInfo.fileUrl}
+              src={`${docInfo.fileUrl}#view=Fit`}
               type={docInfo.contentType}
-              className="absolute inset-0 w-[400%] h-[400%] origin-top-left"
-              style={{ transform: 'scale(0.25)' }}
+              className="absolute inset-0"
+              style={{ 
+                width: '1000%',
+                height: '1000%',
+                transform: 'scale(0.1)',
+                transformOrigin: '0 0',
+                border: 'none',
+                pointerEvents: 'none'
+              }}
               title={`Preview of ${docInfo.fileName}`}
             />
           </div>
