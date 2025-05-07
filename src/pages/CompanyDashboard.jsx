@@ -1390,15 +1390,6 @@ const CompanyDashboard = () => {
     }
   };
 
-  // // Navbar links configuration - using absolute paths for proper routing
-  // const navLinks = [
-  //   { to: "/company/dashboard", icon: <Home size={20} />, label: 'Dashboard' },
-  //   { to: "/company/dashboard/tasks", icon: <CheckSquare size={20} />, label: 'My Tasks' },
-  //   { to: "/company/dashboard/post-task", icon: <FileText size={20} />, label: 'Post Task' },
-  //   { to: "/company/dashboard/applications", icon: <Users size={20} />, label: 'Applications' },
-  //   { to: "/company/dashboard/settings", icon: <Settings size={20} />, label: 'Settings' }
-  // ];
-
   const navLinks = NAV_LINKS[Role.COMPANY.toLowerCase()]
   
   // // Get the current active link
