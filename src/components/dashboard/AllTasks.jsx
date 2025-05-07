@@ -1,19 +1,28 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { 
-  Card, 
-  CardContent, 
-  CardHeader, 
-  CardTitle 
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle
 } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { 
-  AnimatedCard, 
-  StaggeredSection, 
-  Shimmer, 
-  GlowContainer 
+import {
+  Pagination,
+  PaginationContent,
+  PaginationItem,
+  PaginationPrevious,
+  PaginationNext,
+  PaginationEllipsis,
+  PaginationLink
+} from "@/components/ui/pagination";
+import {
+  AnimatedCard,
+  StaggeredSection,
+  Shimmer,
+  GlowContainer
 } from '@/components/ui/dashboardAnimations';
 import {
   Select,
@@ -23,13 +32,13 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { MultiSelect } from "@/components/ui/multi-select";
-import { 
-  Eye, 
-  Users, 
-  FileCheck, 
-  Laptop, 
-  DollarSign, 
-  Calendar, 
+import {
+  Eye,
+  Users,
+  FileCheck,
+  Laptop,
+  DollarSign,
+  Calendar,
   Clock,
   Code,
   Server,
@@ -67,11 +76,29 @@ const SORT_OPTIONS = [
   { value: 'updatedAt,asc', label: 'Least Recently Updated' }
 ];
 
+function getPaginationInfo(currentPage, itemsPerPage, totalItems) {
+  // Calculate start and end items for the current page (currentPage is 0-based)
+  const startItem = currentPage * itemsPerPage + 1;
+  const endItem = Math.min((currentPage + 1) * itemsPerPage, totalItems);
+
+  // Calculate total number of pages (rounded up)
+  const totalPages = Math.ceil(totalItems / itemsPerPage);
+
+  return {
+    startItem,
+    endItem,
+    totalItems,
+    totalPages
+  };
+}
+
 const AllTasks = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [tasks, setTasks] = useState([]);
   const [currentPage, setCurrentPage] = useState(0);
   const [totalPages, setTotalPages] = useState(0);
+  const [totalItems, setTotalItems] = useState(0);
+  const [paginationInfo, setPaginationInfo] = useState({});
   const [selectedStatuses, setSelectedStatuses] = useState([]);
   const [sortBy, setSortBy] = useState('updatedAt,desc');
   const [error, setError] = useState(null);
@@ -130,6 +157,9 @@ const AllTasks = () => {
 
         setTasks(formattedTasks);
         setTotalPages(response.data.totalPages);
+        setTotalItems(response.data.totalElements);
+        setPaginationInfo(getPaginationInfo(currentPage, response.data.pageable.pageSize, response.data.totalElements));
+
       }
     } catch (error) {
       console.error('Error fetching tasks:', error);
@@ -184,7 +214,7 @@ const AllTasks = () => {
       {/* Header with Post Task button */}
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold text-gray-900">All Tasks</h1>
-        <Button 
+        <Button
           className="bg-blue-600 hover:bg-blue-700"
           onClick={() => navigate('/company/dashboard/post-task')}
         >
@@ -225,7 +255,7 @@ const AllTasks = () => {
       </div>
 
       {/* Tasks List */}
-      <StaggeredSection 
+      <StaggeredSection
         title="All Tasks"
         delay={0.5}
         staggerDelay={0.15}
@@ -253,20 +283,20 @@ const AllTasks = () => {
               <Card className="overflow-hidden backdrop-blur-sm border-blue-100/50 hover:border-blue-200/70 transition-all duration-300">
                 <CardContent className="relative p-4 sm:p-5">
                   {/* Status indicator line */}
-                  <motion.div 
+                  <motion.div
                     className="absolute left-0 top-0 bottom-0 w-1"
-                    style={{ 
-                      backgroundColor: task.status === 'OPEN' ? 'rgb(37, 99, 235)' : 
-                                     task.status === 'IN_PROGRESS' ? 'rgb(245, 158, 11)' : 
-                                     task.status === 'SUBMITTED' ? 'rgb(167, 139, 250)' :
-                                     'rgb(34, 197, 94)'
+                    style={{
+                      backgroundColor: task.status === 'OPEN' ? 'rgb(37, 99, 235)' :
+                        task.status === 'IN_PROGRESS' ? 'rgb(245, 158, 11)' :
+                          task.status === 'SUBMITTED' ? 'rgb(167, 139, 250)' :
+                            'rgb(34, 197, 94)'
                     }}
                     initial={{ height: 0 }}
                     whileInView={{ height: '100%' }}
                     viewport={{ once: true }}
                     transition={{ duration: 0.5 }}
                   />
-                  
+
                   <div className="flex flex-col sm:flex-row justify-between sm:items-start gap-4 pl-3">
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center flex-wrap sm:flex-nowrap gap-2 sm:gap-0">
@@ -276,15 +306,15 @@ const AllTasks = () => {
                         <h3 className="text-base font-semibold text-gray-900 truncate group-hover:text-blue-600 transition-colors">
                           {task.title}
                         </h3>
-                        
+
                         {/* Status badge */}
                         <div className="ml-auto">
-                          <Badge 
+                          <Badge
                             variant={
-                              task.status === 'OPEN' ? "blue" : 
-                              task.status === 'IN_PROGRESS' ? "yellow" : 
-                              task.status === 'SUBMITTED' ? "purple" :
-                              "green"
+                              task.status === 'OPEN' ? "blue" :
+                                task.status === 'IN_PROGRESS' ? "yellow" :
+                                  task.status === 'SUBMITTED' ? "purple" :
+                                    "green"
                             }
                             className="capitalize"
                           >
@@ -292,21 +322,21 @@ const AllTasks = () => {
                           </Badge>
                         </div>
                       </div>
-                      
+
                       <p className="text-sm text-gray-600 mt-2 line-clamp-2 pl-11">{task.description}</p>
-                      
+
                       {/* Task metadata */}
                       <div className="flex flex-wrap gap-4 mt-3 pl-11 text-sm text-gray-600">
                         <div className="flex items-center gap-1">
                           <DollarSign size={14} className="text-blue-500" />
                           <span>{task.budget}</span>
                         </div>
-                        
+
                         <div className="flex items-center gap-1">
                           <Calendar size={14} className="text-blue-500" />
                           <span>{formatDate(task.deadline)}</span>
                         </div>
-                        
+
                         {task.ndaRequired && (
                           <div className="flex items-center gap-1">
                             <FileCheck size={14} className="text-red-500" />
@@ -356,9 +386,9 @@ const AllTasks = () => {
                         <span className="hidden sm:inline">{task.views} views</span>
                         <span className="sm:hidden">{task.views}</span>
                       </Button>
-                      <Button 
-                        variant="ghost" 
-                        size="sm" 
+                      <Button
+                        variant="ghost"
+                        size="sm"
                         className="text-blue-600 hover:text-blue-700 hover:bg-blue-50/50 h-8"
                         onClick={() => handleViewApplications(task.id)}
                       >
@@ -385,27 +415,62 @@ const AllTasks = () => {
 
       {/* Pagination */}
       {!isLoading && tasks.length > 0 && (
-        <div className="flex justify-center gap-2 mt-8">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => setCurrentPage(prev => Math.max(0, prev - 1))}
-            disabled={currentPage === 0}
-          >
-            <ChevronLeft size={16} className="mr-1" />
-            Previous
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => setCurrentPage(prev => Math.min(totalPages - 1, prev + 1))}
-            disabled={currentPage === totalPages - 1}
-          >
-            Next
-            <ChevronRight size={16} className="ml-1" />
-          </Button>
+        <div className="mt-4 flex items-center justify-between border-t border-gray-200 bg-white px-4 py-3 sm:px-6">
+          <div className="flex flex-1 justify-between sm:hidden">
+            <Button
+              variant="outline"
+              onClick={() => setCurrentPage(prev => Math.max(0, prev - 1))}
+              disabled={currentPage === 0}
+              className="relative inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
+            >
+              Previous
+            </Button>
+            <Button
+              variant="outline"
+              onClick={() => setCurrentPage(prev => Math.min(totalPages - 1, prev + 1))}
+              disabled={currentPage >= totalPages - 1}
+              className="relative ml-3 inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
+            >
+              Next
+            </Button>
+          </div>
+          <div className="hidden sm:flex sm:flex-1 sm:items-center sm:justify-between">
+            <div>
+              <p className="text-sm text-gray-700">
+                Showing <span className="font-medium">{paginationInfo.startItem}</span> to{' '}
+                <span className="font-medium">{paginationInfo.endItem}</span> of{' '}
+                <span className="font-medium">{paginationInfo.totalItems}</span> results
+              </p>
+              <p className="text-sm text-gray-700">
+                Page <span className="font-medium">{currentPage + 1}</span> of{' '}
+                <span className="font-medium">{paginationInfo.totalPages}</span>
+              </p>
+            </div>
+            <div className="flex items-center space-x-2">
+              <Button
+                variant="outline"
+                onClick={() => setCurrentPage(prev => Math.max(0, prev - 1))}
+                disabled={currentPage === 0}
+                className="relative inline-flex items-center rounded-md border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
+              >
+                <ChevronLeft className="h-4 w-4 mr-1" />
+                Previous
+              </Button>
+              <Button
+                variant="outline"
+                onClick={() => setCurrentPage(prev => Math.min(totalPages - 1, prev + 1))}
+                disabled={currentPage >= totalPages - 1}
+                className="relative inline-flex items-center rounded-md border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
+              >
+                Next
+                <ChevronRight className="h-4 w-4 ml-1" />
+              </Button>
+            </div>
+          </div>
         </div>
       )}
+
+
     </div>
   );
 };
