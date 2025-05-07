@@ -7,8 +7,7 @@ import { toast } from 'react-hot-toast';
 import { Upload, X, FileText, CheckCircle2 } from 'lucide-react';
 import { uploadDocuments } from '../api/documentService';
 
-// todo - to check and fix this , not uploading file correctly.
-const DocumentUploader = ({ onUploadComplete, onUploadError, maxFiles = 1, maxSize = 5242880, multiple = false, accept = '.zip', documentType = 'TASK_ATTACHMENT' }) => {
+const DocumentUploader = ({ onUploadComplete, onUploadError, maxFiles = 3, maxSize = 5242880, multiple = true, accept = '.zip', documentType = 'TASK_ATTACHMENT' }) => {
     const [uploadedFiles, setUploadedFiles] = useState([]);
     const [uploadProgress, setUploadProgress] = useState({});
     const [isUploading, setIsUploading] = useState(false);

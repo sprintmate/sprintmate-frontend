@@ -11,36 +11,85 @@ const SupportedPreviewTypes = [
   'text/html',
 ];
 
+const ExcelMimeTypes = [
+  'application/vnd.ms-excel',
+  'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+  'application/vnd.ms-excel.sheet.macroEnabled.12',
+  'application/vnd.ms-excel.sheet.binary.macroEnabled.12',
+  'application/vnd.ms-excel.template.macroEnabled.12',
+  'application/vnd.openxmlformats-officedocument.spreadsheetml.template',
+  'application/xlsx',
+  'application/xls'
+];
+
+const ZipMimeTypes = [
+  'application/zip',
+  'application/x-zip-compressed',
+  'application/x-zip',
+  'application/octet-stream'
+];
+
+const FileTypeIcons = {
+  'application/pdf': 'M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z',
+  'application/zip': 'M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4',
+  'application/vnd.ms-excel': 'M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z',
+  'default': 'M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z'
+};
+
 const SecureDocumentViewer = ({ documentId }) => {
   const [docInfo, setDocInfo] = useState(null);
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const load = async () => {
+    const loadDocument = async () => {
       try {
         const result = await fetchSecureDocument(documentId);
         setDocInfo(result);
       } catch (err) {
-        setError('Failed to load document');
+        console.error(`Failed to load document ${documentId}:`, err);
+        // setError('Failed to load document');
       } finally {
         setLoading(false);
       }
     };
-
-    load();
+    loadDocument();
   }, [documentId]);
 
-  const handleDownload = () => {
-    if (!docInfo) return;
-    const link = document.createElement('a');
-    link.href = docInfo.fileUrl;
-    link.download = docInfo.fileName;
-    link.click();
+  const handleDownload = async () => {
+    if (!docInfo?.fileUrl || !docInfo?.fileName) return;
+    try {
+      const response = await fetch(docInfo.fileUrl);
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = docInfo.fileName;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+
+      window.URL.revokeObjectURL(url);
+    } catch (err) {
+      console.error('Download failed:', err);
+    }
   };
 
-  const isPreviewable = (contentType) => {
-    return SupportedPreviewTypes.includes(contentType);
+  const isPreviewable = (type) => SupportedPreviewTypes.includes(type);
+  const isExcel = (type) => ExcelMimeTypes.includes(type);
+  const isZip = (type) => ZipMimeTypes.includes(type);
+
+  const getIconPath = (type) => {
+    if (isExcel(type)) return FileTypeIcons['application/vnd.ms-excel'];
+    if (isZip(type)) return FileTypeIcons['application/zip'];
+    return FileTypeIcons[type] || FileTypeIcons.default;
+  };
+
+  const getFileLabel = (type) => {
+    if (isExcel(type)) return 'EXCEL';
+    if (isZip(type)) return 'ZIP';
+    return (type?.split('/')?.[1] || 'FILE').toUpperCase();
   };
 
   if (loading) {
@@ -61,45 +110,35 @@ const SecureDocumentViewer = ({ documentId }) => {
 
   if (!docInfo) return null;
 
+  const { fileUrl, fileName, contentType } = docInfo;
+
   return (
     <div className="inline-flex items-center bg-white border border-gray-200 rounded mr-2 group hover:border-blue-500 transition-colors">
-      {/* Thumbnail */}
-      <div 
-        className="w-12 h-12 bg-gray-50 border-r border-gray-200 overflow-hidden cursor-pointer flex items-center justify-center"
-        onClick={() => window.open(docInfo.fileUrl, '_blank')}
+      {/* Thumbnail or Icon */}
+      <div
+        className="w-12 h-12 bg-gray-50 border-r border-gray-200 overflow-hidden flex items-center justify-center cursor-pointer"
+        onClick={() => window.open(fileUrl, '_blank')}
       >
-        {isPreviewable(docInfo.contentType) ? (
-          <div className="w-full h-full relative">
-            <iframe
-              src={`${docInfo.fileUrl}#view=Fit`}
-              type={docInfo.contentType}
-              className="absolute inset-0"
-              style={{ 
-                width: '1000%',
-                height: '1000%',
-                transform: 'scale(0.1)',
-                transformOrigin: '0 0',
-                border: 'none',
-                pointerEvents: 'none'
-              }}
-              title={`Preview of ${docInfo.fileName}`}
-            />
-          </div>
+        {isPreviewable(contentType) && contentType.startsWith('image/') ? (
+          <img src={fileUrl} alt={fileName} className="object-contain w-full h-full" />
+        ) : contentType === 'application/pdf' ? (
+          <iframe
+            src={`${fileUrl}#view=FitH`}
+            className="w-[300px] h-[400px] scale-[0.1] origin-top-left pointer-events-none"
+            title={`Preview of ${fileName}`}
+            style={{ transform: 'scale(0.1)', transformOrigin: 'top left', width: '1000px', height: '1400px', border: 'none' }}
+          />
         ) : (
-          <div className="w-full h-full flex items-center justify-center">
-            <svg className="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
-            </svg>
-          </div>
+          <svg className="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d={getIconPath(contentType)} />
+          </svg>
         )}
       </div>
 
-      {/* File Info and Actions */}
+      {/* File Details */}
       <div className="px-2 py-1 min-w-0">
         <div className="flex items-center">
-          <p className="text-xs text-gray-900 truncate max-w-[120px]" title={docInfo.fileName}>
-            {docInfo.fileName}
-          </p>
+          <p className="text-xs text-gray-900 truncate max-w-[120px]" title={fileName}>{fileName}</p>
           <div className="ml-2 flex items-center space-x-1 opacity-0 group-hover:opacity-100 transition-opacity">
             <button
               onClick={handleDownload}
@@ -111,7 +150,7 @@ const SecureDocumentViewer = ({ documentId }) => {
               </svg>
             </button>
             <button
-              onClick={() => window.open(docInfo.fileUrl, '_blank')}
+              onClick={() => window.open(fileUrl, '_blank')}
               className="p-1 text-gray-500 hover:text-blue-600 rounded hover:bg-gray-100"
               title="Open in new tab"
             >
@@ -121,9 +160,7 @@ const SecureDocumentViewer = ({ documentId }) => {
             </button>
           </div>
         </div>
-        <p className="text-[10px] text-gray-500">
-          {docInfo.contentType.split('/')[1].toUpperCase()}
-        </p>
+        <p className="text-[10px] text-gray-500">{getFileLabel(contentType)}</p>
       </div>
     </div>
   );
