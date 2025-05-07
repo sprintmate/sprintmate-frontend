@@ -88,7 +88,7 @@ const DeveloperHome = ({ developer }) => {
       >
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">Welcome back, 
+            <h1 className="text-2xl font-bold text-gray-900">Welcome , 
               <Link to={`/developer/profile/${developer?.userId}`} className="text-blue-600 hover:underline ml-1">
                 {firstName}!
               </Link>

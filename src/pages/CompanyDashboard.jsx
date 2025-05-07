@@ -677,7 +677,7 @@ const MyTasks = () => {
       {/* Split View Container - Responsive grid */}
       <div className="grid lg:grid-cols-3 gap-6">
         {/* Recent Tasks - Major Half */}
-        <div className="lg:col-span-2">
+        <div className="lg:col-span-3">
           <StaggeredSection 
             title="Recent Tasks"
             delay={0.5}
@@ -864,81 +864,8 @@ const MyTasks = () => {
         </div>
 
         {/* Past Tasks - Minor Half - keeping this as is for now */}
-        <div className="w-full">
-          <StaggeredSection 
-            title="Completed Tasks"
-            delay={0.7}
-            staggerDelay={0.15}
-            actionButton={
-              <Button variant="outline" size="sm" className="text-green-600 hover:text-green-700 gap-1">
-                Task History
-                <ChevronRight size={16} />
-              </Button>
-            }
-          >
-            {pastTasks.map((task) => (
-              <div key={task.id} className="group">
-                <Card className="bg-white border-green-100/50 hover:border-green-200/70 transition-all duration-300">
-                  <CardContent className="relative p-4 sm:p-5">
-                    {/* Status indicator line with animation */}
-                    <motion.div 
-                      className="absolute left-0 top-0 bottom-0 w-1 bg-green-500"
-                      initial={{ height: 0 }}
-                      whileInView={{ height: '100%' }}
-                      viewport={{ once: true }}
-                      transition={{ duration: 0.5 }}
-                    />
-
-                    <div className="flex justify-between items-start gap-4 pl-3">
-                      <div className="min-w-0 flex-1">
-                        <div className="flex items-center flex-wrap sm:flex-nowrap gap-2 sm:gap-0">
-                          <div className="w-8 h-8 rounded-lg bg-green-100/80 flex items-center justify-center mr-3">
-                            <FileCheck size={15} className="text-green-600" />
-                          </div>
-                          <h3 className="text-base font-semibold text-gray-900 truncate group-hover:text-green-600 transition-colors">
-                            {task.title} 
-                          </h3>
-                        </div>
-                        <p className="text-sm text-gray-600 mt-2 line-clamp-2 pl-11">{task.description}</p>
-                        
-                        <div className="flex flex-wrap gap-2 mt-3 pl-11">
-                          {task.techStack.map((tech, idx) => (
-                            <motion.div
-                              key={tech}
-                              initial={{ opacity: 0, y: 10 }}
-                              whileInView={{ opacity: 1, y: 0 }}
-                              viewport={{ once: true }}
-                              transition={{ delay: 0.2 + (idx * 0.1) }}
-                            >
-                              <Badge
-                                variant="green"
-                                gradient
-                                size="sm"
-                                className="bg-green-50/80"
-                              >
-                                {tech}
-                              </Badge>
-                            </motion.div>
-                          ))}
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Feedback summary (always shown) */}
-                    <div className="mt-3 pt-3 border-t border-gray-100 pl-3">
-                      <div className="flex items-start gap-2">
-                        <MessageSquare size={14} className="text-green-500 mt-0.5 flex-shrink-0" />
-                        <p className="text-xs text-gray-600 italic line-clamp-2">
-                          "{task.feedback}"
-                        </p>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              </div>
-            ))}
-          </StaggeredSection>
-        </div>
+      
+        
       </div>
     </div>
   );

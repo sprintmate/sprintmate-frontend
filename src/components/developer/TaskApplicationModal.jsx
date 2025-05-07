@@ -55,7 +55,8 @@ const TaskApplicationModal = ({ isOpen, onClose, taskId, onSuccess }) => {
   };
 
   const handleSubmit = async () => {
-    if (proposal.trim().length < 10) {
+    // if (proposal.trim().length < 10) {
+      if(false){
       setError('Please provide a detailed proposal of at least 10 characters.');
       
       // Show toast notification for better user feedback
@@ -277,7 +278,7 @@ const TaskApplicationModal = ({ isOpen, onClose, taskId, onSuccess }) => {
                     
                     <Button
                       onClick={handleSubmit}
-                      disabled={loading || proposal.trim().length < 10}
+                      disabled={loading}
                       className="w-full bg-blue-600 hover:bg-blue-700 gap-2 cursor-pointer"
                     >
                       {loading ? (

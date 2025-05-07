@@ -576,7 +576,7 @@ const CompanyViewDashboard = () => {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
           >
-            Welcome back, {getCompanyName()}
+            Welcome , {getCompanyName()}
           </motion.h1>
           <motion.p 
             className="text-gray-500 mt-1"
