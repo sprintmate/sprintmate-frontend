@@ -6,7 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import axios from 'axios';
 import {
   Briefcase, Clock, DollarSign, Calendar, ExternalLink, ChevronDown,
-  Check, X, AlertCircle, Filter, Search, Loader2, Sparkles, User,
+  Check, X, AlertCircle, Filter, Search, Loader2, Sparkles, User,Paperclip,
   ArrowRight, Github, Linkedin, Code, MessageSquare, Tag, FileCode
 } from 'lucide-react';
 import { getToken } from '../../services/authService';
@@ -24,6 +24,7 @@ import { updateApplicationStatus,withdrawApplication } from '../../api/taskAppli
 import { ApplicationStatus } from '../../constants/ApplicationStatus';
 
 import { ConfirmationDialog } from '../ui/ConfirmationDialogue';
+import SecureDocumentViewer from '../DocumentViewer';
 
 
 // Status badge component with appropriate styling for each status
@@ -216,6 +217,8 @@ const ApplicationCard = ({ application, index, onStatusUpdate }) => {
                 </p>
               </div>
 
+
+
               {/* Expanded content */}
               <AnimatePresence>
                 {isExpanded && (
@@ -233,6 +236,22 @@ const ApplicationCard = ({ application, index, onStatusUpdate }) => {
                         <p className="italic">{proposal}</p>
                       </div>
                     </div>
+
+
+                     {/* Attachments */}
+                     {Array.isArray(application.taskAttachments) && application.taskAttachments.length > 0 && (
+                        <div className="mt-4 pt-4 border-t border-gray-100">
+                          <div className="text-sm font-medium text-gray-500 mb-2 flex items-center">
+                            <Paperclip size={14} className="mr-1.5" /> Attachments
+                          </div>
+                          <div className="space-y-4">
+                            {application.taskAttachments.map((id) => (
+                              <SecureDocumentViewer key={id} documentId={id} />
+                            ))}
+                          </div>
+                        </div>
+                      )}
+
 
                     {/* Additional details */}
                     <div className="grid grid-cols-2 gap-4 text-sm">

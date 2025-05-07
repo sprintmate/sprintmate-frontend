@@ -1,6 +1,8 @@
 import axios from 'axios';
 import { authUtils } from '../utils/authUtils';
 
+import httpInstance from './axiosInstance';
+
 const BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
 export const uploadDocuments = async (files, type = "LOGO") => {
@@ -45,5 +47,40 @@ const uploadFile = async (formData, urlPath) => {
         }
       }
     );
+  };
+  
+
+  export const fetchSecureDocument = async (documentId) => {
+    const token = authUtils.getAuthToken();
+  
+    try {
+      // Get the document stream
+      const response = await httpInstance.get(`/v1/documents/${documentId}/stream`, {
+        responseType: 'blob'  // Important to specify responseType for binary data
+      });
+
+      console.log('response from fetchSecureDocument',response)
+      console.log('response headers ', response.headers)
+  
+      const contentType = response.headers['content-type']; // Get the content type
+      const contentDisposition = response.headers['content-disposition']; // Get the disposition header
+  
+      // Extract filename from Content-Disposition header
+      const match = contentDisposition?.match(/filename="(.+)"/);
+      const fileName = match?.[1] || 'document';
+  
+      // Create a URL for the file object
+      const fileUrl = window.URL.createObjectURL(response.data); // Axios response data is the file blob
+  
+      return {
+        fileUrl,
+        fileName,
+        contentType,
+        blob: response.data, // Directly use the blob from the response
+      };
+    } catch (error) {
+      console.error('Error fetching secure document:', error);
+      throw error; // Optionally handle errors more gracefully
+    }
   };
   

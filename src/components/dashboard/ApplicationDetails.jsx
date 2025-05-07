@@ -51,37 +51,8 @@ import {
   STATUS_DIALOG_CONFIG
 } from '../../constants/taskApplicationStatusMachine';
 
-// Status badge component
-// const StatusBadge = ({ status }) => {
-//   const getStatusInfo = () => {
-//     switch (status?.toLowerCase()) {
-//       case 'pending':
-//       case 'applied':
-//         return { color: 'bg-yellow-100 text-yellow-800', icon: <Clock size={14} className="mr-1" /> };
-//       case 'accepted':
-//       case 'hired':
-//         return { color: 'bg-green-100 text-green-800', icon: <CheckCircle size={14} className="mr-1" /> };
-//       case 'rejected':
-//       case 'withdrawn':
-//         return { color: 'bg-red-100 text-red-800', icon: <XCircle size={14} className="mr-1" /> };
-//       case 'shortlisted':
-//         return { color: 'bg-blue-100 text-blue-800', icon: <Star size={14} className="mr-1" /> };
-//       case 'interviewing':
-//         return { color: 'bg-purple-100 text-purple-800', icon: <MessageSquare size={14} className="mr-1" /> };
-//       default:
-//         return { color: 'bg-gray-100 text-gray-800', icon: <FileText size={14} className="mr-1" /> };
-//     }
-//   };
+import SecureDocumentViewer from '../DocumentViewer';
 
-//   const { color, icon } = getStatusInfo();
-
-//   return (
-//     <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${color}`}>
-//       {icon}
-//       {status || 'Unknown'}
-//     </span>
-//   );
-// };
 
 const STATUS_MAP = {
   pending: { color: 'bg-yellow-100 text-yellow-800', icon: <Clock size={14} className="mr-1" /> },
@@ -96,8 +67,8 @@ const STATUS_MAP = {
 
 const formatStatusLabel = (status) => {
   return status
-    ?.replace(/_/g, ' ')               // replace hyphens with spaces
-    .replace(/\b\w/g, (c) => c.toUpperCase()) || 'Unknown'; // capitalize each word
+    ?.replace(/_/g, ' ')
+    .replace(/\b\w/g, (c) => c.toUpperCase()) || 'Unknown';
 };
 
 const StatusBadge = ({ status }) => {
@@ -325,7 +296,7 @@ const ApplicationDetails = () => {
   const handleStatusUpdate = async (applicationId, newStatus) => {
     try {
       setIsLoading(true);
-      await updateApplicationStatus(taskId, applicationId, {status:newStatus});
+      await updateApplicationStatus(taskId, applicationId, { status: newStatus });
       reloadPage();
       // Show success message
       console.log(`Application ${applicationId} updated to ${newStatus}`);
@@ -675,51 +646,22 @@ const ApplicationDetails = () => {
                         </div>
                       </div>
 
+                      {/* Attachments */}
+                      {Array.isArray(application.taskAttachments) && application.taskAttachments.length > 0 && (
+                        <div className="mt-4 pt-4 border-t border-gray-100">
+                          <div className="text-sm font-medium text-gray-500 mb-2 flex items-center">
+                            <Paperclip size={14} className="mr-1.5" /> Attachments
+                          </div>
+                          <div className="space-y-4">
+                            {application.taskAttachments.map((id) => (
+                              <SecureDocumentViewer key={id} documentId={id} />
+                            ))}
+                          </div>
+                        </div>
+                      )}
+
                       {/* Action buttons with Accept option for SHORTLISTED */}
                       <div className="mt-4 pt-4 border-t border-gray-100 flex justify-end space-x-3">
-                        {/* {application.status === 'APPLIED' && (
-                          <>
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              className="border-red-200 text-red-600 hover:bg-red-50 hover:text-red-700"
-                              onClick={() => handleStatusUpdate(application.externalId, 'REJECTED')}
-                              disabled={isLoading}
-                            >
-                              {isLoading ? (
-                                <div className="flex items-center">
-                                  <div className="animate-spin mr-1.5 h-4 w-4 border-2 border-red-600 border-t-transparent rounded-full"></div>
-                                  Rejecting...
-                                </div>
-                              ) : (
-                                <>
-                                  <XCircle size={14} className="mr-1.5" />
-                                  Reject
-                                </>
-                              )}
-                            </Button>
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              className="border-blue-200 text-blue-600 hover:bg-blue-50 hover:text-blue-700"
-                              onClick={() => handleStatusUpdate(application.externalId, 'SHORTLISTED')}
-                              disabled={isLoading}
-                            >
-                              {isLoading ? (
-                                <div className="flex items-center">
-                                  <div className="animate-spin mr-1.5 h-4 w-4 border-2 border-blue-600 border-t-transparent rounded-full"></div>
-                                  Shortlisting...
-                                </div>
-                              ) : (
-                                <>
-                                  <Star size={14} className="mr-1.5" />
-                                  Shortlist
-                                </>
-                              )}
-                            </Button>
-                          </>
-                        )} */}
-
                         {getAllowedTransitions(application.status)
                           .filter((nextStatus) => canRoleUpdateStatus(role, nextStatus))
                           .map((nextStatus) => (
