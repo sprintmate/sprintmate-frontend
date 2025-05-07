@@ -7,7 +7,7 @@ export const updateApplicationStatus = async (taskId, applicationId, status) => 
     try {
         const response = await httpInstance.patch(
             `/v1/tasks/${taskId}/applications/${applicationId}/status`,
-            {status}
+            status
         );
         return isSuccessStatus(response.status);
     } catch (error) {
@@ -18,7 +18,7 @@ export const updateApplicationStatus = async (taskId, applicationId, status) => 
 
 
 export const acceptApplicationStatus = async (taskId, applicationId) => {
-    return updateApplicationStatus(taskId, applicationId, ApplicationStatus.ACCEPTED);
+    return updateApplicationStatus(taskId, applicationId, {status:ApplicationStatus.ACCEPTED});
 };
 
 export const withdrawApplication = async (taskId, applicationId) => {

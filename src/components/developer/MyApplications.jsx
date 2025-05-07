@@ -60,8 +60,7 @@ const ApplicationCard = ({ application, index, onStatusUpdate }) => {
   const taskId = task?.externalId;
   const role = authUtils.getUserProfile().role;
   console.log("role fetched from user profile ", role);
-
-
+  const [attachedDocs, setAttachedDocs] = useState([]);
 
   // Check if required data exists and provide fallbacks
   if (!application || !application.task) {
@@ -132,7 +131,11 @@ const ApplicationCard = ({ application, index, onStatusUpdate }) => {
         console.log('Withdraw response:', response);
 
       } else {
-        const response = await updateApplicationStatus(taskId,applicationId,newStatus);
+        const updatePayload = {
+          status: newStatus,
+          taskAttachments: attachedDocs
+        }
+        const response = await updateApplicationStatus(taskId,applicationId,updatePayload);
         console.log('update application response:', response);
 
       }
@@ -258,23 +261,6 @@ const ApplicationCard = ({ application, index, onStatusUpdate }) => {
               {isExpanded ? 'Show less' : 'Show more'}
             </button>
 
-            {/* <div className="flex gap-2">
-              {status === 'APPLIED' && (
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="text-red-600 hover:bg-red-50 border-red-200"
-                  onClick={() => setIsWithdrawDialogOpen(true)}
-                >
-                  Withdraw Application
-                </Button>
-              )}
-              <Button size="sm" className="gap-1">
-                View Details
-                <ArrowRight className="w-3 h-3" />
-              </Button>
-            </div> */}
-
             <div className="flex gap-2">
               {/* View Details (always visible) */}
               <Button size="sm" className="gap-1">
@@ -305,27 +291,6 @@ const ApplicationCard = ({ application, index, onStatusUpdate }) => {
         </CardContent>
       </Card>
 
-      {/* Withdraw Confirmation Dialog */}
-      {/* <AnimatePresence>
-        {isWithdrawDialogOpen && (
-          <ConfirmationDialog
-            isOpen={isWithdrawDialogOpen}
-            onClose={() => {
-              setIsWithdrawDialogOpen(false);
-              setError(null);
-            }}
-            onConfirm={(e) => {
-              e?.stopPropagation?.();
-              handleWithdraw();
-            }}
-            title="Withdraw Application"
-            message={error || "Are you sure you want to withdraw your application for this task? This action cannot be undone."}
-            isLoading={isLoading}
-          />
-        )}
-      </AnimatePresence> */}
-
-      {/* Dynamic Confirmation Dialog */}
       <AnimatePresence>
         {pendingStatus && (
           <ConfirmationDialog
@@ -342,6 +307,9 @@ const ApplicationCard = ({ application, index, onStatusUpdate }) => {
             message={error || STATUS_DIALOG_CONFIG[pendingStatus]?.message || ""}
             confirmText={STATUS_DIALOG_CONFIG[pendingStatus]?.confirmText || "Confirm"}
             isLoading={isLoading}
+            // showSubmitDocuments={pendingStatus===TaskApplicationStatus.SUBMITTED}
+            showSubmitDocuments={true}
+            setAttachedDocs={setAttachedDocs}
           />
         )}
       </AnimatePresence>

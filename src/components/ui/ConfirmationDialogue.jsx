@@ -6,8 +6,11 @@ import {
   Loader2
 } from 'lucide-react';
 
+import DocumentUploader from '../DocumentUploader';
 
-export const ConfirmationDialog = ({ isOpen, onClose, onConfirm, title, message, confirmText, isLoading }) => {
+
+export const ConfirmationDialog = ({ isOpen, onClose, onConfirm, title, message, confirmText, isLoading, showSubmitDocuments,
+  setAttachedDocs, }) => {
   if (!isOpen) return null;
 
   return (
@@ -25,6 +28,14 @@ export const ConfirmationDialog = ({ isOpen, onClose, onConfirm, title, message,
       >
         <h3 className="text-xl font-semibold text-gray-900 mb-2">{title}</h3>
         <p className="text-gray-600 mb-6">{message}</p>
+
+        {showSubmitDocuments && (
+          <DocumentUploader
+            onUploadComplete={setAttachedDocs}
+            disabled={isLoading}
+          />
+        )}
+
         <div className="flex justify-end gap-3">
           <Button
             variant="outline"

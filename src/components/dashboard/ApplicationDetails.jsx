@@ -325,7 +325,7 @@ const ApplicationDetails = () => {
   const handleStatusUpdate = async (applicationId, newStatus) => {
     try {
       setIsLoading(true);
-      await updateApplicationStatus(taskId, applicationId, newStatus);
+      await updateApplicationStatus(taskId, applicationId, {status:newStatus});
       reloadPage();
       // Show success message
       console.log(`Application ${applicationId} updated to ${newStatus}`);
