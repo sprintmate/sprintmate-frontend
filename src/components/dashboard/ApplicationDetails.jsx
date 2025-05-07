@@ -549,7 +549,7 @@ const ApplicationDetails = () => {
                       <SimpleAvatar
                         name={application.developer?.name || "Developer"}
                         profilePicture={application.developer?.portfolio?.PROFILE_PIC ?
-                          `${url}/v1/files/${application.developer.portfolio.PROFILE_PIC}` : undefined}
+                          `${url}/v1/documents/${application.developer.portfolio.PROFILE_PIC}` : undefined}
                         className="h-20 w-20"
                       />
                       <div className="text-center">

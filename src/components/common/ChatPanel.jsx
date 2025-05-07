@@ -89,7 +89,7 @@ const ChatPanel = ({ user, isOpen, onClose, apiBaseUrl, initialMessages = [] }) 
               <div className="relative">
                 <img 
                   src={user?.profilePicture || user?.portfolio?.PROFILE_PIC ? 
-                    `${apiBaseUrl}/v1/files/${user.portfolio?.PROFILE_PIC}` : image3} 
+                    `${apiBaseUrl}/v1/documents/${user.portfolio?.PROFILE_PIC}` : image3} 
                   alt={user?.name || "User"} 
                   className="w-10 h-10 rounded-full object-cover border border-gray-200"
                 />

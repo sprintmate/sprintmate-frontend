@@ -14,7 +14,7 @@ export const refundPayment = async (paymentId) => {
     }
 }
 
-export const fetchPayments = async ({ page = 0, size = 10, statuses = 'HELD, RELEASED, REFUNDED, CANCELLED, PROCESSING,FAILED, PAID' }) => {
+export const fetchPayments = async ({ page = 0, size = 10, statuses = 'HELD, RELEASED, REFUNDED, CANCELLED, PROCESSING,FAILED, PAID,WITHDRAWN' }) => {
     try {
         const url = `/v1/order/payments?page=${page}&size=${size}&statuses=${statuses}`;
         const response = await httpInstance.get(url);

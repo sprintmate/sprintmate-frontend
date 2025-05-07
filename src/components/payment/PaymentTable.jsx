@@ -22,7 +22,9 @@ const PAYMENT_STATUSES = [
     { value: 'CANCELLED', label: 'Cancelled' },
     { value: 'PROCESSING', label: 'Processing' },
     { value: 'FAILED', label: 'Failed' },
-    { value: 'PAID', label: 'Paid' }
+    { value: 'PAID', label: 'Paid' },
+    { value: 'WITHDRAWN', label: 'Withdrawn' }
+
 ];
 
 const PaymentTable = ({
@@ -34,7 +36,7 @@ const PaymentTable = ({
     isDeveloperView = false,
     onWithdrawSuccess
 }) => {
-    const [selectedStatuses, setSelectedStatuses] = useState(['HELD', 'RELEASED', 'REFUNDED', 'CANCELLED', 'PROCESSING', 'FAILED', 'PAID']);
+    const [selectedStatuses, setSelectedStatuses] = useState(['HELD', 'RELEASED', 'REFUNDED', 'CANCELLED', 'PROCESSING', 'FAILED', 'PAID', 'WITHDRAWN' ]);
     const [searchQuery, setSearchQuery] = useState('');
     const [withdrawingPaymentId, setWithdrawingPaymentId] = useState(null);
     const [isBankAccountFormOpen, setIsBankAccountFormOpen] = useState(false);
@@ -98,6 +100,7 @@ const PaymentTable = ({
 
     const getStatusColor = (status) => {
         switch (status.toLowerCase()) {
+            case 'withdrawn':
             case 'paid':
                 return 'bg-green-100 text-green-800 border-green-200';
             case 'processing':
