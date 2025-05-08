@@ -119,7 +119,9 @@ const CompanyProfileRegistration = () => {
     } catch (error) {
       // Improved error logging
       console.error('Error uploading file:', error);
-      if (error.response) {
+      if (error.response && error.response.data && error.response.data.message) {
+        toast.error(error.response.data.message);
+      } else if (error.response) {
         console.error('Upload error response:', error.response);
         toast.error(`Failed to upload logo: ${error.response.status} ${error.response.statusText}`);
       } else {
