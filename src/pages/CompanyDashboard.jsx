@@ -449,7 +449,7 @@ const MyTasks = () => {
         <div className="relative z-10 flex flex-col md:flex-row justify-between items-start md:items-center text-white">
           <div className="max-w-2xl">
             <h1 className="text-2xl sm:text-3xl font-bold mb-2 flex items-center">
-              My Tasks Dashboard
+               Dashboard
               <motion.div
                 className="ml-3 inline-flex items-center"
                 initial={{ opacity: 0, scale: 0 }}
@@ -703,7 +703,7 @@ const MyTasks = () => {
                 variant="outline" 
                 size="sm" 
                 className="text-blue-600 hover:text-blue-700 gap-1"
-                onClick={() => navigate('/company/dashboard/all-tasks')}
+                onClick={() => navigate('/company/dashboard/tasks')}
               >
                 View All
                 <ChevronRight size={16} />
@@ -1428,9 +1428,9 @@ const CompanyDashboard = () => {
         {/* Page Content - This will scroll */}
         <div className="py-4 h-[calc(100vh-4rem)] overflow-y-auto">
           <Routes>
-            <Route path="/" element={<DashboardHome />} />
-            <Route path="/tasks" element={<MyTasks />} />
-            <Route path="/all-tasks" element={<AllTasks />} />
+            <Route path="/" element={<MyTasks />} />
+            <Route path="/tasks" element={<AllTasks />} />
+            {/* <Route path="/all-tasks" element={<AllTasks />} /> */}
             <Route path="/post-task" element={<PostTask />} />
             <Route path="/applications" element={<Applications />} />
             <Route path="/settings" element={<SettingsPage />} />
