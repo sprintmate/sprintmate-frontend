@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import CurrencyFormatter from '../components/ui/CurrencyFormatter';
 import {
     User, Calendar, Clock, ChevronLeft, Award,
     Briefcase, CheckCircle, XCircle, Filter, Search,
@@ -34,10 +35,46 @@ import {
 } from '../constants/taskApplicationStatusMachine';
 import { UserRole } from '../constants/Role';
 import RazorpayPayment from '../components/common/RazorpayPayment';
-import { refundPayment,cancelPayment } from '../api/paymentService';
+import { refundPayment, cancelPayment } from '../api/paymentService';
 import { reloadPage } from '../utils/applicationUtils';
 import { updateApplicationStatus } from '../api/taskApplicationService';
 import { acceptApplicationStatus } from '../api/taskApplicationService';
+import { MultiSelect } from "@/components/ui/multi-select";
+import { fetchApplications as getApplications } from '../api/taskApplicationService';
+
+const APPLICATION_STATUSES = [
+    { value: 'SHORTLISTED', label: 'Shortlisted' },
+    { value: 'ACCEPTED', label: 'Accepted' },
+    { value: 'REJECTED', label: 'Rejected' },
+    { value: 'IN_PROGRESS', label: 'In Progress' },
+    { value: 'SUBMITTED', label: 'Submitted' },
+    { value: 'COMPLETED', label: 'Completed' },
+    { value: 'CANCELLED', label: 'Cancelled' }
+];
+
+const SORT_OPTIONS = [
+    { value: 'createdAt,desc', label: 'Newest First' },
+    { value: 'createdAt,asc', label: 'Oldest First' },
+    { value: 'updatedAt,desc', label: 'Recently Updated' },
+    { value: 'updatedAt,asc', label: 'Least Recently Updated' }
+];
+
+
+function getPaginationInfo(currentPage, itemsPerPage, totalItems) {
+    // Calculate start and end items for the current page (currentPage is 0-based)
+    const startItem = currentPage * itemsPerPage + 1;
+    const endItem = Math.min((currentPage + 1) * itemsPerPage, totalItems);
+
+    // Calculate total number of pages (rounded up)
+    const totalPages = Math.ceil(totalItems / itemsPerPage);
+
+    return {
+        startItem,
+        endItem,
+        totalItems,
+        totalPages
+    };
+}
 
 
 const Applications = () => {
@@ -49,33 +86,42 @@ const Applications = () => {
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState(null);
     const [currentPage, setCurrentPage] = useState(0);
-    const [totalPages, setTotalPages] = useState(0);
-    const [statusFilter, setStatusFilter] = useState('all');
-    const [searchTerm, setSearchTerm] = useState('');
-    const pageSize = 10;
-    const [paymentSuccessful, setPaymentSuccessful] = useState(false);
+    const [paginationInfo, setPaginationInfo] = useState({});
 
+    const [totalPages, setTotalPages] = useState(0);
+    const [totalItems, setTotalItems] = useState(0);
+    const [selectedStatuses, setSelectedStatuses] = useState([]);
+    const [sortBy, setSortBy] = useState('createdAt,desc');
+    const [appliedFilters, setAppliedFilters] = useState({
+        statuses: [],
+        sort: 'createdAt,desc'
+    });
+    const [searchTerm, setSearchTerm] = useState('');
+    const pageSize = 7;
+    const [paymentSuccessful, setPaymentSuccessful] = useState(false);
 
     const fetchApplications = async () => {
         setIsLoading(true);
         try {
-            const apiBaseUrl = import.meta.env.VITE_API_BASE_URL;
-            const token = getToken();
-
             const queryParams = new URLSearchParams({
                 size: pageSize,
                 page: currentPage,
+                sort: appliedFilters.sort
             });
-            if (statusFilter !== 'all') queryParams.append('status', statusFilter);
-            if (searchTerm.trim()) queryParams.append('searchTerm', searchTerm.trim());
-
-            const response = await axios.get(
-                `${apiBaseUrl}/v1/users/${userProfile.userId}/company-profile/${companyProfile.externalId}/applications?${queryParams.toString()}`,
-                { headers: { Authorization: token } }
-            );
-
+            if (appliedFilters.statuses.length > 0) {
+                appliedFilters.statuses.forEach(status => {
+                    queryParams.append('statuses', status);
+                });
+            }
+            if (searchTerm.trim()) {
+                queryParams.append('search', searchTerm.trim());
+            }
+            const response = await getApplications(userProfile.userId, companyProfile.externalId, queryParams);
             setApplicationsData(response.data?.content || []);
             setTotalPages(response.data?.totalPages || 0);
+            setTotalItems(response.data.totalElements);
+            setPaginationInfo(getPaginationInfo(currentPage, response.data.pageable.pageSize, response.data.totalElements));
+
         } catch (err) {
             console.error(err);
             setError('Failed to load applications');
@@ -88,28 +134,19 @@ const Applications = () => {
         if (userProfile?.userId && companyProfile?.externalId) {
             fetchApplications();
         }
-    }, [currentPage, statusFilter, searchTerm]);
+    }, [currentPage, appliedFilters, searchTerm]);
 
-
-     const handleStatusUpdate = async (taskId,applicationId, newStatus) => {
+    const handleStatusUpdate = async (taskId, applicationId, newStatus) => {
         try {
-        //   setIsLoading(true);
-          await updateApplicationStatus(taskId, applicationId, { status: newStatus });
-          reloadPage();
-          // Show success message
-          console.log(`Application ${applicationId} updated to ${newStatus}`);
-    
+            await updateApplicationStatus(taskId, applicationId, { status: newStatus });
+            reloadPage();
+            console.log(`Application ${applicationId} updated to ${newStatus}`);
         } catch (err) {
-          console.error('Error updating application status:', err);
-          // Show error message
-          console.error('Failed to update application status:', err.response?.data?.message || err.message);
-        } finally {
-        //   setIsLoading(false);
+            console.error('Error updating application status:', err);
+            console.error('Failed to update application status:', err.response?.data?.message || err.message);
         }
-      };
+    };
 
-
-    // Handle payment success
     const handlePaymentSuccess = async (paymentData) => {
         try {
             console.log("handlePaymentSuccess payment data ", paymentData)
@@ -134,19 +171,32 @@ const Applications = () => {
         console.error('Payment failed', error);
     };
 
+    const handleStatusChange = (values) => {
+        setSelectedStatuses(values);
+    };
+
+    const handleSortChange = (value) => {
+        setSortBy(value);
+    };
+
+    const handleApplyFilters = () => {
+        setAppliedFilters({
+            statuses: selectedStatuses,
+            sort: sortBy
+        });
+        setCurrentPage(0);
+    };
+
     return (
         <div className="px-4 sm:px-6 lg:px-8 py-6 space-y-8 max-w-[1500px] mx-auto">
-            {/* Hero Section */}
             <motion.div
                 className="relative rounded-2xl p-6 sm:p-8 mb-8 overflow-hidden"
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.6 }}
             >
-                {/* Banner Background */}
                 <div className="absolute inset-0 bg-gradient-to-br from-blue-700 via-blue-600 to-indigo-700 opacity-90"></div>
 
-                {/* Content */}
                 <div className="relative z-10 flex flex-col md:flex-row justify-between items-start md:items-center text-white">
                     <div className="max-w-2xl">
                         <h1 className="text-2xl sm:text-3xl font-bold mb-2 flex items-center">
@@ -159,7 +209,7 @@ const Applications = () => {
                             >
                                 <span className="bg-white/20 backdrop-blur-sm text-xs rounded-full py-1 px-2 flex items-center gap-1 font-normal">
                                     <Sparkles size={12} className="text-yellow-300" />
-                                    <span>Total: {applicationsData.length}</span>
+                                    <span>Total: {totalItems}</span>
                                 </span>
                             </motion.div>
                         </h1>
@@ -170,10 +220,9 @@ const Applications = () => {
                 </div>
             </motion.div>
 
-            {/* Search and Filter Section */}
             <Card className="bg-white rounded-xl p-4 shadow-sm border border-gray-200/60 mb-8">
-                <div className="flex flex-col sm:flex-row gap-4">
-                    <div className="flex-1">
+                <div className="space-y-4">
+                    <div className="w-full">
                         <Input
                             placeholder="Search task or developer..."
                             value={searchTerm}
@@ -184,29 +233,47 @@ const Applications = () => {
                             className="w-full"
                         />
                     </div>
-                    <Select
-                        value={statusFilter}
-                        onValueChange={(val) => {
-                            setStatusFilter(val);
-                            setCurrentPage(0);
-                        }}
-                    >
-                        <SelectTrigger className="w-[200px]">
-                            <SelectValue placeholder="Filter by status" />
-                        </SelectTrigger>
-                        <SelectContent>
-                            <SelectItem value="all">All</SelectItem>
-                            <SelectItem value="APPLIED">Applied</SelectItem>
-                            <SelectItem value="SHORTLISTED">Shortlisted</SelectItem>
-                            <SelectItem value="ACCEPTED">Accepted</SelectItem>
-                            <SelectItem value="REJECTED">Rejected</SelectItem>
-                            <SelectItem value="COMPLETED">Completed</SelectItem>
-                        </SelectContent>
-                    </Select>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                        <div>
+                            <label className="text-sm font-medium text-gray-700 mb-2 block">Application Status</label>
+                            <MultiSelect
+                                options={APPLICATION_STATUSES}
+                                value={selectedStatuses}
+                                onValueChange={handleStatusChange}
+                                placeholder="Select statuses..."
+                                className="w-full"
+                            />
+                        </div>
+
+                        <div>
+                            <label className="text-sm font-medium text-gray-700 mb-2 block">Sort By</label>
+                            <Select value={sortBy} onValueChange={handleSortChange}>
+                                <SelectTrigger className="w-full">
+                                    <SelectValue placeholder="Select sort option" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {SORT_OPTIONS.map((option) => (
+                                        <SelectItem key={option.value} value={option.value}>
+                                            {option.label}
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                        </div>
+
+                        <div className="flex items-end">
+                            <Button
+                                onClick={handleApplyFilters}
+                                className="w-full bg-blue-600 hover:bg-blue-700 text-white h-10"
+                            >
+                                Apply Filters
+                            </Button>
+                        </div>
+                    </div>
                 </div>
             </Card>
 
-            {/* Applications Table */}
             <Card className="overflow-hidden">
                 <div className="overflow-x-auto">
                     <table className="w-full text-sm text-left">
@@ -272,8 +339,9 @@ const Applications = () => {
                                         </td>
                                         <td className="px-6 py-4">
                                             <div className="flex items-center gap-1">
-                                                <DollarSign size={14} className="text-blue-500" />
-                                                <span>{app.task?.budget} {app.task?.currency}</span>
+                                                <CurrencyFormatter currency={app.task?.currency}>
+                                                    {app.task?.budget}
+                                                </CurrencyFormatter>
                                             </div>
                                         </td>
                                         <td className="px-6 py-4">
@@ -286,12 +354,12 @@ const Applications = () => {
                                             <Badge variant="outline">{app.task?.status}</Badge>
                                         </td>
                                         <td className="px-6 py-4">
-                                            <Badge 
+                                            <Badge
                                                 variant={
-                                                    app.status === 'ACCEPTED' ? "green" : 
-                                                    app.status === 'SHORTLISTED' ? "yellow" : 
-                                                    app.status === 'REJECTED' ? "red" :
-                                                    "blue"
+                                                    app.status === 'ACCEPTED' ? "green" :
+                                                        app.status === 'SHORTLISTED' ? "yellow" :
+                                                            app.status === 'REJECTED' ? "red" :
+                                                                "blue"
                                                 }
                                                 className="capitalize"
                                             >
@@ -299,7 +367,7 @@ const Applications = () => {
                                             </Badge>
                                         </td>
                                         <td className="px-6 py-4 max-w-xs">
-                                            <p className="truncate">{app.proposal}</p>
+                                            <p className="truncate">{app.proposal || '-'}</p>
                                         </td>
                                         <td className="px-6 py-4">
                                             <div className="flex items-center gap-1">
@@ -309,9 +377,9 @@ const Applications = () => {
                                         </td>
                                         <td className="px-6 py-4">
                                             <div className="flex items-center gap-2">
-                                                <Button 
-                                                    variant="ghost" 
-                                                    size="sm" 
+                                                <Button
+                                                    variant="ghost"
+                                                    size="sm"
                                                     className="text-blue-600 hover:text-blue-700 hover:bg-blue-50/50"
                                                     onClick={() => handleOpenChat(app.developer)}
                                                 >
@@ -366,7 +434,7 @@ const Applications = () => {
                     <div className="flex flex-1 justify-between sm:hidden">
                         <Button
                             variant="outline"
-                            onClick={() => setCurrentPage((p) => Math.max(0, p - 1))}
+                            onClick={() => setCurrentPage(prev => Math.max(0, prev - 1))}
                             disabled={currentPage === 0}
                             className="relative inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
                         >
@@ -374,7 +442,7 @@ const Applications = () => {
                         </Button>
                         <Button
                             variant="outline"
-                            onClick={() => setCurrentPage((p) => p + 1)}
+                            onClick={() => setCurrentPage(prev => Math.min(totalPages - 1, prev + 1))}
                             disabled={currentPage >= totalPages - 1}
                             className="relative ml-3 inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
                         >
@@ -384,49 +452,28 @@ const Applications = () => {
                     <div className="hidden sm:flex sm:flex-1 sm:items-center sm:justify-between">
                         <div>
                             <p className="text-sm text-gray-700">
-                                Showing <span className="font-medium">{applicationsData.length}</span> of{' '}
-                                <span className="font-medium">{totalPages * 10}</span> applications
+                                Showing <span className="font-medium">{paginationInfo.startItem}</span> to{' '}
+                                <span className="font-medium">{paginationInfo.endItem}</span> of{' '}
+                                <span className="font-medium">{paginationInfo.totalItems}</span> results
+                            </p>
+                            <p className="text-sm text-gray-700">
+                                Page <span className="font-medium">{currentPage + 1}</span> of{' '}
+                                <span className="font-medium">{paginationInfo.totalPages}</span>
                             </p>
                         </div>
                         <div className="flex items-center space-x-2">
                             <Button
                                 variant="outline"
-                                onClick={() => setCurrentPage((p) => Math.max(0, p - 1))}
+                                onClick={() => setCurrentPage(prev => Math.max(0, prev - 1))}
                                 disabled={currentPage === 0}
                                 className="relative inline-flex items-center rounded-md border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
                             >
                                 <ChevronLeft className="h-4 w-4 mr-1" />
                                 Previous
                             </Button>
-                            <div className="flex items-center gap-1 px-2">
-                                {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
-                                    let pageNum;
-                                    if (totalPages <= 5) {
-                                        pageNum = i;
-                                    } else if (currentPage < 2) {
-                                        pageNum = i;
-                                    } else if (currentPage > totalPages - 3) {
-                                        pageNum = totalPages - 5 + i;
-                                    } else {
-                                        pageNum = currentPage - 2 + i;
-                                    }
-                                    
-                                    return (
-                                        <Button
-                                            key={pageNum}
-                                            variant={currentPage === pageNum ? "default" : "outline"}
-                                            size="sm"
-                                            onClick={() => setCurrentPage(pageNum)}
-                                            className="w-8 h-8 p-0"
-                                        >
-                                            {pageNum + 1}
-                                        </Button>
-                                    );
-                                })}
-                            </div>
                             <Button
                                 variant="outline"
-                                onClick={() => setCurrentPage((p) => p + 1)}
+                                onClick={() => setCurrentPage(prev => Math.min(totalPages - 1, prev + 1))}
                                 disabled={currentPage >= totalPages - 1}
                                 className="relative inline-flex items-center rounded-md border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
                             >
@@ -438,7 +485,7 @@ const Applications = () => {
                 </div>
             )}
 
-            {/* Payment success notification */}
+
             {paymentSuccessful && (
                 <div className="fixed bottom-4 right-4 bg-green-50 border border-green-200 rounded-lg p-4 shadow-lg flex items-start space-x-3 z-50 max-w-md">
                     <CheckCircle className="h-6 w-6 text-green-500 flex-shrink-0 mt-0.5" />
@@ -458,6 +505,5 @@ const Applications = () => {
         </div>
     );
 };
-
 
 export default Applications;
