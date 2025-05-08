@@ -65,7 +65,7 @@ import {
   GlowContainer
 } from '@/components/ui/dashboardAnimations';
 import axios from 'axios';
-import { authUtils } from '@/utils/authUtils';
+import { authUtils } from '../utils/authUtils';
 import { getToken, fetchUserProfile, getUserProfile } from '../services/authService'; // Update imports
 import {
   TaskApplicationStatus,
@@ -950,6 +950,7 @@ const SettingsPage = () => (
 // Add ProfileEdit component import};
 import EditProfile from '@/components/profile/EditProfile';
 import CompanyPayments from './CompanyPayments';
+import ApplicationDetailsModal from '../components/ApplicationDetailsModal';
 
 // Add UserProfile component
 const UserProfile = () => {
@@ -1234,7 +1235,8 @@ const CompanyDashboard = () => {
   const [isSidebarExpanded, setIsSidebarExpanded] = useState(true);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const location = useLocation();          const sidebarRef = useRef(null);
-  
+  const navigate = useNavigate();
+
   // Close menu when route changes
   useEffect(() => {
     setIsMobileMenuOpen(false);
@@ -1300,6 +1302,12 @@ const CompanyDashboard = () => {
       return location.pathname === '/company/dashboard';
     }
     return location.pathname.includes(path);
+  };
+
+  // Add handleLogout function similar to developer flow
+  const handleLogout = () => {
+    authUtils.clearAllData();
+    navigate('/login');
   };
 
   return (
@@ -1407,6 +1415,16 @@ const CompanyDashboard = () => {
               )}
             </AnimatePresence>
           </Link>
+          {/* Logout button below user info */}
+          {(isSidebarExpanded || isMobileMenuOpen) && (
+            <button
+              className="mt-4 flex items-center gap-2 w-full px-3 py-2 rounded-lg text-red-600 hover:bg-red-50 transition-colors font-medium"
+              onClick={handleLogout}
+            >
+              <LogOut size={18} className="mr-1" />
+              Logout
+            </button>
+          )}
         </div>
       </motion.aside>
 
