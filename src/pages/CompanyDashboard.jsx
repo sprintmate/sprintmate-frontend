@@ -39,7 +39,6 @@ import {
   FileCheck,
   MessageSquare,
   ArrowUpRight,
-  // Change GitHub to Github (correct casing)
   Github,
   Linkedin,
   Globe,
@@ -50,6 +49,14 @@ import PostTaskForm from '@/components/dashboard/PostTaskForm';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { 
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { 
   AnimatedCard, 
   StaggeredSection, 
@@ -60,6 +67,14 @@ import {
 import axios from 'axios';
 import { authUtils } from '@/utils/authUtils';
 import { getToken, fetchUserProfile, getUserProfile } from '../services/authService'; // Update imports
+import {
+  TaskApplicationStatus,
+  Role,
+  STATUS_LABELS,
+  getAllowedTransitions,
+  canRoleUpdateStatus,
+  STATUS_DIALOG_CONFIG
+} from '../constants/taskApplicationStatusMachine';
 
 
 // Import our new company dashboard view component
@@ -68,11 +83,12 @@ import CompanyViewDashboard from '@/components/dashboard/CompanyViewDashboard';
 // Import the new ApplicationDetails component
 import ApplicationDetails from '@/components/dashboard/ApplicationDetails';
 import { NAV_LINKS } from '../config/navLinks';
-import { Role } from '../constants/Role';
+import { UserRole } from '../constants/Role';
 import DeveloperPayments from './DeveloperPayments';
 
 // Import the new AllTasks component
 import AllTasks from '@/components/dashboard/AllTasks';
+import Applications from './CompanyApplication';
 
 // New DashboardHome component that uses our professional dashboard
 const DashboardHome = () => (
@@ -891,87 +907,6 @@ const PostTask = () => (
   </div>
 );
 
-// Applications Component - Pass applicationId to ApplicationDetails
-const Applications = () => {
-  const navigate = useNavigate();
-  const { taskId, applicationId } = useParams();
-  const [applicationsData, setApplicationsData] = useState([]);
-  const [isLoading, setIsLoading] = useState(false);
-
-  // Fetch applications list if needed
-  useEffect(() => {
-    if (taskId && !applicationId) {
-      // Fetch application list to redirect to the first one
-      setIsLoading(true);
-      const fetchApplications = async () => {
-        try {
-          const apiBaseUrl = import.meta.env.VITE_API_BASE_URL;
-          const token = authUtils.getAuthToken();
-          
-          if (!token) {
-            console.error("Auth token not found");
-            return;
-          }
-          
-          const response = await axios.get(
-            `${apiBaseUrl}/v1/tasks/${taskId}/applications`,
-            { headers: { 'Authorization': token } }
-          );
-          if (response.data && response.data.length > 0) {
-            console.log(response, "(((((((((((((((((((*********)))))))))))))))))");
-            // If applications exist, redirect to the first one
-            const firstAppId = response.data[0].externalId;
-            navigate(`/company/dashboard/tasks/${taskId}/applications/${firstAppId}`);
-          }
-        } catch (err) {
-          console.error("Error fetching applications:", err);
-        } finally {
-          setIsLoading(false);
-        }
-      };
-      fetchApplications();
-    }
-  }, [taskId, applicationId, navigate]);
-
-  return (
-    <div className="p-6">
-      {taskId ? (
-        // If taskId is provided, render ApplicationDetails component
-        <ApplicationDetails applicationIdProp={applicationId} />
-      ) : (
-        // Otherwise, show the selection screen
-        <>
-          <motion.h2 
-            className="text-2xl font-bold mb-6"
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5 }}
-          >
-            Task Applications
-          </motion.h2>
-          <Card className="border-blue-100">
-            <CardContent className="p-6 text-center">
-              <div className="mb-4 w-16 h-16 mx-auto bg-blue-100 rounded-full flex items-center justify-center">
-                <Users className="h-8 w-8 text-blue-600" />
-              </div>
-              <h3 className="text-lg font-medium">Select a Task</h3>
-              <p className="text-gray-500 mt-2 max-w-md mx-auto">
-                Please select a task from the Tasks dashboard to view its applications.
-              </p>
-              <Button 
-                className="mt-4 bg-blue-600" asChild
-                onClick={() => navigate('/company/dashboard/tasks')}
-              >
-                View Tasks
-              </Button>
-            </CardContent>
-          </Card>
-        </>
-      )}
-    </div>
-  );
-};
-
 // Settings Component
 const SettingsPage = () => (
   <div className="p-4">
@@ -1317,7 +1252,7 @@ const CompanyDashboard = () => {
     }
   };
 
-  const navLinks = NAV_LINKS[Role.COMPANY.toLowerCase()]
+  const navLinks = NAV_LINKS[UserRole.COMPANY.toLowerCase()]
   
   // // Get the current active link
   const getActiveRoute = () => {

@@ -36,7 +36,7 @@ import ChatPanel from '../common/ChatPanel';
 import RazorpayPayment from '../common/RazorpayPayment';
 import { updateApplicationStatus, acceptApplicationStatus } from '../../api/taskApplicationService';
 
-import { refundPayment } from '../../api/paymentService';
+import { refundPayment,cancelPayment } from '../../api/paymentService';
 
 import { reloadPage } from '../../utils/applicationUtils';
 import { ApplicationStatus } from '../../constants/ApplicationStatus';
@@ -340,6 +340,8 @@ const ApplicationDetails = () => {
       // You could add a toast notification here
       console.log('Payment successful!', paymentData);
     } catch (error) {
+      const cancelResponse = await cancelPayment(paymentData.paymentId);
+      console.log("payment cancelPayment {}", cancelResponse);
       console.error('Error updating application status after payment', error);
     }
   };
@@ -715,12 +717,6 @@ const ApplicationDetails = () => {
                             />
                           </div>
                         )}
-
-                        {/* {application.status !== 'APPLIED' && application.status !== 'SHORTLISTED' && (
-                          <div className="text-sm text-gray-500 italic">
-                            This application is currently in {application.status.toLowerCase()} status
-                          </div>
-                        )} */}
                       </div>
                     </div>
                   </div>

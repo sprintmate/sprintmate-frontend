@@ -176,87 +176,82 @@ const RazorpayPayment = ({
             
             if (captureResponse.data.status === 'HELD' || captureResponse.data.status === 'CREATED') {
               // STEP 3: Update the application status to ACCEPTED after successful payment capture
-              try {
-                // Re-check for the most reliable taskId
-                const statusUpdateTaskId = taskId || responseTaskId || 
-                                          captureResponse.data?.taskId ||
-                                          captureResponse.data?.task?.id ||
-                                          paymentData?.taskId ||
-                                          paymentData?.task?.id ||
-                                          effectiveTaskId;
+              // try {
+              //   // Re-check for the most reliable taskId
+              //   const statusUpdateTaskId = captureResponse.taskId;
                 
-                console.log("Using task ID for status update:", statusUpdateTaskId);
+              //   console.log("Using task ID for status update:", statusUpdateTaskId);
                 
-                if (!statusUpdateTaskId) {
-                  console.warn("Task ID not found, trying alternative API endpoint");
+              //   if (!statusUpdateTaskId) {
+              //     console.warn("Task ID not found, trying alternative API endpoint");
                   
-                  // Try a different API structure that doesn't require taskId
-                  try {
-                    console.log(`Attempting alternative endpoint for application ${applicationId}`);
-                    const alternativeResponse = await axios.patch(
-                      `${url}/v1/applications/${applicationId}/status`,
-                      { status: "ACCEPTED" },
-                      { headers: { Authorization: `${token}`, 'Content-Type': 'application/json' } }
-                    );
+              //     // Try a different API structure that doesn't require taskId
+              //     try {
+              //       console.log(`Attempting alternative endpoint for application ${applicationId}`);
+              //       const alternativeResponse = await axios.patch(
+              //         `${url}/v1/applications/${applicationId}/status`,
+              //         { status: "ACCEPTED" },
+              //         { headers: { Authorization: `${token}`, 'Content-Type': 'application/json' } }
+              //       );
                     
-                    console.log("Alternative API call successful:", alternativeResponse.data);
-                  } catch (altError) {
-                    console.error("Alternative API call failed:", altError);
+              //       console.log("Alternative API call successful:", alternativeResponse.data);
+              //     } catch (altError) {
+              //       console.error("Alternative API call failed:", altError);
                     
-                    // If both approaches fail, try to extract task ID from URL if available
-                    const urlPathMatch = window.location.pathname.match(/\/tasks\/([^\/]+)/);
-                    if (urlPathMatch && urlPathMatch[1]) {
-                      const urlTaskId = urlPathMatch[1];
-                      console.log("Extracted taskId from URL:", urlTaskId);
+              //       // If both approaches fail, try to extract task ID from URL if available
+              //       const urlPathMatch = window.location.pathname.match(/\/tasks\/([^\/]+)/);
+              //       if (urlPathMatch && urlPathMatch[1]) {
+              //         const urlTaskId = urlPathMatch[1];
+              //         console.log("Extracted taskId from URL:", urlTaskId);
                       
-                      try {
-                        const urlBasedResponse = await axios.patch(
-                          `${url}/v1/tasks/${urlTaskId}/applications/${applicationId}/status`,
-                          { status: "ACCEPTED" },
-                          { headers: { Authorization: `${token}`, 'Content-Type': 'application/json' } }
-                        );
+              //         try {
+              //           const urlBasedResponse = await axios.patch(
+              //             `${url}/v1/tasks/${urlTaskId}/applications/${applicationId}/status`,
+              //             { status: "ACCEPTED" },
+              //             { headers: { Authorization: `${token}`, 'Content-Type': 'application/json' } }
+              //           );
                         
-                        console.log("URL-based task ID API call successful:", urlBasedResponse.data);
-                      } catch (urlError) {
-                        console.error("URL-based task ID API call failed:", urlError);
-                      }
-                    }
-                  }
-                } else {
-                  // We have a task ID, use the standard API endpoint
-                  console.log(`Updating application status to ACCEPTED for task ${statusUpdateTaskId}, application ${applicationId}...`);
+              //           console.log("URL-based task ID API call successful:", urlBasedResponse.data);
+              //         } catch (urlError) {
+              //           console.error("URL-based task ID API call failed:", urlError);
+              //         }
+              //       }
+              //     }
+              //   } else {
+              //     // We have a task ID, use the standard API endpoint
+              //     console.log(`Updating application status to ACCEPTED for task ${statusUpdateTaskId}, application ${applicationId}...`);
                   
-                  // Add timeout to ensure payment processing is complete
-                  await new Promise(resolve => setTimeout(resolve, 1000));
+              //     // Add timeout to ensure payment processing is complete
+              //     await new Promise(resolve => setTimeout(resolve, 1000));
                   
-                  const statusUpdateResponse = await axios.patch(
-                    `${url}/v1/tasks/${statusUpdateTaskId}/applications/${applicationId}/status`,
-                    { status: "ACCEPTED" },
-                    { headers: { Authorization: `${token}`, 'Content-Type': 'application/json' } }
-                  );
+              //     const statusUpdateResponse = await axios.patch(
+              //       `${url}/v1/tasks/${statusUpdateTaskId}/applications/${applicationId}/status`,
+              //       { status: "ACCEPTED" },
+              //       { headers: { Authorization: `${token}`, 'Content-Type': 'application/json' } }
+              //     );
                   
-                  console.log("Application status update successful:", statusUpdateResponse.data);
-                }
-              } catch (statusUpdateError) {
-                console.error("Error updating application status:", statusUpdateError);
-                console.error("Error details:", statusUpdateError.response?.data || "No response data");
+              //     console.log("Application status update successful:", statusUpdateResponse.data);
+              //   }
+              // } catch (statusUpdateError) {
+              //   console.error("Error updating application status:", statusUpdateError);
+              //   console.error("Error details:", statusUpdateError.response?.data || "No response data");
                 
-                // Try direct API call to accept the application
-                try {
-                  console.log("Attempting direct accept API call");
-                  const directAcceptResponse = await axios.post(
-                    `${url}/v1/applications/${applicationId}/accept`,
-                    {},
-                    { headers: { Authorization: `${token}`, 'Content-Type': 'application/json' } }
-                  );
+              //   // Try direct API call to accept the application
+              //   try {
+              //     console.log("Attempting direct accept API call");
+              //     const directAcceptResponse = await axios.post(
+              //       `${url}/v1/applications/${applicationId}/accept`,
+              //       {},
+              //       { headers: { Authorization: `${token}`, 'Content-Type': 'application/json' } }
+              //     );
                   
-                  console.log("Direct accept API call successful:", directAcceptResponse.data);
-                } catch (directError) {
-                  console.error("Direct accept API call failed:", directError);
-                }
+              //     console.log("Direct accept API call successful:", directAcceptResponse.data);
+              //   } catch (directError) {
+              //     console.error("Direct accept API call failed:", directError);
+              //   }
                 
-                console.log("Will continue with success flow despite status update error");
-              }
+              //   console.log("Will continue with success flow despite status update error");
+              // }
               
               // Call the success callback regardless of status update result
               onSuccess && onSuccess({

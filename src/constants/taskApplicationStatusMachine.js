@@ -75,10 +75,12 @@ export const STATUS_TRANSITIONS = {
 };
 
 export function getAllowedTransitions(from) {
+    console.log('get allowrted transis',from);
     return Array.from(STATUS_TRANSITIONS[from] || []);
 }
 
 export function canRoleUpdateStatus(role, status) {
+    console.log('canRoleUpdateStatus',status,role)
     return ROLE_ALLOWED_STATUSES[role]?.has(status);
 }
 

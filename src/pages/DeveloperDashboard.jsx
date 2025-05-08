@@ -30,7 +30,7 @@ import NotFound from '@/components/developer/NotFound';
 import { authUtils } from '../utils/authUtils';
 import { fetchUserProfile } from '../api/userService';
 import { NAV_LINKS } from '../config/navLinks';
-import { Role } from '../constants/Role';
+import { UserRole } from '../constants/Role';
 import DeveloperPayments from './DeveloperPayments';
 
 // Sidebar link component
@@ -63,7 +63,7 @@ const DeveloperDashboard = () => {
   const sidebarRef = useRef(null);
 
   // Navigation links for the sidebar - use full paths to match Routes definition
-  const navLinks = NAV_LINKS[Role.DEVELOPER.toLowerCase()]
+  const navLinks = NAV_LINKS[UserRole.DEVELOPER.toLowerCase()]
 
   // Fetch developer profile on mount
   useEffect(() => {
