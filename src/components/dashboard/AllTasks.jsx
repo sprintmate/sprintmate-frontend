@@ -56,6 +56,7 @@ import {
 import axios from 'axios';
 import { getToken } from '@/services/authService';
 import { authUtils } from '../../utils/authUtils';
+import ApplicationDetailsModal from '@/components/ApplicationDetailsModal';
 
 // Task status options
 const TASK_STATUSES = [
@@ -102,6 +103,8 @@ const AllTasks = () => {
   const [selectedStatuses, setSelectedStatuses] = useState([]);
   const [sortBy, setSortBy] = useState('updatedAt,desc');
   const [error, setError] = useState(null);
+  const [selectedApplication, setSelectedApplication] = useState(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const navigate = useNavigate();
 
   const fetchTasks = async () => {
@@ -186,6 +189,28 @@ const AllTasks = () => {
 
   const handleViewApplications = (taskId) => {
     navigate(`/company/dashboard/tasks/${taskId}/applications`);
+  };
+
+  const handleApplicantsClick = async (task) => {
+    // Fetch the first application for the task (or all, as needed)
+    try {
+      const token = getToken();
+      const response = await axios.get(
+        `${import.meta.env.VITE_API_BASE_URL}/v1/tasks/${task.id}/applications`,
+        {
+          headers: {
+            'Authorization': token,
+            'Content-Type': 'application/json'
+          }
+        }
+      );
+      if (response.data && Array.isArray(response.data.content) && response.data.content.length > 0) {
+        setSelectedApplication(response.data.content[0]); // Show first application for demo
+        setIsModalOpen(true);
+      }
+    } catch (err) {
+      // Optionally handle error
+    }
   };
 
   // Helper function to format date
@@ -390,7 +415,7 @@ const AllTasks = () => {
                         variant="ghost"
                         size="sm"
                         className="text-blue-600 hover:text-blue-700 hover:bg-blue-50/50 h-8"
-                        onClick={() => handleViewApplications(task.id)}
+                        onClick={() => handleApplicantsClick(task)}
                       >
                         <Users size={14} className="mr-1" />
                         <span>{task.applications} {task.applications === 1 ? 'Applicant' : 'Applicants'}</span>
@@ -470,9 +495,13 @@ const AllTasks = () => {
         </div>
       )}
 
-
+      <ApplicationDetailsModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        application={selectedApplication}
+      />
     </div>
   );
 };
 
-export default AllTasks; 
+export default AllTasks;

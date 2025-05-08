@@ -74,8 +74,7 @@ import {
   getAllowedTransitions,
   canRoleUpdateStatus,
   STATUS_DIALOG_CONFIG
-} from '../constants/taskApplicationStatusMachine';
-
+} from '../constants/taskApplicationStatus';
 
 // Import our new company dashboard view component
 import CompanyViewDashboard from '@/components/dashboard/CompanyViewDashboard';
@@ -103,6 +102,8 @@ const MyTasks = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [activeStat, setActiveStat] = useState('week');
   const [selectedTask, setSelectedTask] = useState(null);
+  const [selectedApplication, setSelectedApplication] = useState(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const scrollRef = useRef(null);
   const navigate = useNavigate();
   
@@ -371,6 +372,27 @@ const MyTasks = () => {
     } else {
       // Otherwise, just navigate to the applications list
       navigate(`/company/dashboard/tasks/${taskId}/applications`);
+    }
+  };
+
+  const handleApplicantsClick = async (task) => {
+    try {
+      const token = getToken();
+      const response = await axios.get(
+        `${import.meta.env.VITE_API_BASE_URL}/v1/tasks/${task.id}/applications`,
+        {
+          headers: {
+            'Authorization': token,
+            'Content-Type': 'application/json'
+          }
+        }
+      );
+      if (response.data && Array.isArray(response.data.content) && response.data.content.length > 0) {
+        setSelectedApplication(response.data.content[0]);
+        setIsModalOpen(true);
+      }
+    } catch (err) {
+      // Optionally handle error
     }
   };
 
@@ -843,11 +865,11 @@ const MyTasks = () => {
                             <span className="hidden sm:inline">{task.views} views</span>
                             <span className="sm:hidden">{task.views}</span>
                           </Button>
-                          <Button 
-                            variant="ghost" 
-                            size="sm" 
+                          <Button
+                            variant="ghost"
+                            size="sm"
                             className="text-blue-600 hover:text-blue-700 hover:bg-blue-50/50 h-8"
-                            onClick={() => handleViewApplications(task.id)}
+                            onClick={() => handleApplicantsClick(task)}
                           >
                             <Users size={14} className="mr-1" />
                             <span>{task.applications} {task.applications === 1 ? 'Applicant' : 'Applicants'}</span>
@@ -883,6 +905,12 @@ const MyTasks = () => {
       
         
       </div>
+
+      <ApplicationDetailsModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        application={selectedApplication}
+      />
     </div>
   );
 };
