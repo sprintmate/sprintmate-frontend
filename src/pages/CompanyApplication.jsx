@@ -49,7 +49,9 @@ const APPLICATION_STATUSES = [
     { value: 'IN_PROGRESS', label: 'In Progress' },
     { value: 'SUBMITTED', label: 'Submitted' },
     { value: 'COMPLETED', label: 'Completed' },
+    { value: 'APPLIED', label: 'Applied' },
     { value: 'CANCELLED', label: 'Cancelled' }
+
 ];
 
 const SORT_OPTIONS = [

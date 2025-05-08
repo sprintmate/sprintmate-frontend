@@ -364,14 +364,8 @@ const MyTasks = () => {
   // Navigate to task applications with first application ID when available
   const handleViewApplications = (taskId) => {
     const task = recentTasks.find(task => task.id === taskId);
-    if (task && task.applicants && task.applicants.length > 0) {
-      // If we have applicants, navigate to the first one directly
-      const firstApplicantId = task.applicants[0].id;
-      navigate(`/company/dashboard/tasks/${taskId}/applications/${firstApplicantId}`);
-    } else {
-      // Otherwise, just navigate to the applications list
-      navigate(`/company/dashboard/tasks/${taskId}/applications`);
-    }
+  // Otherwise, just navigate to the applications list
+    navigate(`/company/dashboard/tasks/${taskId}/applications`);    
   };
 
   return (
@@ -1440,7 +1434,7 @@ const CompanyDashboard = () => {
             
             {/* New routes for task applications */}
             <Route path="/tasks/:taskId/applications" element={<Applications />} />
-            <Route path="/tasks/:taskId/applications/:applicationId" element={<Applications />} />
+            {/* <Route path="/tasks/:taskId/applications/:applicationId" element={<Applications />} /> */}
           </Routes>
         </div>
       </motion.main>

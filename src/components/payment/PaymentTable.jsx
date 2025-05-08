@@ -14,6 +14,8 @@ import { withDrawFunds } from '../../api/paymentService';
 import AddBankAccount from './AddBankAccount';
 import { RiArrowRightCircleLine } from 'react-icons/ri';
 
+import { reloadPage } from '../../utils/applicationUtils';
+
 const PAYMENT_STATUSES = [
     { value: 'HELD', label: 'Held' },
     { value: 'RELEASED', label: 'Released' },
@@ -93,9 +95,11 @@ const PaymentTable = ({
     const handleBankAccountSuccess = () => {
         closeBankAccountForm();
         // Retry the withdrawal for the last attempted payment
+
         if (withdrawingPaymentId) {
             handleWithdraw(withdrawingPaymentId);
         }
+        reloadPage();
     };
 
     const getStatusColor = (status) => {
