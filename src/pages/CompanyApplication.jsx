@@ -41,6 +41,7 @@ import { updateApplicationStatus } from '../api/taskApplicationService';
 import { acceptApplicationStatus } from '../api/taskApplicationService';
 import { MultiSelect } from "@/components/ui/multi-select";
 import { fetchApplications as getApplications } from '../api/taskApplicationService';
+import { getChatRedirectionPath } from '../components/chat/Rooms';
 
 const APPLICATION_STATUSES = [
     { value: 'SHORTLISTED', label: 'Shortlisted' },
@@ -101,6 +102,14 @@ const Applications = () => {
     const [searchTerm, setSearchTerm] = useState('');
     const pageSize = 7;
     const [paymentSuccessful, setPaymentSuccessful] = useState(false);
+
+
+    const handleOpenChat = (app) => {
+        const taskId = app.task.externalId;         
+        const applicationId = app.externalId;
+        const url = getChatRedirectionPath(taskId, applicationId);
+        navigate(url);
+    };
 
     const fetchApplications = async () => {
         setIsLoading(true);
@@ -383,7 +392,7 @@ const Applications = () => {
                                                     variant="ghost"
                                                     size="sm"
                                                     className="text-blue-600 hover:text-blue-700 hover:bg-blue-50/50"
-                                                    onClick={() => handleOpenChat(app.developer)}
+                                                    onClick={() => handleOpenChat(app)}
                                                 >
                                                     <MessageSquare size={14} className="mr-1" />
                                                     Chat

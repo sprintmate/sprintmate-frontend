@@ -3,7 +3,7 @@ import SockJS from 'sockjs-client';
 import { Client } from '@stomp/stompjs';
 import { authUtils } from '../utils/authUtils';
 
-const baseurl = "http://localhost:9090";
+const baseurl = import.meta.env.VITE_API_BASE_URL;
 
 const useWebSocket = (roomId, onMessage) => {
   const clientRef = useRef(null);

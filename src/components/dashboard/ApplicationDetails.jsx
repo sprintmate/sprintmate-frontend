@@ -52,6 +52,7 @@ import {
 } from '../../constants/taskApplicationStatusMachine';
 
 import SecureDocumentViewer from '../DocumentViewer';
+import { getChatRedirectionPath } from '../chat/Rooms';
 
 const STATUS_MAP = {
   pending: { color: 'bg-yellow-100 text-yellow-800', icon: <Clock size={14} className="mr-1" /> },
@@ -310,11 +311,13 @@ const ApplicationDetails = () => {
     }
   };
 
-  // Function to open chat with specific developer
-  const handleOpenChat = (developer) => {
-    setActiveChatDeveloper(developer);
-    setChatOpen(true);
-  };
+ 
+   const handleOpenChat = (app) => {
+          const taskId = app.task.externalId;         
+          const applicationId = app.externalId;
+          const url = getChatRedirectionPath(taskId, applicationId);
+          navigate(url);
+    };
 
   // Handle payment success
   const handlePaymentSuccess = async (paymentData) => {
@@ -689,7 +692,7 @@ const ApplicationDetails = () => {
                               variant="outline"
                               size="sm"
                               className="border-green-200 text-green-600 hover:bg-green-50 hover:text-green-700 animate-pulse-subtle"
-                              onClick={() => handleOpenChat(application.developer)}
+                              onClick={() => handleOpenChat(application)}
                             >
                               <MessageSquare size={14} className="mr-1.5" />
                               Chat with Developer

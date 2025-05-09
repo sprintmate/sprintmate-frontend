@@ -1,11 +1,11 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Routes, Route, NavLink, useLocation, Link, useNavigate, useParams } from 'react-router-dom';
 import { motion, AnimatePresence, useScroll, useTransform } from 'framer-motion';
-import { 
-  Home, 
-  CheckSquare, 
-  FileText, 
-  Users, 
+import {
+  Home,
+  CheckSquare,
+  FileText,
+  Users,
   Settings,
   Menu,
   Search,
@@ -50,17 +50,17 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { 
+import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { 
-  AnimatedCard, 
-  StaggeredSection, 
-  Shimmer, 
+import {
+  AnimatedCard,
+  StaggeredSection,
+  Shimmer,
   AnimatedCounter,
   GlowContainer
 } from '@/components/ui/dashboardAnimations';
@@ -77,6 +77,7 @@ import {
 } from '../constants/taskApplicationStatusMachine';
 
 // import Rooms from '../components/chat/Rooms';
+import NotFound from '../components/developer/NotFound';
 
 
 // Import our new company dashboard view component
@@ -91,8 +92,8 @@ import DeveloperPayments from './DeveloperPayments';
 // Import the new AllTasks component
 import AllTasks from '@/components/dashboard/AllTasks';
 import Applications from './CompanyApplication';
-
-import {  getTaskApplications } from '../api/taskApplicationService';
+import ChatRoomWrapper from '../components/chat/ChatRoomWrapper'; 
+import { getTaskApplications } from '../api/taskApplicationService';
 
 
 // Applications Component - Pass applicationId to ApplicationDetails
@@ -143,7 +144,7 @@ const ApplicationDetailsComponent = () => {
       ) : (
         // Otherwise, show the selection screen
         <>
-          <motion.h2 
+          <motion.h2
             className="text-2xl font-bold mb-6"
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -160,7 +161,7 @@ const ApplicationDetailsComponent = () => {
               <p className="text-gray-500 mt-2 max-w-md mx-auto">
                 Please select a task from the Tasks dashboard to view its applications.
               </p>
-              <Button 
+              <Button
                 className="mt-4 bg-blue-600" asChild
                 onClick={() => navigate('/company/dashboard/tasks')}
               >
@@ -182,7 +183,7 @@ const MyTasks = () => {
   const [selectedTask, setSelectedTask] = useState(null);
   const scrollRef = useRef(null);
   const navigate = useNavigate();
-  
+
   // New states for API integration
   const [companyId, setCompanyId] = useState(null);
   const [recentTasks, setRecentTasks] = useState([]);
@@ -191,7 +192,7 @@ const MyTasks = () => {
   const [totalPages, setTotalPages] = useState(0);
   const [totalTasks, setTotalTasks] = useState(0);
   const [error, setError] = useState(null);
-  
+
   // The scroll progress stuff
   const { scrollYProgress } = useScroll({
     target: scrollRef,
@@ -199,7 +200,7 @@ const MyTasks = () => {
   });
 
   const url = import.meta.env.VITE_API_BASE_URL || "http://sprintmate-stage.ap-south-1.elasticbeanstalk.com:8080";
-  
+
   // Analytics data (we'll keep using this for now)
   const analytics = {
     totalTasks: 15,
@@ -249,7 +250,7 @@ const MyTasks = () => {
       try {
         // First try to get from localStorage directly using the helper
         const storedProfile = getUserProfile();
-        
+
         if (storedProfile && storedProfile.companyProfiles && storedProfile.companyProfiles.length > 0) {
           const companyExternalId = storedProfile.companyProfiles[0].externalId;
           if (companyExternalId) {
@@ -258,19 +259,19 @@ const MyTasks = () => {
             return; // Exit if we found the ID
           }
         }
-        
+
         // If we reach here, we need to fetch from API
         console.log("No valid company profile found in storage, fetching from API...");
-        
+
         const token = getToken();
         if (!token) {
           setError("Authentication required. Please log in again.");
           return;
         }
-        
+
         // Fetch profile from API as a last resort
         const profileData = await fetchUserProfile();
-        
+
         if (profileData && profileData.companyProfiles && profileData.companyProfiles.length > 0) {
           const companyExternalId = profileData.companyProfiles[0].externalId;
           if (companyExternalId) {
@@ -279,7 +280,7 @@ const MyTasks = () => {
             return;
           }
         }
-        
+
         // If we still don't have a company ID, show an error
         setError("Could not load company profile. Please try logging in again.");
       } catch (error) {
@@ -303,33 +304,33 @@ const MyTasks = () => {
     setIsLoading(true);
     try {
       const apiBaseUrl = import.meta.env.VITE_API_BASE_URL;
-      
+
       if (!companyId) {
         console.error("No company ID available for API call");
         setError("No company ID available. Please try logging in again.");
         setIsLoading(false);
         return;
       }
-      
+
       const token = getToken();
-      
+
       if (!token) {
         console.error("No authentication token found");
         setError("Authentication required. Please log in again.");
         setIsLoading(false);
         return;
       }
-      
+
       const response = await axios.get(
-        `${apiBaseUrl}/v1/company-profiles/${companyId}/tasks?page=0&size=3&sort=updatedAt,desc`, 
-        { 
-          headers: { 
+        `${apiBaseUrl}/v1/company-profiles/${companyId}/tasks?page=0&size=3&sort=updatedAt,desc`,
+        {
+          headers: {
             'Authorization': token,
             'Content-Type': 'application/json'
-          } 
+          }
         }
       );
-      
+
       if (response.data) {
         const formattedTasks = response.data.content.map(task => ({
           id: task.externalId,
@@ -351,7 +352,7 @@ const MyTasks = () => {
           attachments: task.attachments || {},
           ndaRequired: task.ndaRequired
         }));
-        
+
         setRecentTasks(formattedTasks);
         setTotalTasks(response.data.totalElements);
       }
@@ -366,11 +367,11 @@ const MyTasks = () => {
   // Helper function to calculate duration between two dates
   const calculateDuration = (startDateStr, endDateStr) => {
     if (!startDateStr || !endDateStr) return "N/A";
-    
+
     const start = new Date(startDateStr.replace(' ', 'T'));
     const end = new Date(endDateStr.replace(' ', 'T'));
     const days = Math.ceil((end - start) / (1000 * 60 * 60 * 24));
-    
+
     return `${days} days`;
   };
 
@@ -413,7 +414,7 @@ const MyTasks = () => {
     const firstNames = ["Alex", "Morgan", "Jamie", "Taylor", "Jordan", "Casey"];
     const lastNames = ["Smith", "Johnson", "Lee", "Garcia", "Chen", "Wilson"];
     const years = [2, 3, 4, 5, 6, 7];
-    
+
     return Array.from({ length: count }, (_, i) => ({
       id: 100 + i,
       name: `${firstNames[Math.floor(Math.random() * firstNames.length)]} ${lastNames[Math.floor(Math.random() * lastNames.length)]}`,
@@ -424,7 +425,7 @@ const MyTasks = () => {
 
   // Determine which stats to show based on active tab
   const getActiveStats = () => {
-    switch(activeStat) {
+    switch (activeStat) {
       case 'week':
         return analytics.weeklyStats;
       case 'month':
@@ -441,8 +442,8 @@ const MyTasks = () => {
   // Navigate to task applications with first application ID when available
   const handleViewApplications = (taskId) => {
     const task = recentTasks.find(task => task.id === taskId);
-  // Otherwise, just navigate to the applications list
-    navigate(`/company/dashboard/tasks/${taskId}/applications`);    
+    // Otherwise, just navigate to the applications list
+    navigate(`/company/dashboard/tasks/${taskId}/applications`);
   };
 
   return (
@@ -520,7 +521,7 @@ const MyTasks = () => {
         <div className="relative z-10 flex flex-col md:flex-row justify-between items-start md:items-center text-white">
           <div className="max-w-2xl">
             <h1 className="text-2xl sm:text-3xl font-bold mb-2 flex items-center">
-               Dashboard
+              Dashboard
               <motion.div
                 className="ml-3 inline-flex items-center"
                 initial={{ opacity: 0, scale: 0 }}
@@ -579,11 +580,10 @@ const MyTasks = () => {
               <button
                 key={`stat-${period}`}
                 onClick={() => setActiveStat(period)}
-                className={`px-4 py-1.5 text-sm font-medium rounded-md transition-all ${
-                  activeStat === period 
-                    ? 'bg-white text-blue-600 shadow-sm' 
+                className={`px-4 py-1.5 text-sm font-medium rounded-md transition-all ${activeStat === period
+                    ? 'bg-white text-blue-600 shadow-sm'
                     : 'text-gray-600 hover:text-gray-900'
-                }`}
+                  }`}
               >
                 {period.charAt(0).toUpperCase() + period.slice(1)}
               </button>
@@ -705,8 +705,8 @@ const MyTasks = () => {
                           animate={{ height: `${(value / Math.max(...taskActivityData.daily)) * 100}%` }}
                           transition={{ delay: 0.3 + (index * 0.05), duration: 0.5 }}
                         >
-                          <div 
-                            className="w-full bg-green-500 rounded-sm transition-all" 
+                          <div
+                            className="w-full bg-green-500 rounded-sm transition-all"
                             style={{ height: `${(activeStats.completedTasks / value) * 30}%` }}
                           ></div>
                         </motion.div>
@@ -765,14 +765,14 @@ const MyTasks = () => {
       <div className="grid lg:grid-cols-3 gap-6">
         {/* Recent Tasks - Major Half */}
         <div className="lg:col-span-3">
-          <StaggeredSection 
+          <StaggeredSection
             title="Recent Tasks"
             delay={0.5}
             staggerDelay={0.15}
             actionButton={
-              <Button 
-                variant="outline" 
-                size="sm" 
+              <Button
+                variant="outline"
+                size="sm"
                 className="text-blue-600 hover:text-blue-700 gap-1"
                 onClick={() => navigate('/company/dashboard/tasks')}
               >
@@ -808,19 +808,19 @@ const MyTasks = () => {
                   <Card className="overflow-hidden backdrop-blur-sm border-blue-100/50 hover:border-blue-200/70 transition-all duration-300">
                     <CardContent className="relative p-4 sm:p-5">
                       {/* Status indicator line with animation */}
-                      <motion.div 
+                      <motion.div
                         className="absolute left-0 top-0 bottom-0 w-1"
-                        style={{ 
-                          backgroundColor: task.status === 'active' ? 'rgb(37, 99, 235)' : 
-                                         task.status === 'reviewing' ? 'rgb(245, 158, 11)' : 
-                                         'rgb(34, 197, 94)'
+                        style={{
+                          backgroundColor: task.status === 'active' ? 'rgb(37, 99, 235)' :
+                            task.status === 'reviewing' ? 'rgb(245, 158, 11)' :
+                              'rgb(34, 197, 94)'
                         }}
                         initial={{ height: 0 }}
                         whileInView={{ height: '100%' }}
                         viewport={{ once: true }}
                         transition={{ duration: 0.5 }}
                       />
-                      
+
                       <div className="flex flex-col sm:flex-row justify-between sm:items-start gap-4 pl-3">
                         <div className="min-w-0 flex-1">
                           <div className="flex items-center flex-wrap sm:flex-nowrap gap-2 sm:gap-0">
@@ -830,14 +830,14 @@ const MyTasks = () => {
                             <h3 className="text-base font-semibold text-gray-900 truncate group-hover:text-blue-600 transition-colors">
                               {task.title}
                             </h3>
-                            
+
                             {/* Status badge */}
                             <div className="ml-auto">
-                              <Badge 
+                              <Badge
                                 variant={
-                                  task.status === 'active' ? "blue" : 
-                                  task.status === 'reviewing' ? "yellow" : 
-                                  "green"
+                                  task.status === 'active' ? "blue" :
+                                    task.status === 'reviewing' ? "yellow" :
+                                      "green"
                                 }
                                 className="capitalize"
                               >
@@ -845,26 +845,26 @@ const MyTasks = () => {
                               </Badge>
                             </div>
                           </div>
-                          
+
                           <p className="text-sm text-gray-600 mt-2 line-clamp-2 pl-11">{task.description}</p>
-                          
+
                           {/* Task metadata - Budget, Deadline, Duration */}
                           <div className="flex flex-wrap gap-4 mt-3 pl-11 text-sm text-gray-600">
                             <div className="flex items-center gap-1">
                               <DollarSign size={14} className="text-blue-500" />
                               <span>{task.budget}</span>
                             </div>
-                            
+
                             <div className="flex items-center gap-1">
                               <Calendar size={14} className="text-blue-500" />
                               <span>{task.deadline}</span>
                             </div>
-                            
+
                             <div className="flex items-center gap-1">
                               <Clock size={14} className="text-blue-500" />
                               <span>{task.duration}</span>
                             </div>
-                            
+
                             {task.ndaRequired && (
                               <div className="flex items-center gap-1">
                                 <FileCheck size={14} className="text-red-500" />
@@ -872,7 +872,7 @@ const MyTasks = () => {
                               </div>
                             )}
                           </div>
-                          
+
                           {/* Tech stack tags */}
                           <div className="flex flex-wrap gap-2 mt-3 pl-11">
                             {task.techStack.map((tech, idx) => (
@@ -914,9 +914,9 @@ const MyTasks = () => {
                             <span className="hidden sm:inline">{task.views} views</span>
                             <span className="sm:hidden">{task.views}</span>
                           </Button>
-                          <Button 
-                            variant="ghost" 
-                            size="sm" 
+                          <Button
+                            variant="ghost"
+                            size="sm"
                             className="text-blue-600 hover:text-blue-700 hover:bg-blue-50/50 h-8"
                             onClick={() => handleViewApplications(task.id)}
                           >
@@ -924,7 +924,7 @@ const MyTasks = () => {
                             <span>{task.applications} {task.applications === 1 ? 'Applicant' : 'Applicants'}</span>
                           </Button>
                         </div>
-                        
+
                         <div className="text-xs text-gray-500">
                           Posted: {task.posted}
                         </div>
@@ -951,8 +951,8 @@ const MyTasks = () => {
         </div>
 
         {/* Past Tasks - Minor Half - keeping this as is for now */}
-      
-        
+
+
       </div>
     </div>
   );
@@ -961,7 +961,7 @@ const MyTasks = () => {
 // Post Task Component
 const PostTask = () => (
   <div className="p-4 space-y-8">
-    <motion.div 
+    <motion.div
       className="text-center max-w-2xl mx-auto mb-12"
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
@@ -974,7 +974,7 @@ const PostTask = () => (
         Find the perfect developer for your project by providing detailed requirements
       </p>
     </motion.div>
-    <PostTaskForm /> 
+    <PostTaskForm />
   </div>
 );
 
@@ -998,7 +998,7 @@ import Rooms from '../components/chat/Rooms';
 // Add UserProfile component
 const UserProfile = () => {
   const navigate = useNavigate();
-  const location = useLocation();  
+  const location = useLocation();
   const [isEditing, setIsEditing] = useState(false);
   // This would typically come from a context or API call
   const [userData, setUserData] = useState({
@@ -1066,7 +1066,7 @@ const UserProfile = () => {
         ...prev,
         ...updatedData
       }));
-      
+
       // Navigate back to view mode
       navigate('/company/dashboard/profile');
       return Promise.resolve();
@@ -1083,17 +1083,17 @@ const UserProfile = () => {
 
   // Show edit form if in edit mode
   if (isEditing) {
-    return <EditProfile 
-      userData={userData} 
+    return <EditProfile
+      userData={userData}
       onSave={handleProfileUpdate}
-      onCancel={handleCancelEdit} 
+      onCancel={handleCancelEdit}
     />;
   }
 
   // Otherwise show profile view
   return (
     <div className="p-6 md:p-8 max-w-4xl mx-auto">
-      <motion.div 
+      <motion.div
         className="bg-white rounded-xl shadow-sm border border-blue-100 overflow-hidden"
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -1106,7 +1106,7 @@ const UserProfile = () => {
             backgroundImage: 'radial-gradient(circle at 1px 1px, rgba(255, 255, 255, 0.15) 1px, transparent 0)',
             backgroundSize: '20px 20px'
           }}></div>
-          
+
           <div className="absolute -bottom-16 left-8 flex items-end">
             <div className="w-32 h-32 rounded-full bg-white p-1 shadow-md">
               <div className="w-full h-full rounded-full bg-gradient-to-r from-blue-600 to-blue-400 flex items-center justify-center">
@@ -1117,7 +1117,7 @@ const UserProfile = () => {
             </div>
           </div>
         </div>  {/* Grid Pattern Overlay */}
-        
+
         {/* Profile information */}
         <div className="pt-20 pb-8 px-8">
           <div className="flex flex-col md:flex-row justify-between md:items-center gap-4">
@@ -1134,8 +1134,8 @@ const UserProfile = () => {
             </div>
             <div className="flex gap-3 px-8">
               <Button
-                variant="outline" 
-                size="sm" 
+                variant="outline"
+                size="sm"
                 className="gap-2"
                 onClick={() => navigate('/company/dashboard/profile/edit')}
               >
@@ -1219,7 +1219,7 @@ const UserProfile = () => {
             )}
 
           </div>
-          
+
           {/* Portfolio Links */}
           {userData.portfolio && Object.values(userData.portfolio).some(link => link) && (
             <div className="mt-8">
@@ -1233,7 +1233,7 @@ const UserProfile = () => {
               </Card>
             </div>
           )}
-          
+
           {/* Activity section */}
           <div className="mt-8">
             <h2 className="text-xl font-semibold mb-4">Recent Activity</h2>
@@ -1260,8 +1260,8 @@ const SidebarLink = ({ to, icon: Icon, label, isActive, isExpanded }) => {
     <Link
       to={to}
       className={`flex items-center py-3 px-3 rounded-lg transition-colors ${isActive
-          ? 'bg-blue-50 text-blue-600 font-medium'
-          : 'text-gray-700 hover:bg-gray-100'
+        ? 'bg-blue-50 text-blue-600 font-medium'
+        : 'text-gray-700 hover:bg-gray-100'
         }`}
     >
       <Icon size={20} className={isActive ? 'text-blue-600' : 'text-gray-500'} />
@@ -1277,8 +1277,8 @@ const SidebarLink = ({ to, icon: Icon, label, isActive, isExpanded }) => {
 const CompanyDashboard = () => {
   const [isSidebarExpanded, setIsSidebarExpanded] = useState(true);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const location = useLocation();          const sidebarRef = useRef(null);
-  
+  const location = useLocation(); const sidebarRef = useRef(null);
+
   // Close menu when route changes
   useEffect(() => {
     setIsMobileMenuOpen(false);
@@ -1325,16 +1325,16 @@ const CompanyDashboard = () => {
   };
 
   const navLinks = NAV_LINKS[UserRole.COMPANY.toLowerCase()]
-  
+
   // // Get the current active link
   const getActiveRoute = () => {
     const currentPath = location.pathname;
-  
+
     const activeLink = navLinks.find(link =>
       currentPath === link.to ||
       (link.to !== "/company/dashboard" && currentPath.includes(link.to))
     );
-  
+
     // Make sure only the label (string) is returned
     return activeLink?.label || 'Dashboard';
   };
@@ -1349,7 +1349,7 @@ const CompanyDashboard = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-blue-100/50 cursor-none flex">
       <CustomCursor />
-      
+
       {/* Mobile Overlay */}
       <AnimatePresence>
         {isMobileMenuOpen && (
@@ -1363,16 +1363,16 @@ const CompanyDashboard = () => {
           />
         )}
       </AnimatePresence>
-      
-      {/* Sidebar - Desktop and Mobile */} 
+
+      {/* Sidebar - Desktop and Mobile */}
       <motion.aside
         ref={sidebarRef}
         className={`fixed inset-y-0 left-0 z-30 bg-white shadow-md flex flex-col border-r border-blue-100 h-screen overflow-hidden lg:relative lg:translate-x-0 ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}`}
-        animate={{ 
+        animate={{
           // For mobile, always show full width when open
-          width: (isSidebarExpanded || isMobileMenuOpen) ? 240 : 80, 
+          width: (isSidebarExpanded || isMobileMenuOpen) ? 240 : 80,
           transition: { duration: 0.3, ease: "easeInOut" }
-        }}     onClick={() => setIsMobileMenuOpen(false)}
+        }} onClick={() => setIsMobileMenuOpen(false)}
         transition={{ duration: 0.3 }}
       >
         {/* Logo section */}
@@ -1396,8 +1396,8 @@ const CompanyDashboard = () => {
             </AnimatePresence>
           </Link>
           {/* Toggle sidebar button - desktop only, hidden on mobile */}
-          <button 
-            onClick={() => setIsSidebarExpanded(!isSidebarExpanded)}       initial={{ opacity: 0, width: 0 }}
+          <button
+            onClick={() => setIsSidebarExpanded(!isSidebarExpanded)} initial={{ opacity: 0, width: 0 }}
             className="hidden lg:flex items-center justify-center p-1.5 rounded-full bg-blue-50 text-blue-600 hover:bg-blue-100 transition-all"
           >
             {isSidebarExpanded ? <ChevronLeft size={18} /> : <ChevronRight size={18} />}
@@ -1405,7 +1405,7 @@ const CompanyDashboard = () => {
 
           {/* Close button - mobile only */}
           {isMobileMenuOpen && (
-            <button 
+            <button
               onClick={() => setIsMobileMenuOpen(false)}
               className="lg:hidden flex items-center justify-center p-1.5 rounded-full bg-red-50 text-red-600 hover:bg-red-100 transition-all"
             >
@@ -1416,7 +1416,7 @@ const CompanyDashboard = () => {
 
         {/* Nav links - Make this section scrollable if needed */}
         <nav className="flex-1 py-6 space-y-1 px-3 overflow-y-auto">
-        {navLinks.map((link) => (
+          {navLinks.map((link) => (
             <SidebarLink
               key={link.to}
               to={link.to}
@@ -1455,7 +1455,7 @@ const CompanyDashboard = () => {
       </motion.aside>
 
       {/* Main Content Area - Make only this part scrollable */}
-      <motion.main 
+      <motion.main
         className="flex-1 min-w-0 h-screen overflow-y-auto bg-gray-50"
         animate={{ marginLeft: isSidebarExpanded ? 0 : 0 }}
       >
@@ -1472,7 +1472,7 @@ const CompanyDashboard = () => {
               >
                 <Menu className="h-6 w-6" />
               </button>
-              
+
               <h1 className="text-xl font-semibold text-gray-900">{getActiveRoute()}</h1>
             </div>
 
@@ -1496,7 +1496,7 @@ const CompanyDashboard = () => {
             </div>
           </div>
         </header>
-        
+
         {/* Page Content - This will scroll */}
         <div className="py-4 h-[calc(100vh-4rem)] overflow-y-auto">
           <Routes>
@@ -1508,13 +1508,14 @@ const CompanyDashboard = () => {
             <Route path="/settings" element={<SettingsPage />} />
             <Route path="/profile" element={<UserProfile />} />
             <Route path="/profile/edit" element={<UserProfile />} />
-            <Route path="payments" element={<CompanyPayments />} />
-
-            <Route path="inbox" element={<Rooms />} />
-
+            <Route path="/payments" element={<CompanyPayments />} />
+            <Route path="/inbox" element={<Rooms />} />
+            <Route path="chat/:taskId/:applicationId" element={<ChatRoomWrapper />} />
             {/* New routes for task applications */}
             <Route path="/tasks/:taskId/applications" element={<ApplicationDetailsComponent />} />
             {/* <Route path="/tasks/:taskId/applications/:applicationId" element={<Applications />} /> */}
+            <Route path="*" element={<NotFound />} />
+
           </Routes>
         </div>
       </motion.main>

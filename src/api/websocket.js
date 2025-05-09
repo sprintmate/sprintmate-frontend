@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react';
 
-const BASE_URL = import.meta.env.VITE_API_BASE_URL
+const BASE_URL = import.meta.env.VITE_API_BASE_URL;
+
 
 
 export const useChatSocket = (roomId, onMessage) => {
@@ -8,8 +9,8 @@ export const useChatSocket = (roomId, onMessage) => {
 
     useEffect(() => {
         if (!roomId) return;
-
-        const ws = new WebSocket(`ws://localhost:9090/chat?roomId=${roomId}`);
+        const protocol = window.location.protocol === 'https:' ? 'wss' : 'ws';
+        const ws = new WebSocket(`${protocol}://${BASE_URL}/chat?roomId=${roomId}`);
         ws.onmessage = (msg) => {
             const data = JSON.parse(msg.data);
             onMessage(data);

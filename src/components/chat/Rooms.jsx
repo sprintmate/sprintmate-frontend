@@ -10,8 +10,18 @@ import { Badge } from "@/components/ui/badge";
 import { useNavigate } from "react-router-dom";
 import { formatDistanceToNow } from "date-fns";
 import ChatRoom from "./ChatRoom";
+import { UserRole } from "../../constants/Role";
+import { getBaseRedirectionPath } from "../../utils/applicationUtils";
 
 const PAGE_SIZE = 10;
+
+export const getChatRedirectionPath = (taskId, applicationId) => {
+  const baseRedirection = getBaseRedirectionPath();
+  console.log('base redirection path is this ', baseRedirection);
+  const url = `${baseRedirection}/chat/${taskId}/${applicationId}`
+  console.log('url to redirect {} ', url)
+  return url;
+}
 
 const Rooms = ({ taskId, applicationId, token }) => {
   const [rooms, setRooms] = useState([]);
@@ -82,11 +92,9 @@ const Rooms = ({ taskId, applicationId, token }) => {
   };
 
   if (selectedRoom) {
-    return (
-      <div className="h-screen">
-        <ChatRoom room={selectedRoom} onClose={handleCloseChat} />
-      </div>
-    );
+    const url = getChatRedirectionPath(selectedRoom.taskId, selectedRoom.applicationId);
+    console.log('selected room is this ', selectedRoom)
+    navigate(url);
   }
 
   return (
@@ -148,20 +156,20 @@ const Rooms = ({ taskId, applicationId, token }) => {
               exit={{ opacity: 0, y: -20 }}
               transition={{ duration: 0.3, delay: index * 0.1 }}
             >
-              <Card 
+              <Card
                 className="overflow-hidden backdrop-blur-sm border-blue-100/50 hover:border-blue-200/70 transition-all duration-300 cursor-pointer"
                 onClick={() => handleRoomClick(room)}
               >
                 <CardContent className="relative p-4 sm:p-5">
                   {/* Status indicator line */}
-                  <motion.div 
+                  <motion.div
                     className="absolute left-0 top-0 bottom-0 w-1 bg-blue-500"
                     initial={{ height: 0 }}
                     whileInView={{ height: '100%' }}
                     viewport={{ once: true }}
                     transition={{ duration: 0.5 }}
                   />
-                  
+
                   <div className="flex flex-col gap-3 pl-3">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
@@ -182,7 +190,7 @@ const Rooms = ({ taskId, applicationId, token }) => {
                       <div className="flex items-center gap-2 text-sm text-gray-500">
                         <Clock size={14} />
                         <span>
-                          {room.lastMessageAt 
+                          {room.lastMessageAt
                             ? formatDistanceToNow(new Date(room.lastMessageAt), { addSuffix: true })
                             : 'No messages yet'}
                         </span>
@@ -207,13 +215,13 @@ const Rooms = ({ taskId, applicationId, token }) => {
           <div className="inline-block animate-spin rounded-full h-8 w-8 border-4 border-blue-500 border-t-transparent"></div>
         </div>
       )}
-      
+
       {hasMore && !isLoading && (
         <div ref={loaderRef} className="text-center py-4 text-gray-500">
           Loading more...
         </div>
       )}
-      
+
       {!hasMore && rooms.length > 0 && (
         <div className="text-center text-sm text-gray-400 mt-4">
           No more rooms to load

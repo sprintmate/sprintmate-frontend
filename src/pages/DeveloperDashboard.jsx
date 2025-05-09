@@ -19,6 +19,7 @@ import {
 } from 'lucide-react';
 
 import CustomCursor from "@/components/ui/CustomCursor";
+import ChatRoomWrapper from '../components/chat/ChatRoomWrapper'; 
 
 // Import developer dashboard components
 import DeveloperHome from '@/components/developer/DeveloperHome';
@@ -311,6 +312,8 @@ const DeveloperDashboard = () => {
             <Route path="earnings" element={<DeveloperPayments />} />
             <Route path="profile" element={<DeveloperProfile developer={developer} />} />
             <Route path="inbox" element={<Rooms />} />
+            <Route path="/chat/:taskId/:applicationId" element={<ChatRoomWrapper />} />
+            
             <Route path="*" element={<NotFound />} />
           </Routes>
         </div>

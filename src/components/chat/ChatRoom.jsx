@@ -9,7 +9,7 @@ import axios from "axios";
 import { authUtils } from "../../utils/authUtils";
 import useWebSocket from "../../services/websocketService";
 
-const PAGE_SIZE = 20;
+const PAGE_SIZE = 50;
 
 const ChatRoom = ({ room, onClose }) => {
   const [messages, setMessages] = useState([]);
@@ -18,6 +18,8 @@ const ChatRoom = ({ room, onClose }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [newMessage, setNewMessage] = useState("");
   const [isWebSocketConnected, setIsWebSocketConnected] = useState(false);
+  const scrollToBottomRef = useRef(null); 
+
 
   const loaderRef = useRef(null);
   const fetchedPagesRef = useRef(new Set());
@@ -73,13 +75,17 @@ const ChatRoom = ({ room, onClose }) => {
     );
   }, []);
 
+  const scrollToBottom = () => {
+    scrollToBottomRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
+  };
+
 
 
   const { sendMessage, isConnected } = useWebSocket(room?.externalId, handleNewMessage);
 
   useEffect(() => {
     setIsWebSocketConnected(isConnected);
-    console.log('is connected on useeffetc',isConnected);
+    console.log('is connected on useeffetc', isConnected);
   }, [isConnected]);
 
   useEffect(() => {
@@ -112,6 +118,12 @@ const ChatRoom = ({ room, onClose }) => {
     return () => observerRef.current?.disconnect();
   }, [fetchMessages, hasMore]);
 
+  useEffect(() => {
+    if (messages.length > 0) {
+      scrollToBottom(); // smooth scroll
+    }
+  }, [messages]);
+
   const handleSendMessage = () => {
     console.log('sending message ', newMessage);
     if (!newMessage.trim() || !isConnected) return;
@@ -125,6 +137,8 @@ const ChatRoom = ({ room, onClose }) => {
     if (isYesterday(date)) return "Yesterday";
     return format(date, "MMMM d, yyyy");
   };
+
+  const CURRENT_USER_ID = authUtils.getUserProfile().userId;
 
   return (
     <div className="h-screen flex flex-col bg-gray-50">
@@ -154,33 +168,38 @@ const ChatRoom = ({ room, onClose }) => {
             )}
 
             <AnimatePresence>
-              {Object.entries(groupedMessages).map(([date, messagesOnDate]) => (
-                <motion.div key={date} initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-4">
-                  <div className="flex justify-center">
-                    <span className="text-xs font-medium text-gray-500 bg-gray-100 px-3 py-1 rounded-full">
-                      {formatMessageDate(date)}
-                    </span>
-                  </div>
-                  {messagesOnDate.map((message,index) => {
-                    const isOwn = message.senderId === authUtils.getUserProfile().userId;
-                    return (
-                      <motion.div
-                        key={index}
-                        initial={{ opacity: 0, y: 10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        className={`flex ${isOwn ? "justify-end" : "justify-start"}`}
-                      >
-                        <div className={`max-w-[70%] rounded-lg px-4 py-2 ${isOwn ? "bg-blue-500 text-white" : "bg-white text-gray-900"}`}>
-                          <div className="text-sm">{message.content}</div>
-                          <div className={`text-xs mt-1 ${isOwn ? "text-blue-100" : "text-gray-500"}`}>
-                            {format(parseISO(message.createdAt), "h:mm a")}
+              <div className="chat-scroll-container">
+                {Object.entries(groupedMessages).map(([date, messagesOnDate]) => (
+                  <motion.div key={date} initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-4">
+                    <div className="flex justify-center">
+                      <span className="text-xs font-medium text-gray-500 bg-gray-100 px-3 py-1 rounded-full">
+                        {formatMessageDate(date)}
+                      </span>
+                    </div>
+                    {messagesOnDate.map((message, index) => {
+                      const isOwn = message.senderId === authUtils.getUserProfile().userId;
+                      return (
+                        <motion.div
+                          key={index}
+                          initial={{ opacity: 0, y: 10 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          className={`flex ${isOwn ? "justify-end" : "justify-start"}`}
+                        >
+                          <div className={`max-w-[70%] rounded-lg px-4 py-2 ${isOwn ? "bg-blue-500 text-white" : "bg-white text-gray-900"}`}>
+                            <div className="text-sm">{message.content}</div>
+                            <div className={`text-xs mt-1 ${isOwn ? "text-blue-100" : "text-gray-500"}`}>
+                              {format(parseISO(message.createdAt), "h:mm a")}
+                            </div>
                           </div>
-                        </div>
-                      </motion.div>
-                    );
-                  })}
-                </motion.div>
-              ))}
+                        </motion.div>
+
+                      );
+                    })}
+                  </motion.div>
+                ))}
+                <div ref={scrollToBottomRef} />
+              </div>
+
             </AnimatePresence>
           </>
         )}
