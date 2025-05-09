@@ -115,6 +115,7 @@ const MyTasks = () => {
   const [totalPages, setTotalPages] = useState(0);
   const [totalTasks, setTotalTasks] = useState(0);
   const [error, setError] = useState(null);
+  const [analytics, setAnalytics] = useState(null); // Replace static analytics with state
   
   // The scroll progress stuff
   const { scrollYProgress } = useScroll({
@@ -125,42 +126,42 @@ const MyTasks = () => {
   const url = import.meta.env.VITE_API_BASE_URL || "http://sprintmate-stage.ap-south-1.elasticbeanstalk.com:8080";
   
   // Analytics data (we'll keep using this for now)
-  const analytics = {
-    totalTasks: 15,
-    activeTasks: 3,
-    totalApplications: 45,
-    avgApplicationsPerTask: 8,
-    completionRate: 85,
-    avgRating: 4.7,
-    topTechStacks: ["React", "Node.js", "Python", "JavaScript"],
-    weeklyStats: {
-      taskViews: 347,
-      newApplications: 23,
-      completedTasks: 2,
-      growth: 18
-    },
-    monthlyStats: {
-      taskViews: 1245,
-      newApplications: 87,
-      completedTasks: 7,
-      growth: 22
-    },
-    yearlyStats: {
-      taskViews: 12650,
-      newApplications: 684,
-      completedTasks: 42,
-      growth: 67
-    },
-    devEngagement: 78,
-    timeToHire: 4.3, // days
-    tasksByCategory: [
-      { name: "Frontend", value: 40 },
-      { name: "Backend", value: 30 },
-      { name: "Full Stack", value: 15 },
-      { name: "Mobile", value: 10 },
-      { name: "DevOps", value: 5 }
-    ]
-  };
+  // const analytics = {
+  //   totalTasks: 15,
+  //   activeTasks: 3,
+  //   totalApplications: 45,
+  //   avgApplicationsPerTask: 8,
+  //   completionRate: 85,
+  //   avgRating: 4.7,
+  //   topTechStacks: ["React", "Node.js", "Python", "JavaScript"],
+  //   weeklyStats: {
+  //     taskViews: 347,
+  //     newApplications: 23,
+  //     completedTasks: 2,
+  //     growth: 18
+  //   },
+  //   monthlyStats: {
+  //     taskViews: 1245,
+  //     newApplications: 87,
+  //     completedTasks: 7,
+  //     growth: 22
+  //   },
+  //   yearlyStats: {
+  //     taskViews: 12650,
+  //     newApplications: 684,
+  //     completedTasks: 42,
+  //     growth: 67
+  //   },
+  //   devEngagement: 78,
+  //   timeToHire: 4.3, // days
+  //   tasksByCategory: [
+  //     { name: "Frontend", value: 40 },
+  //     { name: "Backend", value: 30 },
+  //     { name: "Full Stack", value: 15 },
+  //     { name: "Mobile", value: 10 },
+  //     { name: "DevOps", value: 5 }
+  //   ]
+  // };
 
   const taskActivityData = {
     daily: [25, 36, 42, 29, 38, 46, 53],
@@ -220,6 +221,35 @@ const MyTasks = () => {
     if (companyId) {
       fetchTasks();
     }
+  }, [companyId]);
+
+  // Fetch company statistics when companyId is available
+  useEffect(() => {
+    const fetchCompanyStatistics = async () => {
+      try {
+        if (!companyId) return;
+
+        const token = getToken();
+        const response = await axios.get(
+          `${url}/v1/company-profiles/${companyId}/tasks/statistics`,
+          {
+            headers: {
+              'Authorization': token,
+              'Content-Type': 'application/json',
+            },
+          }
+        );
+
+        if (response.data) {
+          setAnalytics(response.data); // Set the fetched analytics data
+        }
+      } catch (error) {
+        console.error("Error fetching company statistics:", error);
+        setError("Failed to load statistics. Please try again later.");
+      }
+    };
+
+    fetchCompanyStatistics();
   }, [companyId]);
 
   // Function to fetch tasks from API
@@ -350,17 +380,17 @@ const MyTasks = () => {
   const getActiveStats = () => {
     switch(activeStat) {
       case 'week':
-        return analytics.weeklyStats;
+        return analytics?.weeklyStats;
       case 'month':
-        return analytics.monthlyStats;
+        return analytics?.monthlyStats;
       case 'year':
-        return analytics.yearlyStats;
+        return analytics?.yearlyStats;
       default:
-        return analytics.weeklyStats;
+        return analytics?.weeklyStats;
     }
   };
 
-  const activeStats = getActiveStats();
+  const activeStats = getActiveStats() || {}; // Ensure activeStats is always an object
 
   // Navigate to task applications with first application ID when available
   const handleViewApplications = (taskId) => {
@@ -544,172 +574,91 @@ const MyTasks = () => {
       </div>
 
       {/* Enhanced Analytics Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5">
-        <AnimatedCard delay={0.1}>
-          <GlowContainer color="blue">
-            <Card className="bg-white backdrop-blur-sm border-blue-100 h-full">
-              <CardContent className="p-4 sm:p-5">
-                <div className="flex items-center justify-between mb-2">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-lg bg-blue-500/10 flex items-center justify-center">
-                      <Eye className="text-blue-600" size={18} />
-                    </div>
-                    <div className="font-medium text-gray-900">Task Views</div>
-                  </div>
-                  <Badge variant="blue" gradient glow className="capitalize hidden sm:flex">
-                    <ArrowUpRight size={12} className="mr-1" />
-                    {activeStats.growth}%
-                  </Badge>
-                </div>
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 sm:gap-5">
+        {/* Card for "Task Views" */}
+        <Card className="bg-white shadow-md rounded-lg border border-gray-200">
+          <CardContent className="p-4 flex flex-col items-center">
+            <div className="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center mb-3">
+              <Eye className="text-blue-600" size={24} />
+            </div>
+            <div className="text-lg font-semibold text-gray-900">Task Views</div>
+            <div className="text-2xl font-bold text-gray-900 mt-2">
+              {isLoading || !analytics?.taskViews ? (
+                <Shimmer width="w-16" height="h-9" />
+              ) : (
+                analytics.taskViews.toLocaleString()
+              )}
+            </div>
+          </CardContent>
+        </Card>
 
-                <div className="flex items-end justify-between">
-                  <div className="text-2xl sm:text-3xl font-bold text-gray-900">
-                    {isLoading ? <Shimmer width="w-20" height="h-9" /> : activeStats.taskViews.toLocaleString()}
-                  </div>
-                  <div className="flex flex-col sm:flex-row items-end sm:items-center gap-1 text-xs sm:text-sm">
-                    <Badge variant="blue" gradient glow className="capitalize sm:hidden">
-                      <ArrowUpRight size={10} className="mr-1" />
-                      {activeStats.growth}%
-                    </Badge>
-                    <div className="w-16 sm:w-24 h-8 bg-gray-100 rounded-full overflow-hidden">
-                      <motion.div
-                        className="h-full bg-gradient-to-r from-blue-400 to-blue-600 rounded-full"
-                        initial={{ width: 0 }}
-                        animate={{ width: `${activeStats.growth}%` }}
-                        transition={{ delay: 0.5, duration: 1, ease: "easeOut" }}
-                      />
-                    </div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </GlowContainer>
-        </AnimatedCard>
+        {/* Card for "Applications" */}
+        <Card className="bg-white shadow-md rounded-lg border border-gray-200">
+          <CardContent className="p-4 flex flex-col items-center">
+            <div className="w-12 h-12 rounded-full bg-purple-100 flex items-center justify-center mb-3">
+              <Users className="text-purple-600" size={24} />
+            </div>
+            <div className="text-lg font-semibold text-gray-900">Applications</div>
+            <div className="text-2xl font-bold text-gray-900 mt-2">
+              {isLoading || !analytics?.Applications ? (
+                <Shimmer width="w-16" height="h-9" />
+              ) : (
+                analytics.Applications.toLocaleString()
+              )}
+            </div>
+          </CardContent>
+        </Card>
 
-        <AnimatedCard delay={0.2}>
-          <GlowContainer color="purple">
-            <Card className="bg-white backdrop-blur-sm border-purple-100 h-full">
-              <CardContent className="p-4 sm:p-5">
-                <div className="flex items-center justify-between mb-2">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-lg bg-purple-500/10 flex items-center justify-center">
-                      <Users className="text-purple-600" size={18} />
-                    </div>
-                    <div className="font-medium text-gray-900">Applications</div>
-                  </div>
-                  <Badge variant="purple" gradient glow className="capitalize">New</Badge>
-                </div>
+        {/* Card for "Task Completed" */}
+        <Card className="bg-white shadow-md rounded-lg border border-gray-200">
+          <CardContent className="p-4 flex flex-col items-center">
+            <div className="w-12 h-12 rounded-full bg-green-100 flex items-center justify-center mb-3">
+              <CheckCircle2 className="text-green-600" size={24} />
+            </div>
+            <div className="text-lg font-semibold text-gray-900">Task Completed</div>
+            <div className="text-2xl font-bold text-gray-900 mt-2">
+              {isLoading || !analytics?.["Task Completed"] ? (
+                <Shimmer width="w-16" height="h-9" />
+              ) : (
+                analytics["Task Completed"].toLocaleString()
+              )}
+            </div>
+          </CardContent>
+        </Card>
 
-                <div className="flex items-end justify-between">
-                  <div className="text-2xl sm:text-3xl font-bold text-gray-900">
-                    {isLoading ? <Shimmer width="w-16" height="h-9" /> : activeStats.newApplications}
-                  </div>
-                  <div className="flex items-center gap-0.5 mt-1 text-amber-400">
-                    {Array.from({ length: 5 }).map((_, idx) => (
-                      <motion.div
-                        key={idx}
-                        initial={{ opacity: 0, scale: 0 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        transition={{ delay: 0.8 + (idx * 0.1) }}
-                        className="transition-transform hover:scale-110"
-                      >
-                        <Star
-                          size={16}
-                          fill={idx < Math.floor(analytics.avgRating) ? "currentColor" : "none"}
-                          className={idx < Math.floor(analytics.avgRating) ? "" : "text-gray-300"}
-                        />
-                      </motion.div>
-                    ))}
-                    <span className="ml-1 text-sm font-medium text-gray-700">{activeStats.newApplications}</span>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </GlowContainer>
-        </AnimatedCard>
+        {/* Card for "Under Review" */}
+        <Card className="bg-white shadow-md rounded-lg border border-gray-200">
+          <CardContent className="p-4 flex flex-col items-center">
+            <div className="w-12 h-12 rounded-full bg-yellow-100 flex items-center justify-center mb-3">
+              <Filter className="text-yellow-600" size={24} />
+            </div>
+            <div className="text-lg font-semibold text-gray-900">Under Review</div>
+            <div className="text-2xl font-bold text-gray-900 mt-2">
+              {isLoading || !analytics?.["Under Review"] ? (
+                <Shimmer width="w-16" height="h-9" />
+              ) : (
+                analytics["Under Review"].toLocaleString()
+              )}
+            </div>
+          </CardContent>
+        </Card>
 
-        <AnimatedCard delay={0.3}>
-          <GlowContainer color="green">
-            <Card className="bg-white backdrop-blur-sm border-green-100 h-full">
-              <CardContent className="p-4 sm:p-5">
-                <div className="flex items-center justify-between mb-2">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-lg bg-green-500/10 flex items-center justify-center">
-                      <CheckCircle2 className="text-green-600" size={18} />
-                    </div>
-                    <div className="font-medium text-gray-900">Completed</div>
-                  </div>
-                  <Badge variant="green" gradient glow className="capitalize">{activeStat}</Badge>
-                </div>
-
-                <div className="flex items-end justify-between">
-                  <div className="text-2xl sm:text-3xl font-bold text-gray-900">
-                    {isLoading ? <Shimmer width="w-16" height="h-9" /> : activeStats.completedTasks}
-                  </div>
-                  <div className="sm:w-24 h-8 hidden sm:block">
-                    <div className="flex h-full items-end space-x-1">
-                      {taskActivityData.daily.map((value, index) => (
-                        <motion.div
-                          key={index}
-                          className="bg-green-200 rounded-sm flex-1"
-                          initial={{ height: 0 }}
-                          animate={{ height: `${(value / Math.max(...taskActivityData.daily)) * 100}%` }}
-                          transition={{ delay: 0.3 + (index * 0.05), duration: 0.5 }}
-                        >
-                          <div 
-                            className="w-full bg-green-500 rounded-sm transition-all" 
-                            style={{ height: `${(activeStats.completedTasks / value) * 30}%` }}
-                          ></div>
-                        </motion.div>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </GlowContainer>
-        </AnimatedCard>
-
-        <AnimatedCard delay={0.4}>
-          <GlowContainer color="yellow">
-            <Card className="bg-white backdrop-blur-sm border-amber-100 h-full">
-              <CardContent className="p-4 sm:p-5">
-                <div className="flex items-center justify-between mb-2">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-lg bg-amber-500/10 flex items-center justify-center">
-                      <Award className="text-amber-600" size={18} />
-                    </div>
-                    <div className="font-medium text-gray-900">Dev Rating</div>
-                  </div>
-                  <Badge variant="yellow" gradient glow className="capitalize">Top</Badge>
-                </div>
-
-                <div className="flex items-end justify-between">
-                  <div className="text-2xl sm:text-3xl font-bold text-gray-900">
-                    {isLoading ? <Shimmer width="w-16" height="h-9" /> : analytics.avgRating}
-                  </div>
-                  <div className="flex items-center gap-0.5 mt-1 text-amber-400">
-                    {Array.from({ length: 5 }).map((_, idx) => (
-                      <motion.div
-                        key={idx}
-                        initial={{ opacity: 0, scale: 0 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        transition={{ delay: 0.8 + (idx * 0.1) }}
-                        className="transition-transform hover:scale-110"
-                      >
-                        <Star
-                          size={16}
-                          fill={idx < Math.floor(analytics.avgRating) ? "currentColor" : "none"}
-                          className={idx < Math.floor(analytics.avgRating) ? "" : "text-gray-300"}
-                        />
-                      </motion.div>
-                    ))}
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </GlowContainer>
-        </AnimatedCard>
+        {/* Card for "Open for Applications" */}
+        <Card className="bg-white shadow-md rounded-lg border border-gray-200">
+          <CardContent className="p-4 flex flex-col items-center">
+            <div className="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center mb-3">
+              <Eye className="text-blue-600" size={24} />
+            </div>
+            <div className="text-lg font-semibold text-gray-900">Open for Applications</div>
+            <div className="text-2xl font-bold text-gray-900 mt-2">
+              {isLoading || !analytics?.["Open for Applications"] ? (
+                <Shimmer width="w-16" height="h-9" />
+              ) : (
+                analytics["Open for Applications"].toLocaleString()
+              )}
+            </div>
+          </CardContent>
+        </Card>
       </div>
 
       {/* Split View Container - Responsive grid */}
