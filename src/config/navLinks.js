@@ -6,7 +6,8 @@ import {
     Settings,
     Briefcase,
     User,
-    DollarSign
+    DollarSign,
+    MessageCircleCodeIcon
   } from 'lucide-react';
   
   export const NAV_LINKS = {
@@ -17,6 +18,8 @@ import {
       { to: "/company/dashboard/applications", icon: Users, label: 'Applications' },
       { to: '/company/dashboard/payments', icon: DollarSign, label: 'Payments' },
       { to: "/company/dashboard/settings", icon: Settings, label: 'Settings' },
+      { to: "/company/dashboard/inbox", icon: MessageCircleCodeIcon, label: 'Messages' },
+
     ],
     developer: [
       { to: '/developer/dashboard', icon: Home, label: 'Dashboard' },
@@ -25,6 +28,8 @@ import {
       { to: '/developer/dashboard/applications', icon: CheckSquare, label: 'My Applications' },
       { to: '/developer/dashboard/profile', icon: User, label: 'Profile' },
       { to: '/developer/dashboard/settings', icon: Settings, label: 'Settings' },
+      { to: "/developer/dashboard/inbox", icon: MessageCircleCodeIcon, label: 'Messages' },
+
     ]
   };
   

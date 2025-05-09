@@ -76,6 +76,8 @@ import {
   STATUS_DIALOG_CONFIG
 } from '../constants/taskApplicationStatusMachine';
 
+// import Rooms from '../components/chat/Rooms';
+
 
 // Import our new company dashboard view component
 import CompanyViewDashboard from '@/components/dashboard/CompanyViewDashboard';
@@ -90,13 +92,88 @@ import DeveloperPayments from './DeveloperPayments';
 import AllTasks from '@/components/dashboard/AllTasks';
 import Applications from './CompanyApplication';
 
-// New DashboardHome component that uses our professional dashboard
-const DashboardHome = () => (
-  //<CompanyViewDashboard />
-  <div>
-    THIS IS COMPANY DASHBOARD
-  </div>
-);
+import {  getTaskApplications } from '../api/taskApplicationService';
+
+
+// Applications Component - Pass applicationId to ApplicationDetails
+const ApplicationDetailsComponent = () => {
+  const navigate = useNavigate();
+  const { taskId, applicationId } = useParams();
+  const [applicationsData, setApplicationsData] = useState([]);
+  const [isLoading, setIsLoading] = useState(false);
+
+  // Fetch applications list if needed
+  // useEffect(() => {
+  //   if (taskId && !applicationId) {
+  //     // Fetch application list to redirect to the first one
+  //     setIsLoading(true);
+  //     const fetchApplications = async () => {
+  //       try {
+  //         const queryParams = new URLSearchParams({
+  //           size: 20,
+  //           page: 0,
+  //           sort: 'updatedAt,desc'
+  //       });
+  //         const response = await getTaskApplications(taskId,queryParams)
+  //         if (response.data && response.data.length > 0) {
+  //           console.log(response, "(((((((((((((((((((*********)))))))))))))))))");
+  //           navigate(`/company/dashboard/tasks/${taskId}/applications`);
+  //         }
+  //       } catch (err) {
+  //         console.error("Error fetching applications:", err);
+  //       } finally {
+  //         setIsLoading(false);
+  //       }
+  //     };
+  //     fetchApplications();
+  //   }
+  // }, [taskId, applicationId, navigate]);
+
+  useEffect(() => {
+    if (taskId) {
+      navigate(`/company/dashboard/tasks/${taskId}/applications`);
+    }
+  }, [taskId, applicationId, navigate]);
+
+  return (
+    <div className="p-6">
+      {taskId ? (
+        // If taskId is provided, render ApplicationDetails component
+        <ApplicationDetails applicationIdProp={applicationId} />
+      ) : (
+        // Otherwise, show the selection screen
+        <>
+          <motion.h2 
+            className="text-2xl font-bold mb-6"
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5 }}
+          >
+            Task Applications
+          </motion.h2>
+          <Card className="border-blue-100">
+            <CardContent className="p-6 text-center">
+              <div className="mb-4 w-16 h-16 mx-auto bg-blue-100 rounded-full flex items-center justify-center">
+                <Users className="h-8 w-8 text-blue-600" />
+              </div>
+              <h3 className="text-lg font-medium">Select a Task</h3>
+              <p className="text-gray-500 mt-2 max-w-md mx-auto">
+                Please select a task from the Tasks dashboard to view its applications.
+              </p>
+              <Button 
+                className="mt-4 bg-blue-600" asChild
+                onClick={() => navigate('/company/dashboard/tasks')}
+              >
+                View Tasks
+              </Button>
+            </CardContent>
+          </Card>
+        </>
+      )}
+    </div>
+  );
+};
+
 
 // Tasks Component
 const MyTasks = () => {
@@ -916,6 +993,7 @@ const SettingsPage = () => (
 // Add ProfileEdit component import};
 import EditProfile from '@/components/profile/EditProfile';
 import CompanyPayments from './CompanyPayments';
+import Rooms from '../components/chat/Rooms';
 
 // Add UserProfile component
 const UserProfile = () => {
@@ -1431,9 +1509,11 @@ const CompanyDashboard = () => {
             <Route path="/profile" element={<UserProfile />} />
             <Route path="/profile/edit" element={<UserProfile />} />
             <Route path="payments" element={<CompanyPayments />} />
-            
+
+            <Route path="inbox" element={<Rooms />} />
+
             {/* New routes for task applications */}
-            <Route path="/tasks/:taskId/applications" element={<Applications />} />
+            <Route path="/tasks/:taskId/applications" element={<ApplicationDetailsComponent />} />
             {/* <Route path="/tasks/:taskId/applications/:applicationId" element={<Applications />} /> */}
           </Routes>
         </div>

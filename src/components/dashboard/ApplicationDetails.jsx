@@ -34,9 +34,9 @@ import {
 import image3 from "../../assets/image3.webp";
 import ChatPanel from '../common/ChatPanel';
 import RazorpayPayment from '../common/RazorpayPayment';
-import { updateApplicationStatus, acceptApplicationStatus } from '../../api/taskApplicationService';
+import { updateApplicationStatus, acceptApplicationStatus, getTaskApplications } from '../../api/taskApplicationService';
 
-import { refundPayment,cancelPayment } from '../../api/paymentService';
+import { refundPayment, cancelPayment } from '../../api/paymentService';
 
 import { reloadPage } from '../../utils/applicationUtils';
 import { ApplicationStatus } from '../../constants/ApplicationStatus';
@@ -52,7 +52,6 @@ import {
 } from '../../constants/taskApplicationStatusMachine';
 
 import SecureDocumentViewer from '../DocumentViewer';
-
 
 const STATUS_MAP = {
   pending: { color: 'bg-yellow-100 text-yellow-800', icon: <Clock size={14} className="mr-1" /> },
@@ -234,12 +233,13 @@ const ApplicationDetails = () => {
     const fetchApplications = async () => {
       setIsLoading(true);
       try {
-        const response = await axios.get(
-          `${url}/v1/tasks/${taskId}/applications?page=${currentPage}&size=${pageSize}`,
-          {
-            headers: { Authorization: `${token}` }
-          }
-        );
+        const queryParams = new URLSearchParams({
+          size: 20,
+          page: 0,
+          sort: 'updatedAt,desc'
+        });
+        const response = await getTaskApplications(taskId, queryParams);
+        console.log(response);
 
         // Extract applications from the paginated response
         const { content, totalPages: totalPagesFromApi, totalElements } = response.data;
@@ -319,14 +319,7 @@ const ApplicationDetails = () => {
   // Handle payment success
   const handlePaymentSuccess = async (paymentData) => {
     try {
-      // Update local state to reflect acceptance
       console.log("handlePaymentSuccess payment data ", paymentData)
-      // setApplications(applications.map(app => {
-      //   if (app.externalId === paymentData.applicationId) {
-      //     return { ...app, status: 'HIRED' };
-      //   }
-      //   return app;
-      // }));
       reloadPage();
       const response = await acceptApplicationStatus(paymentData.taskId, paymentData.applicationId);
       if (response) {

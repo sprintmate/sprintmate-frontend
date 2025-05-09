@@ -46,3 +46,15 @@ export const fetchApplications = async(userId,companyId,queryParams) => {
         throw error;
     }
 }
+
+export const getTaskApplications = async(taskId,queryParams) => {
+    const url = `/v1/tasks/${taskId}/applications?${queryParams.toString()}`;
+
+    try {
+        const response = await httpInstance.get(url);
+        return response;
+    } catch (error) {
+        console.error('Error updating application status:', error);
+        throw error;
+    }
+}

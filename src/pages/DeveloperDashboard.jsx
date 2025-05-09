@@ -32,6 +32,7 @@ import { fetchUserProfile } from '../api/userService';
 import { NAV_LINKS } from '../config/navLinks';
 import { UserRole } from '../constants/Role';
 import DeveloperPayments from './DeveloperPayments';
+import Rooms from '../components/chat/Rooms';
 
 // Sidebar link component
 const SidebarLink = ({ to, icon: Icon, label, isActive, isExpanded }) => {
@@ -309,6 +310,7 @@ const DeveloperDashboard = () => {
             <Route path="settings" element={<SettingsPage />} />
             <Route path="earnings" element={<DeveloperPayments />} />
             <Route path="profile" element={<DeveloperProfile developer={developer} />} />
+            <Route path="inbox" element={<Rooms />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </div>
