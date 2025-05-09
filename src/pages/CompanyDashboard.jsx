@@ -773,7 +773,7 @@ const MyTasks = () => {
 
                 <div className="flex items-end justify-between">
                   <div className="text-2xl sm:text-3xl font-bold text-gray-900">
-                    {isLoading ? <Shimmer width="w-16" height="h-9" /> : analytics.avgRating}
+                    {isLoading ? <Shimmer width="w-16" height="h-9" /> : analytics?.avgRating}
                   </div>
                   <div className="flex items-center gap-0.5 mt-1 text-amber-400">
                     {Array.from({ length: 5 }).map((_, idx) => (
@@ -786,8 +786,8 @@ const MyTasks = () => {
                       >
                         <Star
                           size={16}
-                          fill={idx < Math.floor(analytics.avgRating) ? "currentColor" : "none"}
-                          className={idx < Math.floor(analytics.avgRating) ? "" : "text-gray-300"}
+                          fill={idx < Math.floor(analytics?.avgRating) ? "currentColor" : "none"}
+                          className={idx < Math.floor(analytics?.avgRating) ? "" : "text-gray-300"}
                         />
                       </motion.div>
                     ))}
