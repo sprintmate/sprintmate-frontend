@@ -382,6 +382,7 @@ const Applications = () => {
                                                     size="sm"
                                                     className="text-blue-600 hover:text-blue-700 hover:bg-blue-50/50"
                                                     onClick={() => handleOpenChat(app.developer)}
+                                                    disabled={['SHORTLISTED', 'ACCEPTED', 'IN_PROGRESS', 'SUBMITTED'].includes(app.status)}
                                                 >
                                                     <MessageSquare size={14} className="mr-1" />
                                                     Chat

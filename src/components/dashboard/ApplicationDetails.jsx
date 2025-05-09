@@ -49,7 +49,7 @@ import {
   getAllowedTransitions,
   canRoleUpdateStatus,
   STATUS_DIALOG_CONFIG
-} from '../../constants/taskApplicationStatusMachine';
+} from '../../constants/taskApplicationStatus';
 
 import SecureDocumentViewer from '../DocumentViewer';
 
@@ -697,6 +697,7 @@ const ApplicationDetails = () => {
                               size="sm"
                               className="border-green-200 text-green-600 hover:bg-green-50 hover:text-green-700 animate-pulse-subtle"
                               onClick={() => handleOpenChat(application.developer)}
+                              disabled={['SHORTLISTED', 'ACCEPTED', 'IN_PROGRESS', 'SUBMITTED'].includes(application.status)}
                             >
                               <MessageSquare size={14} className="mr-1.5" />
                               Chat with Developer
