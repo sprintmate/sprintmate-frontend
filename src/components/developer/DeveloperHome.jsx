@@ -1,10 +1,12 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Briefcase, Search, CheckCircle2, TrendingUp, Users, Clock, ArrowRight, Code, DollarSign, Calendar } from 'lucide-react';
+import { Briefcase, Search, CheckCircle2, TrendingUp, Users, Clock, ArrowRight, Code, DollarSign, Calendar, X } from 'lucide-react';
+import { getToken } from '../../services/authService';
+import axios from 'axios';
 
 const DeveloperHome = ({ developer }) => {
   // Extract developer skills
@@ -12,66 +14,120 @@ const DeveloperHome = ({ developer }) => {
   const name = developer?.name || 'Developer';
   const firstName = name.split(' ')[0];
 
-  // Mock data for recommended projects
-  const recommendedProjects = [
-    {
-      id: 1,
-      title: "E-commerce Platform Frontend",
-      description: "Build a responsive e-commerce frontend with React and Redux",
-      budget: "₹70,000",
-      deadline: "2 weeks",
-      skills: ["React", "Redux", "JavaScript"],
-      company: "TechSolutions Inc.",
-      postedDate: "2 days ago",
-      applicants: 7
-    },
-    {
-      id: 2,
-      title: "API Integration for Payment Gateway",
-      description: "Integrate multiple payment gateways into an existing Node.js application",
-      budget: "₹40,000",
-      deadline: "1 week",
-      skills: ["Node.js", "API", "Payment Gateway"],
-      company: "FinTech Solutions",
-      postedDate: "5 days ago",
-      applicants: 12
-    },
-    {
-      id: 3,
-      title: "Database Optimization for High-Traffic App",
-      description: "Optimize MySQL queries and database structure for performance",
-      budget: "₹55,000",
-      deadline: "10 days",
-      skills: ["MySQL", "Database Optimization", "SQL"],
-      company: "DataFlow Systems",
-      postedDate: "1 day ago",
-      applicants: 4
-    }
-  ];
 
-  // Stats data
+  // State for recommended projects from API
+  const [recommendedProjects, setRecommendedProjects] = useState([]);
+  const [projectsLoading, setProjectsLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchRecommendedProjects = async () => {
+      try {
+        setProjectsLoading(true);
+        const token = getToken();
+        const response = await axios.get(
+          `${import.meta.env.VITE_API_BASE_URL}/v1/developers/tasks?page=0&size=3&sort=createdAt,desc`,
+          {
+            headers: {
+              'Authorization': `Bearer ${token}`,
+              'Content-Type': 'application/json'
+            }
+          }
+        );
+        if (response.data && Array.isArray(response.data.content)) {
+          setRecommendedProjects(response.data.content);
+        } else {
+          setRecommendedProjects([]);
+        }
+      } catch (err) {
+        setRecommendedProjects([]);
+      } finally {
+        setProjectsLoading(false);
+      }
+    };
+    fetchRecommendedProjects();
+  }, []);
+
+  const statusColors = {
+    "Shortlisted": "blue",
+    "Submitted": "amber",
+    "Completed": "green",
+    "In Progress": "purple",
+    "Withdrawn": "gray",
+    "Cancelled": "red",
+    "Rejected": "red"
+  };
+
+  const statusIcons = {
+    "Shortlisted": <CheckCircle2 className="h-4 w-4 text-blue-600" />,
+    "Submitted": <Briefcase className="h-4 w-4 text-amber-600" />,
+    "Completed": <CheckCircle2 className="h-4 w-4 text-green-600" />,
+    "In Progress": <Clock className="h-4 w-4 text-purple-600" />,
+    "Withdrawn": <X className="h-4 w-4 text-gray-600" />,
+    "Cancelled": <X className="h-4 w-4 text-red-600" />,
+    "Rejected": <X className="h-4 w-4 text-red-600" />
+  };
+
+  // State for statistics from API
+  const [statsData, setStatsData] = useState({
+    availableProjects: 0,
+    appliedProjects: 0,
+    activeDevelopers: 0,
+    averageResponse: "N/A"
+  });
+  const [statsLoading, setStatsLoading] = useState(true);
+  const [statusStats, setStatusStats] = useState({});
+
+  useEffect(() => {
+    const fetchStats = async () => {
+      try {
+        setStatsLoading(true);
+        const token = getToken();
+        const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/v1/developers/statistics`, {
+          headers: {
+            'Authorization': `Bearer ${token}` // <-- Fix: add Bearer
+          }
+        });
+        if (response.ok) {
+          const data = await response.json();
+          setStatsData({
+            availableProjects: data.availableProjects ?? 0,
+            appliedProjects: data.appliedProjects ?? 0,
+            activeDevelopers: data.activeDevelopers ?? 0,
+            averageResponse: data.averageResponse ?? "N/A"
+          });
+          setStatusStats(data);
+        }
+      } catch (err) {
+        // Optionally handle error
+      } finally {
+        setStatsLoading(false);
+      }
+    };
+    fetchStats();
+  }, []);
+
   const stats = [
     { 
       title: "Available Projects", 
-      value: "145", 
+      value: statsLoading ? "..." : statsData.availableProjects, 
       icon: <Briefcase className="h-4 w-4 text-blue-600" />, 
       color: "blue" 
     },
     { 
       title: "Applied Projects", 
-      value: developer?.developerProfiles?.[0]?.applications ? Object.keys(developer.developerProfiles[0].applications).length : "0", 
+      value: statsLoading ? "..." : statsData.appliedProjects, 
       icon: <CheckCircle2 className="h-4 w-4 text-green-600" />, 
       color: "green" 
     },
     { 
       title: "Active Developers", 
-      value: "1,240", 
+      value: statsLoading ? "..." : statsData.activeDevelopers, 
       icon: <Users className="h-4 w-4 text-purple-600" />, 
       color: "purple" 
     },
     { 
       title: "Average Response", 
-      value: "24h", 
+      value: statsLoading ? "..." : statsData.averageResponse, 
       icon: <Clock className="h-4 w-4 text-amber-600" />, 
       color: "amber" 
     }
@@ -134,6 +190,35 @@ const DeveloperHome = ({ developer }) => {
         ))}
       </div>
 
+      {/* Application Status Statistics */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        {Object.entries(statusStats).map(([status, count], idx) => (
+          <motion.div
+            key={status}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: idx * 0.1 }}
+          >
+            <Card className="border-gray-100">
+              <CardContent className="p-4">
+                <div className="flex justify-between items-center">
+                  <div className={`w-10 h-10 rounded-lg bg-${statusColors[status] || "gray"}-50 flex items-center justify-center`}>
+                    {statusIcons[status] || <Briefcase className="h-4 w-4 text-gray-600" />}
+                  </div>
+                  <span className={`text-${statusColors[status] || "gray"}-600 text-sm font-medium`}>
+                    {status}
+                  </span>
+                </div>
+                <div className="mt-3">
+                  <h3 className="text-xl font-bold text-gray-900">{statsLoading ? "..." : count}</h3>
+                  <p className="text-sm text-gray-500">{status}</p>
+                </div>
+              </CardContent>
+            </Card>
+          </motion.div>
+        ))}
+      </div>
+
       {/* Skills section */}
       {skills.length > 0 && (
         <motion.div
@@ -169,60 +254,103 @@ const DeveloperHome = ({ developer }) => {
             <ArrowRight size={14} />
           </Link>
         </div>
-
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {recommendedProjects.map((project, index) => (
-            <motion.div
-              key={`project-${project.id}`} // Use a unique key with project id
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: 0.1 * index }}
-              whileHover={{ y: -5 }}
-            >
-              <Card className="h-full border-gray-100 hover:border-blue-200 transition-colors">
+          {projectsLoading ? (
+            Array(3).fill(0).map((_, idx) => (
+              <Card key={idx} className="h-full border-gray-100 animate-pulse">
                 <CardContent className="p-0">
-                  <div className="p-5">
-                    <div className="flex justify-between items-start">
-                      <h3 className="font-semibold text-gray-900">{project.title}</h3>
-                      <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
-                        {project.budget}
-                      </Badge>
-                    </div>
-                    
-                    <p className="mt-2 text-sm text-gray-600 line-clamp-2">{project.description}</p>
-                    
-                    <div className="mt-4 flex flex-wrap gap-1.5">
-                      {project.skills.map((skill, skillIndex) => (
-                        <Badge key={`project-${project.id}-skill-${skillIndex}`} variant="outline" className="text-xs bg-blue-50 border-blue-100">
-                          {skill}
-                        </Badge>
-                      ))}
-                    </div>
-                    
-                    <div className="mt-4 pt-4 border-t border-gray-100 flex items-center justify-between text-sm text-gray-500">
-                      <div className="flex items-center gap-1">
-                        <Calendar size={14} />
-                        <span>{project.deadline}</span>
-                      </div>
-                      <div className="flex items-center gap-1">
-                        <Users size={14} />
-                        <span>{project.applicants} applied</span>
-                      </div>
+                  <div className="p-5 space-y-3">
+                    <div className="h-6 bg-gray-200 rounded w-2/3"></div>
+                    <div className="h-4 bg-gray-100 rounded w-1/2"></div>
+                    <div className="h-4 bg-gray-100 rounded w-1/3"></div>
+                    <div className="flex gap-2 mt-4">
+                      <div className="h-5 w-16 bg-gray-100 rounded"></div>
+                      <div className="h-5 w-16 bg-gray-100 rounded"></div>
                     </div>
                   </div>
                 </CardContent>
-                <CardFooter className="bg-gray-50 p-4 border-t border-gray-100">
-                  <div className="w-full flex justify-between items-center">
-                    <span className="text-xs text-gray-500">{project.postedDate}</span>
-                    <Button variant="outline" size="sm" className="gap-1">
-                      View Details
-                      <ArrowRight size={14} />
-                    </Button>
-                  </div>
-                </CardFooter>
               </Card>
-            </motion.div>
-          ))}
+            ))
+          ) : recommendedProjects.length === 0 ? (
+            <div className="col-span-full text-center text-gray-500 py-8">
+              No recommended projects found.
+            </div>
+          ) : (
+            recommendedProjects.map((project, index) => (
+              <motion.div
+                key={`project-${project.id || project.externalId || index}`}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5, delay: 0.1 * index }}
+                whileHover={{ y: -5 }}
+              >
+                <Card className="h-full border-gray-100 hover:border-blue-200 transition-colors">
+                  <CardContent className="p-0">
+                    <div className="p-5">
+                      <div className="flex justify-between items-start">
+                        <h3 className="font-semibold text-gray-900">{project.title}</h3>
+                        <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
+                          {/* Show currency with cost if available */}
+                          {project.currency && (project.budget || project.amount)
+                            ? `${project.currency} ${project.budget || project.amount}`
+                            : project.budget
+                            ? project.budget
+                            : project.amount
+                            ? `₹${project.amount}`
+                            : 'N/A'}
+                        </Badge>
+                      </div>
+                      <p className="mt-2 text-sm text-gray-600 line-clamp-2">{project.description}</p>
+                      <div className="mt-4 flex flex-wrap gap-1.5">
+                        {(project.skills ? project.skills.split(',') : project.tags ? project.tags.split(',') : []).map((skill, skillIndex) => (
+                          <Badge key={`project-${project.id || project.externalId}-${skillIndex}`} variant="outline" className="text-xs bg-blue-50 border-blue-100">
+                            {skill.trim()}
+                          </Badge>
+                        ))}
+                      </div>
+                      <div className="mt-4 pt-4 border-t border-gray-100 flex items-center justify-between text-sm text-gray-500">
+                        <div className="flex items-center gap-1">
+                          <Calendar size={14} />
+                          <span>
+                            {project.deadline
+                              ? project.deadline
+                              : project.deadlineDate
+                              ? new Date(project.deadlineDate).toLocaleDateString()
+                              : 'N/A'}
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-1">
+                          <Users size={14} />
+                          <span>
+                            {project.applicants !== undefined
+                              ? project.applicants
+                              : project.applicationsCount !== undefined
+                              ? project.applicationsCount
+                              : 0} applied
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  </CardContent>
+                  <CardFooter className="bg-gray-50 p-4 border-t border-gray-100">
+                    <div className="w-full flex justify-between items-center">
+                      <span className="text-xs text-gray-500">
+                        {project.postedDate
+                          ? project.postedDate
+                          : project.createdAt
+                          ? new Date(project.createdAt).toLocaleDateString()
+                          : ''}
+                      </span>
+                      <Button variant="outline" size="sm" className="gap-1">
+                        View Details
+                        <ArrowRight size={14} />
+                      </Button>
+                    </div>
+                  </CardFooter>
+                </Card>
+              </motion.div>
+            ))
+          )}
         </div>
       </div>
 

@@ -156,7 +156,11 @@ const DeveloperProfileRegistration = () => {
       }
     } catch (error) {
       console.error(`Error uploading ${fileType}:`, error);
-      toast.error(`Failed to upload ${fileType}. Please try again.`);
+      if (error.response && error.response.data && error.response.data.message) {
+        toast.error(error.response.data.message);
+      } else {
+        toast.error(`Failed to upload ${fileType}. Please try again.`);
+      }
     } finally {
       setIsLoading(false);
     }

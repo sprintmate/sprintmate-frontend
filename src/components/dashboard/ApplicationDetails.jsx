@@ -49,7 +49,7 @@ import {
   getAllowedTransitions,
   canRoleUpdateStatus,
   STATUS_DIALOG_CONFIG
-} from '../../constants/taskApplicationStatusMachine';
+} from '../../constants/taskApplicationStatus';
 
 import SecureDocumentViewer from '../DocumentViewer';
 import { getChatRedirectionPath } from '../chat/Rooms';
