@@ -885,7 +885,7 @@ const PostTask = () => (
 );
 
 // Settings Component
-const SettingsPage = () => (
+const SettingsPagee = () => (
   <div className="p-4">
     <h2 className="text-2xl font-bold mb-6">Settings</h2>
     <div className="bg-white rounded-xl shadow-sm border border-gray-100">
@@ -900,6 +900,7 @@ const SettingsPage = () => (
 import EditProfile from '@/components/profile/EditProfile';
 import CompanyPayments from './CompanyPayments';
 import ApplicationDetailsModal from '../components/ApplicationDetailsModal';
+import SettingsPage from './SettingsPage';
 
 // Add UserProfile component
 const UserProfile = () => {
