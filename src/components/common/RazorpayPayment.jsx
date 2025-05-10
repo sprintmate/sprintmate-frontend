@@ -8,6 +8,7 @@ import {
   Loader2
 } from 'lucide-react';
 import { getToken } from '../../services/authService';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 
 const RazorpayPayment = ({ 
   applicationId, 
@@ -20,6 +21,7 @@ const RazorpayPayment = ({
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
   const [paymentData, setPaymentData] = useState(null);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
   
   const url = import.meta.env.VITE_API_BASE_URL;
   const token = getToken();
@@ -312,6 +314,19 @@ const RazorpayPayment = ({
     }
   };
   
+  const handleOpenDialog = () => {
+    setIsDialogOpen(true);
+  };
+
+  const handleCloseDialog = () => {
+    setIsDialogOpen(false);
+  };
+
+  const handleContinuePayment = () => {
+    handleCloseDialog();
+    handlePayment();
+  };
+  
   return (
     <div>
       {paymentData && paymentData.amountBreakdown && (
@@ -333,7 +348,7 @@ const RazorpayPayment = ({
       )}
 
       <Button
-        onClick={handlePayment}
+        onClick={handleOpenDialog}
         disabled={isLoading}
         className={`flex items-center gap-2 ${buttonClassName} ${
           isLoading ? 'opacity-70 cursor-not-allowed' : ''
@@ -351,7 +366,36 @@ const RazorpayPayment = ({
           </>
         )}
       </Button>
-      
+
+      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Payment Breakdown</DialogTitle>
+          </DialogHeader>
+          <div className="mb-3 p-3 bg-blue-50 rounded-md text-sm">
+            <ul className="space-y-1">
+              <li className="flex justify-between">
+                <span className="text-gray-700">Platform fee (txnFee + platformFee)</span>
+                <span className="font-medium text-gray-900">₹2000</span>
+              </li>
+              <li className="flex justify-between">
+                <span className="text-gray-700">Amount for task application</span>
+                <span className="font-medium text-gray-900">₹40000</span>
+              </li>
+              <li className="flex justify-between pt-1 border-t border-blue-200 mt-1">
+                <span className="font-medium text-gray-900">Total</span>
+                <span className="font-medium text-blue-800">₹42000</span>
+              </li>
+            </ul>
+          </div>
+          <DialogFooter>
+            <Button onClick={handleContinuePayment} className="bg-green-600 hover:bg-green-700 text-white">
+              Continue
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
       {error && (
         <div className="flex items-center text-red-600 text-sm mt-2">
           <AlertCircle className="h-4 w-4 mr-1" />
