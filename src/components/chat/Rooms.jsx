@@ -8,10 +8,12 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useNavigate } from "react-router-dom";
-import { formatDistanceToNow } from "date-fns";
+// import { formatDistanceToNow } from "date-fns";
 import ChatRoom from "./ChatRoom";
 import { UserRole } from "../../constants/Role";
 import { getBaseRedirectionPath } from "../../utils/applicationUtils";
+import { format, isToday, isYesterday } from 'date-fns';
+
 
 const PAGE_SIZE = 10;
 
@@ -97,6 +99,9 @@ const Rooms = ({ taskId, applicationId, token }) => {
     navigate(url);
   }
 
+  const MAX_MESSAGE_LENGTH = 80; // Set the maximum length for message content
+
+
   return (
     <div className="px-4 sm:px-6 lg:px-8 py-6 space-y-8 max-w-[1500px] mx-auto">
       {/* Hero Section */}
@@ -131,7 +136,7 @@ const Rooms = ({ taskId, applicationId, token }) => {
         </div>
       </motion.div>
 
-      {/* Search Section */}
+      Search Section
       <Card className="bg-white rounded-xl p-4 shadow-sm border border-gray-200/60 mb-8">
         <div className="flex flex-col sm:flex-row gap-4">
           <div className="flex-1">
@@ -176,7 +181,11 @@ const Rooms = ({ taskId, applicationId, token }) => {
                         <div className="w-8 h-8 rounded-lg bg-blue-500/10 flex items-center justify-center">
                           <MessageSquare size={16} className="text-blue-600" />
                         </div>
-                        <h3 className="font-medium text-gray-900">{room.name}</h3>
+                        {/* <h3 className="font-medium text-gray-900">{room.roomName}</h3> */}
+                        <h3
+                          className="font-medium text-gray-900"
+                          dangerouslySetInnerHTML={{ __html: room.roomName }}
+                        ></h3>
                       </div>
                       <ChevronRight size={16} className="text-gray-400" />
                     </div>
@@ -188,13 +197,27 @@ const Rooms = ({ taskId, applicationId, token }) => {
 
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2 text-sm text-gray-500">
-                        <Clock size={14} />
                         <span>
-                          {room.lastMessageAt
-                            ? formatDistanceToNow(new Date(room.lastMessageAt), { addSuffix: true })
+                          {room.lastEvent
+                            ? room.lastEvent.content.length > MAX_MESSAGE_LENGTH
+                              ? `${room.lastEvent.content.substring(0, MAX_MESSAGE_LENGTH)}...` // Trim and add ellipsis if the message is too long
+                              : room.lastEvent.content
+                            : 'No messages yet'}
+                        </span>
+
+                        <Clock size={14} />
+
+                        <span>
+                          {room.lastEvent
+                            ? isToday(new Date(room.lastEvent.createdAt))
+                              ? format(new Date(room.lastEvent.createdAt), 'p') // Time for today (e.g., 12:34 PM)
+                              : isYesterday(new Date(room.lastEvent.createdAt))
+                                ? 'Yesterday' // Show "Yesterday" for yesterday's messages
+                                : format(new Date(room.lastEvent.createdAt), 'MMM dd, yyyy') // Show the full date (e.g., May 9, 2025)
                             : 'No messages yet'}
                         </span>
                       </div>
+
                       {room.unreadCount > 0 && (
                         <Badge variant="blue" className="bg-blue-100 text-blue-700">
                           {room.unreadCount} new
