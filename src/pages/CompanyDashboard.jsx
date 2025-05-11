@@ -653,12 +653,12 @@ const MyTasks = () => {
             <div className="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center mb-3">
               <Eye className="text-blue-600" size={24} />
             </div>
-            <div className="text-lg font-semibold text-gray-900">Task Views</div>
+            <div className="text-lg font-semibold text-gray-900">Payments</div>
             <div className="text-2xl font-bold text-gray-900 mt-2">
-              {isLoading || !analytics?.taskViews ? (
+              {isLoading || !analytics?.TotalPayments ? (
                 <Shimmer width="w-16" height="h-9" />
               ) : (
-                analytics.taskViews.toLocaleString()
+                analytics.TotalPayments.toLocaleString()
               )}
             </div>
           </CardContent>
@@ -715,7 +715,7 @@ const MyTasks = () => {
           </CardContent>
         </Card>
 
-        <AnimatedCard delay={0.3}>
+        {/* <AnimatedCard delay={0.3}>
           <GlowContainer color="green">
             <Card className="bg-white backdrop-blur-sm border-green-100 h-full">
               <CardContent className="p-4 sm:p-5">
@@ -755,9 +755,9 @@ const MyTasks = () => {
               </CardContent>
             </Card>
           </GlowContainer>
-        </AnimatedCard>
+        </AnimatedCard> */}
 
-        <AnimatedCard delay={0.4}>
+        {/* <AnimatedCard delay={0.4}>
           <GlowContainer color="yellow">
             <Card className="bg-white backdrop-blur-sm border-amber-100 h-full">
               <CardContent className="p-4 sm:p-5">
@@ -796,7 +796,7 @@ const MyTasks = () => {
               </CardContent>
             </Card>
           </GlowContainer>
-        </AnimatedCard>
+        </AnimatedCard> */}
         {/* Card for "Open for Applications" */}
         <Card className="bg-white shadow-md rounded-lg border border-gray-200">
           <CardContent className="p-4 flex flex-col items-center">
