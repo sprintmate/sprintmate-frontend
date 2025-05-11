@@ -4,7 +4,7 @@ const AUTH_TOKEN_KEY = 'authToken';
 const USER_PROFILE_KEY = 'userProfile';
 const USER_TYPE_KEY = 'userType';
 const OAUTH_ROLE_KEY = 'oauthRole';
-const CONFIG_KEY = 'configKey';
+const CONFIG_KEY = 'appConfig';
 
 const ENCRYPTION_SECRET = import.meta.env.VITE_ENCRYPTION_SECRET;
 

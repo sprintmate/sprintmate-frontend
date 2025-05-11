@@ -39,3 +39,11 @@ export const formatDate = (dateString) => {
   const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
   return `${months[date.getMonth()]} ${date.getDate()}, ${date.getFullYear()}`;
 };
+
+
+export const normalizeSocialUrl = (url) => {
+  if (!url) return null;
+  return url.startsWith("http://") || url.startsWith("https://")
+    ? url
+    : `https://${url}`;
+};

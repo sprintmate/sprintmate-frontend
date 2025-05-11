@@ -709,7 +709,6 @@ const ApplicationDetails = () => {
                               applicationId={application.externalId}
                               onSuccess={handlePaymentSuccess}
                               onError={handlePaymentError}
-                              buttonText="Accept & Pay"
                               buttonClassName="bg-green-600 hover:bg-green-700 text-white border-green-700"
                             />
                           </div>

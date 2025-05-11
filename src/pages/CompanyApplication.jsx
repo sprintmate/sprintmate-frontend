@@ -448,7 +448,6 @@ const Applications = () => {
                                                         applicationId={app.externalId}
                                                         onSuccess={handlePaymentSuccess}
                                                         onError={handlePaymentError}
-                                                        buttonText="Accept & Pay"
                                                         buttonClassName="bg-green-600 hover:bg-green-700 text-white border-green-700"
                                                     />
                                                 )}

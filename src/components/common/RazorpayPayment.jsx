@@ -12,11 +12,14 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '
 import { createOrderPayment } from '../../api/paymentService';
 import CurrencyFormatter from "../ui/CurrencyFormatter";
 
+import * as Tooltip from "@radix-ui/react-tooltip"
+
+
 const RazorpayPayment = ({
   applicationId,
   onSuccess,
   onError,
-  buttonText = "Accept & Pay",
+  buttonText = "Accept & Fund",
   buttonClassName = "",
   taskId = null // This prop should now be passed from parent component
 }) => {
@@ -284,7 +287,7 @@ const RazorpayPayment = ({
         </div>
       )}
 
-      <Button
+      {/* <Button
         onClick={handleOpenDialog}
         disabled={isLoading}
         className={`flex items-center gap-2 ${buttonClassName} ${isLoading ? 'opacity-70 cursor-not-allowed' : ''
@@ -301,36 +304,43 @@ const RazorpayPayment = ({
             {buttonText}
           </>
         )}
-      </Button>
+      </Button> */}
 
-      {/* <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Payment Breakdown</DialogTitle>
-          </DialogHeader>
-          <div className="mb-3 p-3 bg-blue-50 rounded-md text-sm">
-            <ul className="space-y-1">
-              <li className="flex justify-between">
-                <span className="text-gray-700">Platform fee (txnFee + platformFee)</span>
-                <span className="font-medium text-gray-900">₹2000</span>
-              </li>
-              <li className="flex justify-between">
-                <span className="text-gray-700">Amount for task application</span>
-                <span className="font-medium text-gray-900">₹40000</span>
-              </li>
-              <li className="flex justify-between pt-1 border-t border-blue-200 mt-1">
-                <span className="font-medium text-gray-900">Total</span>
-                <span className="font-medium text-blue-800">₹42000</span>
-              </li>
-            </ul>
-          </div>
-          <DialogFooter>
-            <Button onClick={handleContinuePayment} className="bg-green-600 hover:bg-green-700 text-white">
-              Continue
+      <Tooltip.Provider>
+        <Tooltip.Root>
+          <Tooltip.Trigger asChild>
+            <Button
+              onClick={handleOpenDialog}
+              disabled={isLoading}
+              className={`flex items-center gap-2 ${buttonClassName} ${isLoading ? 'opacity-70 cursor-not-allowed' : ''}`}
+            >
+              {isLoading ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  Processing...
+                </>
+              ) : (
+                <>
+                  <DollarSign className="h-4 w-4" />
+                  {buttonText}
+                </>
+              )}
             </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog> */}
+          </Tooltip.Trigger>
+
+          <Tooltip.Content
+            side="top"
+            align="center"
+            className="rounded-md bg-slate-800 px-2 py-1 text-xs text-white"
+          >
+            {isLoading
+              ? "Fetching breakdown…"
+              : "Accept the application and block funds"
+            }
+            <Tooltip.Arrow className="fill-slate-800" />
+          </Tooltip.Content>
+        </Tooltip.Root>
+      </Tooltip.Provider>
 
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
         <DialogContent>
@@ -347,9 +357,9 @@ const RazorpayPayment = ({
                   <li key={index} className="flex justify-between">
                     <span className="text-gray-700">{item.message}</span>
                     <span className="font-medium text-gray-900">
-                    <CurrencyFormatter currency={paymentHoldResponse?.data?.currency}>
-                      {item.amount}
-                    </CurrencyFormatter>
+                      <CurrencyFormatter currency={paymentHoldResponse?.data?.currency}>
+                        {item.amount}
+                      </CurrencyFormatter>
                     </span>
                   </li>
                 ))}
