@@ -198,8 +198,8 @@ const Rooms = ({ taskId, applicationId, token }) => {
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2 text-sm text-gray-500">
                         <span>
-                          {room.lastEvent
-                            ? room.lastEvent.content.length > MAX_MESSAGE_LENGTH
+                          {room?.lastEvent
+                            ? room?.lastEvent?.content?.length > MAX_MESSAGE_LENGTH
                               ? `${room.lastEvent.content.substring(0, MAX_MESSAGE_LENGTH)}...` // Trim and add ellipsis if the message is too long
                               : room.lastEvent.content
                             : 'No messages yet'}
