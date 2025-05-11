@@ -1056,6 +1056,7 @@ import CompanyPayments from './CompanyPayments';
 import Rooms from '../components/chat/Rooms';
 import ApplicationDetailsModal from '../components/ApplicationDetailsModal';
 import SettingsPage from './SettingsPage';
+import DeveloperProfile from '../components/developer/DeveloperProfile';
 
 // Add UserProfile component
 const UserProfile = () => {
@@ -1590,6 +1591,7 @@ const CompanyDashboard = () => {
             <Route path="/profile/edit" element={<UserProfile />} />
             <Route path="/payments" element={<CompanyPayments />} />
             <Route path="/inbox" element={<Rooms />} />
+            <Route path="/developer-profile/:developerId" element={<DeveloperProfile />} />
             <Route path="chat/:taskId/:applicationId" element={<ChatRoomWrapper />} />
             {/* New routes for task applications */}
             <Route path="/tasks/:taskId/applications" element={<ApplicationDetailsComponent />} />

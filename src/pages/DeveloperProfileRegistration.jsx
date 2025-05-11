@@ -29,6 +29,7 @@ import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Badge } from '@/components/ui/badge';
 import { authUtils } from '../utils/authUtils';
+import { createDeveloperProfile } from '../api/developerService';
 
 // Available options for work types (enums from backend)
 const availabilityOptions = [
@@ -247,16 +248,9 @@ const DeveloperProfileRegistration = () => {
       }
 
       const token = authUtils.getAuthToken();
-      const response = await axios.post(
-        `${import.meta.env.VITE_API_BASE_URL}/v1/developers`,
-        payload,
-        {
-          headers: {
-            'Authorization': token,
-            'Content-Type': 'application/json'
-          }
-        }
-      );
+
+      const response = await createDeveloperProfile(payload);
+      console.log('response after creating developer profile ', response);
 
       authUtils.removeUserProfile();
 
@@ -308,6 +302,10 @@ const DeveloperProfileRegistration = () => {
       }
     };
   }, [profilePicPreview]);
+
+  const userName = authUtils.getUserProfile().name;
+  const capitalizedUserName = userName.charAt(0).toUpperCase() + userName.slice(1);
+
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50 py-12 px-4 sm:px-6 lg:px-8 flex items-center justify-center">
@@ -727,7 +725,7 @@ const DeveloperProfileRegistration = () => {
                         </div>
 
                         <div className="flex-1">
-                          <div className="font-medium text-gray-900">Your Name</div>
+                          <div className="font-medium text-gray-900">{capitalizedUserName}</div>
                           <div className="text-sm text-gray-600 mt-1 flex flex-wrap gap-1">
                             {skills.slice(0, 5).map((skill, i) => (
                               <Badge key={i} className="bg-indigo-100 text-indigo-800">

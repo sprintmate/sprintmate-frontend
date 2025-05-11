@@ -27,7 +27,7 @@ import {
       { to: '/developer/dashboard/earnings', icon: DollarSign, label: 'Earnings' },
       { to: '/developer/dashboard/projects', icon: Briefcase, label: 'Find Projects' },
       { to: '/developer/dashboard/applications', icon: CheckSquare, label: 'My Applications' },
-      { to: '/developer/dashboard/profile', icon: User, label: 'Profile' },
+      { to: '/developer/dashboard/profile/:developerId', icon: User, label: 'Profile' },
       { to: '/developer/dashboard/settings', icon: Settings, label: 'Settings' },
 
     ]

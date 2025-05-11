@@ -36,7 +36,7 @@ import {
 import { UserRole } from '../constants/Role';
 import RazorpayPayment from '../components/common/RazorpayPayment';
 import { refundPayment, cancelPayment } from '../api/paymentService';
-import { reloadPage } from '../utils/applicationUtils';
+import { getBaseRedirectionPath, getDeveloperProfileRedirectionPath, reloadPage } from '../utils/applicationUtils';
 import { updateApplicationStatus } from '../api/taskApplicationService';
 import { acceptApplicationStatus } from '../api/taskApplicationService';
 import { MultiSelect } from "@/components/ui/multi-select";
@@ -105,7 +105,7 @@ const Applications = () => {
 
 
     const handleOpenChat = (app) => {
-        const taskId = app.task.externalId;         
+        const taskId = app.task.externalId;
         const applicationId = app.externalId;
         const url = getChatRedirectionPath(taskId, applicationId);
         navigate(url);
@@ -295,6 +295,7 @@ const Applications = () => {
                                 <th scope="col" className="px-6 py-3 font-semibold text-gray-600">Deadline</th>
                                 <th scope="col" className="px-6 py-3 font-semibold text-gray-600">Task Status</th>
                                 <th scope="col" className="px-6 py-3 font-semibold text-gray-600">Application Status</th>
+                                <th scope="col" className="px-6 py-3 font-semibold text-gray-600">Developer</th>
                                 <th scope="col" className="px-6 py-3 font-semibold text-gray-600">Proposal</th>
                                 <th scope="col" className="px-6 py-3 font-semibold text-gray-600">Applied On</th>
                                 <th scope="col" className="px-6 py-3 font-semibold text-gray-600">Actions</th>
@@ -376,6 +377,28 @@ const Applications = () => {
                                             >
                                                 {app.status}
                                             </Badge>
+                                        </td>
+                                        <td className="px-6 py-4 max-w-xs">
+                                            {app.developer.developerName ? (
+                                                <a
+                                                    href={getDeveloperProfileRedirectionPath(app.developer.externalId)}
+                                                    target="_blank"
+                                                    rel="noopener noreferrer"
+                                                    className="inline-flex items-center gap-1 text-blue-600 hover:underline hover:text-blue-800"
+                                                >
+                                                    <span className="truncate">{app.developer.developerName}</span>
+                                                    <svg
+                                                        xmlns="http://www.w3.org/2000/svg"
+                                                        className="w-4 h-4"
+                                                        fill="currentColor"
+                                                        viewBox="0 0 20 20"
+                                                    >
+                                                        <path d="M12.293 2.293a1 1 0 011.414 0L18 6.586a1 1 0 010 1.414l-8.586 8.586a1 1 0 01-1.414 0L7 13.414a1 1 0 010-1.414L15.586 3H13a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0V4.414l-8.586 8.586a3 3 0 01-4.243 0l-1.293-1.293a3 3 0 010-4.243l8.586-8.586z" />
+                                                    </svg>
+                                                </a>
+                                            ) : (
+                                                <span>-</span>
+                                            )}
                                         </td>
                                         <td className="px-6 py-4 max-w-xs">
                                             <p className="truncate">{app.proposal || '-'}</p>

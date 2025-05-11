@@ -25,6 +25,7 @@ import { ApplicationStatus } from '../../constants/ApplicationStatus';
 
 import { ConfirmationDialog } from '../ui/ConfirmationDialogue';
 import SecureDocumentViewer from '../DocumentViewer';
+import CurrencyFormatter from '../ui/CurrencyFormatter';
 
 
 // Status badge component with appropriate styling for each status
@@ -77,7 +78,8 @@ const ApplicationCard = ({ application, index, onStatusUpdate }) => {
     deadline: task?.deadline || null,
     tags: task?.tags || "",
     externalId: task?.externalId || `temp-${Date.now()}-${index}`,
-    status: task?.status || "OPEN"
+    status: task?.status || "OPEN",
+    expectedEarnings: application.expectedEarnings
   };
 
   // Format date from ISO string
@@ -198,8 +200,11 @@ const ApplicationCard = ({ application, index, onStatusUpdate }) => {
                 </Badge>
               ))}
               <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">
-                <DollarSign className="w-3 h-3 mr-1" />
-                {safeTask.budget} {safeTask.currency}
+                <CurrencyFormatter currency={safeTask.currency}>
+                  {safeTask.expectedEarnings}
+                </CurrencyFormatter>
+                {/* <DollarSign className="w-3 h-3 mr-1" /> */}
+                {/* {safeTask.budget} {safeTask.currency} */}
               </Badge>
             </div>
           </div>
@@ -233,7 +238,7 @@ const ApplicationCard = ({ application, index, onStatusUpdate }) => {
                     <div>
                       <h4 className="font-medium text-sm text-gray-700 mb-2">My Proposal</h4>
                       <div className="bg-blue-50 p-3 rounded-md border border-blue-100 text-sm text-gray-700">
-                        <p className="italic">{proposal}</p>
+                        <p className="italic">{proposal || '-'}</p>
                       </div>
                     </div>
 
@@ -255,9 +260,13 @@ const ApplicationCard = ({ application, index, onStatusUpdate }) => {
 
                     {/* Additional details */}
                     <div className="grid grid-cols-2 gap-4 text-sm">
-                      <div>
+                      {/* <div>
                         <h4 className="font-medium text-gray-700 mb-1">Task ID</h4>
                         <p className="text-gray-600 break-all">{safeTask.externalId}</p>
+                      </div> */}
+                       <div>
+                        <h4 className="font-medium text-gray-700 mb-1">Task ETA</h4>
+                        <p className="text-gray-600 break-all">{formatDate(safeTask.deadline)}</p>
                       </div>
                       <div>
                         <h4 className="font-medium text-gray-700 mb-1">Category</h4>

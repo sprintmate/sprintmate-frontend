@@ -1,5 +1,5 @@
 // DeveloperDashboard.jsx
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect,useMemo } from 'react';
 import { Routes, Route, useLocation, useNavigate, Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import axios from 'axios';
@@ -34,6 +34,7 @@ import { NAV_LINKS } from '../config/navLinks';
 import { UserRole } from '../constants/Role';
 import DeveloperPayments from './DeveloperPayments';
 import Rooms from '../components/chat/Rooms';
+import CompanyProfile from '../components/company/CompanyProfile';
 
 // Sidebar link component
 const SidebarLink = ({ to, icon: Icon, label, isActive, isExpanded }) => {
@@ -61,11 +62,13 @@ const DeveloperDashboard = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isSidebarExpanded, setIsSidebarExpanded] = useState(true);
   const [developer, setDeveloper] = useState(null);
+  const [developerId, setDeveloperId] = useState(null);
+
   const [isLoading, setIsLoading] = useState(true);
   const sidebarRef = useRef(null);
 
   // Navigation links for the sidebar - use full paths to match Routes definition
-  const navLinks = NAV_LINKS[UserRole.DEVELOPER.toLowerCase()]
+  let navLinks = NAV_LINKS[UserRole.DEVELOPER.toLowerCase()]
 
   // Fetch developer profile on mount
   useEffect(() => {
@@ -75,6 +78,7 @@ const DeveloperDashboard = () => {
         console.log("fetched user profile from developer dashboard " , storedProfile)
         if (storedProfile) {
           setDeveloper(storedProfile);
+          setDeveloperId(storedProfile?.developerProfiles[0]?.externalId)
           authUtils.setUserProfile(storedProfile);
           return;
         }
@@ -93,6 +97,13 @@ const DeveloperDashboard = () => {
   
     fetchDeveloperProfile();
   }, [navigate]);
+
+  navLinks = useMemo(() => {
+    return navLinks.map(link => ({
+      ...link,
+      to: link.to.replace(':developerId', developerId),
+    }));
+  }, [developerId]);
   
 
   // Close sidebar when clicking outside on mobile
@@ -223,7 +234,7 @@ const DeveloperDashboard = () => {
         {/* User profile section */}
         <div className={`p-4 border-t border-blue-100 ${(isSidebarExpanded || isMobileMenuOpen) ? 'px-4' : 'px-3'}`}>
           <div
-            onClick={() => navigate('/developer/dashboard/profile')}
+            onClick={() => navigate(`/developer/dashboard/profile/${developerId}`)}
             className={`flex items-center cursor-pointer hover:bg-gray-100 ${isRouteActive('/developer/dashboard/profile') ? 'bg-blue-50 text-blue-600' : ''} rounded-lg p-2 transition-colors`}
           >
             <div className="w-9 h-9 rounded-full bg-gradient-to-r from-blue-600 to-blue-400 flex items-center justify-center text-white font-semibold">
@@ -310,10 +321,10 @@ const DeveloperDashboard = () => {
             <Route path="applications" element={<MyApplications />} />
             <Route path="settings" element={<SettingsPage />} />
             <Route path="earnings" element={<DeveloperPayments />} />
-            <Route path="profile" element={<DeveloperProfile developer={developer} />} />
+            <Route path="profile/:developerId" element={<DeveloperProfile />} />
             <Route path="inbox" element={<Rooms />} />
             <Route path="/chat/:taskId/:applicationId" element={<ChatRoomWrapper />} />
-            
+            <Route path="/company-profile/:companyId" element={<CompanyProfile />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </div>

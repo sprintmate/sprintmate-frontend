@@ -18,7 +18,7 @@ export const cancelPayment = async (paymentId) => {
     try {
         const response = await httpInstance.post(
             `/v1/order/payments/cancel/${paymentId}`,
-            { }
+            {}
         );
         return response.data;
     } catch (error) {
@@ -75,6 +75,21 @@ export const withDrawFunds = async (paymentId) => {
         return response.data;
     } catch (error) {
         console.error('Error withDrawFunds payment:', error);
+        throw error;
+    }
+}
+
+export const createOrderPayment = async (paymentData) => {
+
+    try {
+        const url = `/v1/order/payments/hold`;
+        const response = await httpInstance.post(
+            url,
+            paymentData 
+        );
+        return response;
+    } catch (error) {
+        console.error('Error createOrderPayment payment:', error);
         throw error;
     }
 }

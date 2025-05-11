@@ -22,3 +22,20 @@ export const getBaseRedirectionPath = () => {
   console.log('url to redirect {} ', url)
   return url;
 }
+
+
+export const getDeveloperProfileRedirectionPath = (developerId) => {
+  return `${getBaseRedirectionPath()}/developer-profile/${developerId}`
+}
+
+export const getCompanyProfileRedirectionPath = (companyId) => {
+  return `${getBaseRedirectionPath()}/company-profile/${companyId}`
+}
+
+
+export const formatDate = (dateString) => {
+  if (!dateString) return "No deadline";
+  const date = new Date(dateString.replace(' ', 'T'));
+  const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+  return `${months[date.getMonth()]} ${date.getDate()}, ${date.getFullYear()}`;
+};

@@ -10,6 +10,18 @@ export const createCompanyProfile = async (userId,companyData) => {
     }
   };
 
+  export const fetchCompanyProfle = async (companyId) => {
+    try {
+      const url = `/v1/users/dummy/company-profile/${companyId}`
+      const response = await httpInstance.get(url);
+      return response.data;
+    } catch (error) {
+      console.error('fetchCompanyProfle', error);
+      throw error;
+    }
+  };
+
+
 
 export const postTask = async (companyId,taskPayload) => {
   try {

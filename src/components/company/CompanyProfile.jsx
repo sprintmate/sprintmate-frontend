@@ -5,45 +5,36 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { User, Mail, Briefcase, Code, FileText, Github, Linkedin, Globe, Edit } from 'lucide-react';
 import { useParams } from 'react-router-dom';
-import { fetchDeveloperProfile } from '../../api/developerService';
 import { fetchSecureDocument } from '../../api/documentService';
 import { authUtils } from '../../utils/authUtils';
+import { fetchCompanyProfle } from '../../api/companyService';
 
 
-const DeveloperProfile = () => {
+const CompanyProfile = () => {
 
-  const { developerId } = useParams();
-  const [developer, setData] = useState(null);
-  const [profilePicUrl, setProfilePicUrl] = useState(null);
-  const [resumeUrl, setResumeUrl] = useState(null);
+  const { companyId } = useParams();
+  const [company, setData] = useState(null);
+  const [logoUrl, setLogoUrl] = useState(null);
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const response = await fetchDeveloperProfile(developerId);
+        const response = await fetchCompanyProfle(companyId);
         setData(response);
-
-        if (response.portfolio?.PROFILE_PIC) {
-          const profileUrl = (await fetchSecureDocument(response.portfolio.PROFILE_PIC)).fileUrl;
+        if (response.attachments?.LOGO) {
+          const profileUrl = (await fetchSecureDocument(response.attachments.LOGO)).fileUrl;
           console.log("fetched profile url ", profileUrl)
-          setProfilePicUrl(profileUrl);
-        }
-
-        if (response.portfolio?.LATEST_RESUME) {
-          const resumeUrl = (await fetchSecureDocument(response.portfolio.LATEST_RESUME));
-          console.log("fetched resumeUrl url ", resumeUrl)
-
-          setResumeUrl(resumeUrl);
+          setLogoUrl(profileUrl);
         }
 
       } catch (error) {
-        console.error('Failed to fetch developer profile:', error);
+        console.error('Failed to fetch company profile:', error);
       }
     };
 
     fetchData();
-  }, [developerId]);
+  }, [companyId]);
 
-  if (!developer) {
+  if (!company) {
     return (
       <div className="flex items-center justify-center h-full">
         <div className="text-center">
@@ -54,10 +45,10 @@ const DeveloperProfile = () => {
     );
   }
 
-  const isOwner = developerId == authUtils.getUserProfile()?.developerProfiles[0]?.externalId;
+  const isOwner = companyId == authUtils.getUserProfile()?.companyProfiles[0]?.externalId;
 
 
-  const devProfile = developer;
+  const companyProfile = company;
 
   return (
     <div className="max-w-4xl mx-auto px-4 md:px-8 space-y-6">
@@ -76,16 +67,16 @@ const DeveloperProfile = () => {
           }}></div>
           <div className="absolute -bottom-16 left-8 flex items-end">
             <div className="w-32 h-32 rounded-full bg-white p-1 shadow-md overflow-hidden">
-              {profilePicUrl ? (
+              {logoUrl ? (
                 <img
-                  src={profilePicUrl}
-                  alt={developer.developerName.split(' ').map(n => n[0]).join('').toUpperCase()}
+                  src={logoUrl}
+                  alt={companyProfile.companyName.split(' ').map(n => n[0]).join('').toUpperCase()}
                   className="w-full h-full rounded-full object-cover"
                 />
               ) : (
                 <div className="w-full h-full rounded-full bg-gradient-to-r from-blue-600 to-blue-400 flex items-center justify-center">
                   <span className="text-white text-4xl font-semibold">
-                    {developer.developerName.split(' ').map(n => n[0]).join('').toUpperCase()}
+                    {companyProfile.companyName.split(' ').map(n => n[0]).join('').toUpperCase()}
                   </span>
                 </div>
               )}
@@ -97,12 +88,12 @@ const DeveloperProfile = () => {
         <div className="pt-20 pb-8 px-8">
           <div className="flex flex-col md:flex-row justify-between md:items-center gap-4">
             <div>
-              <h1 className="text-2xl font-bold text-gray-900">{developer.name}</h1>
+              {/* <h1 className="text-2xl font-bold text-gray-900">{companyProfile.companyName}</h1> */}
               <p className="text-gray-600 flex items-center gap-2 mt-1">
                 <Mail className="h-4 w-4" />
-                <span className="text-sm">{developer.developerName}  </span>
-                <span className="text-sm">  {developer.email}</span>
-                {developer.verified && (
+                <span className="text-sm">{companyProfile.companyName}  </span>
+                <span className="text-sm">  {companyProfile.email}</span>
+                {companyProfile.verificationStatus && (
                   <Badge variant="blue" className="ml-2">Verified</Badge>
                 )}
               </p>
@@ -130,14 +121,14 @@ const DeveloperProfile = () => {
           </div>
 
           {/* About section */}
-          {devProfile?.about && (
+          {companyProfile?.about && (
             <div className="mt-6">
               <h2 className="text-lg font-semibold mb-2">About</h2>
-              <p className="text-gray-700">{devProfile.about}</p>
+              <p className="text-gray-700">{companyProfile.about}</p>
             </div>
           )}
 
-          {/* Skills section */}
+          {/* Skills section
           {devProfile?.skills && (
             <div className="mt-6">
               <h2 className="text-lg font-semibold mb-2">Skills</h2>
@@ -150,32 +141,32 @@ const DeveloperProfile = () => {
                 ))}
               </div>
             </div>
-          )}
+          )} */}
 
           {/* Professional details */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-8">
             <Card>
               <CardHeader className="pb-2">
-                <CardTitle className="text-sm text-gray-500 uppercase tracking-wider">Developer Information</CardTitle>
+                <CardTitle className="text-sm text-gray-500 uppercase tracking-wider">Company Information</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  <div>
+                  {/* <div>
                     <p className="text-sm text-gray-500">User ID</p>
                     <p className="font-medium text-gray-900 break-all">{developer.userId}</p>
-                  </div>
+                  </div> */}
                   <div>
-                    <p className="text-sm text-gray-500">Availability</p>
-                    <p className="font-medium text-gray-900">{devProfile?.availability || "Not specified"}</p>
+                    <p className="text-sm text-gray-500">Industry</p>
+                    <p className="font-medium text-gray-900">{companyProfile?.industry || "Not specified"}</p>
                   </div>
-                  <div>
+                  {/* <div>
                     <p className="text-sm text-gray-500">Preferred Work Type</p>
                     <p className="font-medium text-gray-900">{devProfile?.preferredWorkType || "Not specified"}</p>
-                  </div>
+                  </div> */}
                 </div>
               </CardContent>
             </Card>
-
+{/* 
             <Card>
               <CardHeader className="pb-2">
                 <CardTitle className="text-sm text-gray-500 uppercase tracking-wider">Resume & Portfolio</CardTitle>
@@ -236,7 +227,7 @@ const DeveloperProfile = () => {
                   )}
                 </div>
               </CardContent>
-            </Card>
+            </Card> */}
           </div>
         </div>
       </motion.div>
@@ -244,4 +235,4 @@ const DeveloperProfile = () => {
   );
 };
 
-export default DeveloperProfile;
+export default CompanyProfile;

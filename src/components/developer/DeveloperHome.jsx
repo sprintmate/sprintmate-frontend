@@ -7,6 +7,8 @@ import { Badge } from '@/components/ui/badge';
 import { Briefcase, Search, CheckCircle2, TrendingUp, Users, Clock, ArrowRight, Code, DollarSign, Calendar, X } from 'lucide-react';
 import { getToken } from '../../services/authService';
 import axios from 'axios';
+import CurrencyFormatter from '../ui/CurrencyFormatter';
+import { formatDate } from '../../utils/applicationUtils';
 
 const DeveloperHome = ({ developer }) => {
   // Extract developer skills
@@ -107,29 +109,29 @@ const DeveloperHome = ({ developer }) => {
   }, []);
 
   const stats = [
-    { 
-      title: "Available Projects", 
-      value: statsLoading ? "..." : statsData.availableProjects, 
-      icon: <Briefcase className="h-4 w-4 text-blue-600" />, 
-      color: "blue" 
+    {
+      title: "Available Projects",
+      value: statsLoading ? "..." : statsData.availableProjects,
+      icon: <Briefcase className="h-4 w-4 text-blue-600" />,
+      color: "blue"
     },
-    { 
-      title: "Applied Projects", 
-      value: statsLoading ? "..." : statsData.appliedProjects, 
-      icon: <CheckCircle2 className="h-4 w-4 text-green-600" />, 
-      color: "green" 
+    {
+      title: "Applied Projects",
+      value: statsLoading ? "..." : statsData.appliedProjects,
+      icon: <CheckCircle2 className="h-4 w-4 text-green-600" />,
+      color: "green"
     },
-    { 
-      title: "Active Developers", 
-      value: statsLoading ? "..." : statsData.activeDevelopers, 
-      icon: <Users className="h-4 w-4 text-purple-600" />, 
-      color: "purple" 
+    {
+      title: "Active Developers",
+      value: statsLoading ? "..." : statsData.activeDevelopers,
+      icon: <Users className="h-4 w-4 text-purple-600" />,
+      color: "purple"
     },
-    { 
-      title: "Average Response", 
-      value: statsLoading ? "..." : statsData.averageResponse, 
-      icon: <Clock className="h-4 w-4 text-amber-600" />, 
-      color: "amber" 
+    {
+      title: "Average Response",
+      value: statsLoading ? "..." : statsData.averageResponse,
+      icon: <Clock className="h-4 w-4 text-amber-600" />,
+      color: "amber"
     }
   ];
 
@@ -144,7 +146,7 @@ const DeveloperHome = ({ developer }) => {
       >
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">Welcome , 
+            <h1 className="text-2xl font-bold text-gray-900">Welcome ,
               <Link to={`/developer/profile/${developer?.userId}`} className="text-blue-600 hover:underline ml-1">
                 {firstName}!
               </Link>
@@ -291,13 +293,9 @@ const DeveloperHome = ({ developer }) => {
                         <h3 className="font-semibold text-gray-900">{project.title}</h3>
                         <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
                           {/* Show currency with cost if available */}
-                          {project.currency && (project.budget || project.amount)
-                            ? `${project.currency} ${project.budget || project.amount}`
-                            : project.budget
-                            ? project.budget
-                            : project.amount
-                            ? `₹${project.amount}`
-                            : 'N/A'}
+                          <CurrencyFormatter currency={project.currency}>
+                            {project.expectedEarnings}
+                          </CurrencyFormatter>
                         </Badge>
                       </div>
                       <p className="mt-2 text-sm text-gray-600 line-clamp-2">{project.description}</p>
@@ -313,10 +311,10 @@ const DeveloperHome = ({ developer }) => {
                           <Calendar size={14} />
                           <span>
                             {project.deadline
-                              ? project.deadline
+                              ? formatDate(project.deadline)
                               : project.deadlineDate
-                              ? new Date(project.deadlineDate).toLocaleDateString()
-                              : 'N/A'}
+                                ? formatDate(project.deadline)
+                                : 'N/A'}
                           </span>
                         </div>
                         <div className="flex items-center gap-1">
@@ -325,8 +323,8 @@ const DeveloperHome = ({ developer }) => {
                             {project.applicants !== undefined
                               ? project.applicants
                               : project.applicationsCount !== undefined
-                              ? project.applicationsCount
-                              : 0} applied
+                                ? project.applicationsCount
+                                : 0} applied
                           </span>
                         </div>
                       </div>
@@ -338,8 +336,8 @@ const DeveloperHome = ({ developer }) => {
                         {project.postedDate
                           ? project.postedDate
                           : project.createdAt
-                          ? new Date(project.createdAt).toLocaleDateString()
-                          : ''}
+                            ? new Date(project.createdAt).toLocaleDateString()
+                            : ''}
                       </span>
                       <Button variant="outline" size="sm" className="gap-1">
                         View Details
@@ -366,8 +364,8 @@ const DeveloperHome = ({ developer }) => {
             <CardDescription>Your latest applications and updates</CardDescription>
           </CardHeader>
           <CardContent>
-            {developer?.developerProfiles?.[0]?.applications && 
-             Object.keys(developer.developerProfiles[0].applications).length > 0 ? (
+            {developer?.developerProfiles?.[0]?.applications &&
+              Object.keys(developer.developerProfiles[0].applications).length > 0 ? (
               <div className="space-y-4">
                 {/* Add application history here */}
                 <p>Your recent application activity will appear here.</p>

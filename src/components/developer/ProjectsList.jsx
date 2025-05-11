@@ -5,14 +5,18 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import axios from 'axios';
-import { 
-  Search, Filter, DollarSign, Clock, Calendar, Building2, Users, 
-  Code, ChevronDown, Briefcase, Check, ArrowLeft, ArrowRight, 
+import {
+  Search, Filter, DollarSign, Clock, Calendar, Building2, Users,
+  Code, ChevronDown, Briefcase, Check, ArrowLeft, ArrowRight,
   Loader2, AlertCircle
 } from 'lucide-react';
 import TaskApplicationModal from './TaskApplicationModal';
-import {toast} from 'react-hot-toast';
+import { toast } from 'react-hot-toast';
 import { authUtils } from '@/utils/authUtils';
+import CurrencyFormatter from '../ui/CurrencyFormatter';
+import { getCompanyProfileRedirectionPath } from '../../utils/applicationUtils';
+import { Link } from 'react-router-dom';
+
 
 const ProjectsList = () => {
   const [searchTerm, setSearchTerm] = useState('');
@@ -30,20 +34,20 @@ const ProjectsList = () => {
   });
   const [selectedTask, setSelectedTask] = useState(null);
   const [isApplyModalOpen, setIsApplyModalOpen] = useState(false);
-  
+
   // Fetch projects from API
   const fetchProjects = async (page = 0) => {
     setLoading(true);
     setError(null);
-    
+
     try {
       const token = authUtils.getAuthToken();
       if (!token) {
         throw new Error('Authentication token not found');
       }
-      
+
       const baseUrl = import.meta.env.VITE_API_BASE_URL || 'https://round-georgianna-sprintmate-8451e6d8.koyeb.app';
-      
+
       const response = await axios.get(`${baseUrl}/v1/developers/tasks`, {
         params: {
           page,
@@ -55,12 +59,12 @@ const ProjectsList = () => {
         // Add timeout to prevent hanging requests
         timeout: 15000
       });
-      
+
       // Check if response has the expected structure
       if (response.data && Array.isArray(response.data.content)) {
         setProjects(response.data.content);
         setFilteredProjects(response.data.content);
-        
+
         // Set pagination with fallbacks for missing data
         setPagination({
           currentPage: response.data.pageable?.pageNumber || 0,
@@ -77,7 +81,7 @@ const ProjectsList = () => {
       }
     } catch (err) {
       console.error("Error fetching projects:", err);
-      
+
       // Provide user-friendly error message
       if (err.code === "ECONNABORTED") {
         setError("Request timed out. Please check your internet connection and try again.");
@@ -87,7 +91,7 @@ const ProjectsList = () => {
       } else {
         setError(err.message || 'Failed to load projects. Please try again later.');
       }
-      
+
       // Ensure states are still set even when errors occur
       setProjects([]);
       setFilteredProjects([]);
@@ -95,61 +99,61 @@ const ProjectsList = () => {
       setLoading(false);
     }
   };
-  
+
   // Initial fetch
   useEffect(() => {
     fetchProjects();
   }, []);
-  
+
   // Handle search
   const handleSearch = (e) => {
     const value = e.target.value;
     setSearchTerm(value);
-    
+
     if (!value.trim()) {
       setFilteredProjects(projects);
       return;
     }
-    
-    const filtered = projects.filter(project => 
+
+    const filtered = projects.filter(project =>
       project.title.toLowerCase().includes(value.toLowerCase()) ||
       project.description.toLowerCase().includes(value.toLowerCase()) ||
       project.tags?.toLowerCase().includes(value.toLowerCase())
     );
-    
+
     setFilteredProjects(filtered);
   };
-  
+
   // Toggle project details expansion
   const toggleProjectDetails = (id) => {
     setExpandedProjectId(expandedProjectId === id ? null : id);
   };
-  
+
   // Handle pagination
   const handlePageChange = (newPage) => {
     if (newPage >= 0 && newPage < pagination.totalPages) {
       fetchProjects(newPage);
     }
   };
-  
+
   // Apply to project function
   const applyToProject = (project) => {
     setSelectedTask(project);
     setIsApplyModalOpen(true);
   };
-  
+
   const handleApplySuccess = () => {
     // Refresh the project list to reflect the new application status
     fetchProjects(pagination.currentPage);
-    
+
     // Show success message
     toast.success("Your application has been submitted successfully!");
   };
-  
+
   // Format date from API
   const formatDate = (dateString) => {
     if (!dateString) return 'No deadline';
-    
+
     // Check if it's already in the right format
     if (dateString.includes(' ')) {
       // Format: "2025-06-03 18:30:00"
@@ -161,7 +165,7 @@ const ProjectsList = () => {
         day: 'numeric'
       });
     }
-    
+
     // If it's in ISO format
     return new Date(dateString).toLocaleDateString('en-US', {
       year: 'numeric',
@@ -173,24 +177,24 @@ const ProjectsList = () => {
   // Extract tags from project
   const getProjectTags = (project) => {
     if (!project.tags) return [];
-    
+
     // Handle both comma-separated string and array formats
     if (typeof project.tags === 'string') {
       return project.tags.split(',').map(tag => tag.trim()).filter(Boolean);
     }
-    
+
     return Array.isArray(project.tags) ? project.tags : [];
   };
 
   // Calculate remaining days until deadline
   const getRemainingDays = (deadline) => {
     if (!deadline) return 'No deadline';
-    
+
     const deadlineDate = new Date(deadline.replace(' ', 'T'));
     const today = new Date();
     const diffTime = deadlineDate - today;
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-    
+
     if (diffDays < 0) return 'Expired';
     if (diffDays === 0) return 'Due today';
     return `${diffDays} day${diffDays !== 1 ? 's' : ''} left`;
@@ -199,6 +203,7 @@ const ProjectsList = () => {
   // Add null checking for project rendering
   const renderProject = (project) => {
     // Ensure project has all required properties with fallbacks
+    console.log("prokjecjjenjkv", project);
     const safeProject = {
       externalId: project.externalId || `temp-${Date.now()}`,
       title: project.title || "Untitled Project",
@@ -210,7 +215,10 @@ const ProjectsList = () => {
       status: project.status || "OPEN",
       applications: project.applications || {},
       createdAt: project.createdAt || new Date().toISOString(),
-      ndaRequired: project.ndaRequired || false
+      ndaRequired: project.ndaRequired || false,
+      companyName: project.companyProfile.companyName,
+      companyId: project.companyProfile.companyId,
+      applicationCount: project.applicationsCount
     };
 
     return (
@@ -228,12 +236,24 @@ const ProjectsList = () => {
                 <CardTitle className="text-xl">{safeProject.title}</CardTitle>
                 <CardDescription className="flex items-center gap-2 mt-1">
                   <Building2 size={14} className="text-gray-500" />
-                  {safeProject.companyName || "Company"} • <span className="text-gray-400">{formatDate(safeProject.createdAt)}</span>
+                  <Link to={getCompanyProfileRedirectionPath(safeProject.companyId)} className="text-blue-500 hover:underline">
+                    {safeProject.companyName || "Company"}
+                  </Link>
+                  • <span className="text-gray-400">{formatDate(safeProject.createdAt)}</span>
                 </CardDescription>
               </div>
-              <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200 flex items-center">
-                <DollarSign size={14} className="mr-1" />
-                {safeProject.budget} {safeProject.currency}
+              <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200 flex flex-col items-start gap-0.5 px-2 py-1">
+                <span className="font-medium text-sm">
+                  <CurrencyFormatter currency={safeProject.currency}>
+                    {safeProject.budget}
+                  </CurrencyFormatter>
+                </span>
+                <span className="text-xs text-gray-500">
+                  💰 Estimated:{" "}
+                  <CurrencyFormatter currency={safeProject.currency}>
+                    {project.expectedEarnings}
+                  </CurrencyFormatter>
+                </span>
               </Badge>
             </div>
           </CardHeader>
@@ -242,16 +262,16 @@ const ProjectsList = () => {
               <p className={`text-gray-700 ${expandedProjectId === safeProject.externalId ? '' : 'line-clamp-2'}`}>
                 {safeProject.description}
               </p>
-              
+
               {expandedProjectId !== safeProject.externalId && (
-                <button 
+                <button
                   onClick={() => toggleProjectDetails(safeProject.externalId)}
                   className="text-blue-600 hover:text-blue-800 text-sm font-medium"
                 >
                   Show more
                 </button>
               )}
-              
+
               <div className="flex flex-wrap gap-1.5">
                 {getProjectTags(safeProject).map((tag, index) => (
                   <Badge key={`${safeProject.externalId}-tag-${index}`} variant="outline" className="bg-blue-50 border-blue-200 text-blue-700">
@@ -259,7 +279,7 @@ const ProjectsList = () => {
                   </Badge>
                 ))}
               </div>
-              
+
               {expandedProjectId === safeProject.externalId && (
                 <motion.div
                   initial={{ opacity: 0, height: 0 }}
@@ -287,39 +307,39 @@ const ProjectsList = () => {
                       <div>
                         <p className="text-gray-500">Applicants</p>
                         <p className="font-medium">
-                          {safeProject.applications ? Object.keys(safeProject.applications).length : 0}
+                          {safeProject.applicationCount ? safeProject.applicationCount : 0}
                         </p>
                       </div>
                     </div>
                   </div>
-                  
-                  {safeProject.ndaRequired && (
+
+                  {/* {safeProject.ndaRequired && (
                     <div className="bg-amber-50 border border-amber-200 text-amber-700 px-3 py-2 rounded-md text-sm flex items-center">
                       <Shield size={14} className="mr-2" />
                       This project requires an NDA before full details can be accessed.
                     </div>
-                  )}
+                  )} */}
                 </motion.div>
               )}
             </div>
           </CardContent>
           <CardFooter className="bg-gray-50 border-t border-gray-100 justify-between flex-wrap gap-2">
-            <button 
+            <button
               onClick={() => toggleProjectDetails(safeProject.externalId)}
               className="text-gray-600 hover:text-gray-900 text-sm flex items-center gap-1"
             >
               {expandedProjectId === safeProject.externalId ? 'Show less' : 'Show details'}
             </button>
-            
+
             <div className="flex gap-2">
-              <Button 
-                variant="outline" 
+              <Button
+                variant="outline"
                 size="sm"
                 className="border-gray-300"
               >
                 Save
               </Button>
-              <Button 
+              <Button
                 size="sm"
                 onClick={() => applyToProject(safeProject)}
               >
@@ -347,8 +367,8 @@ const ProjectsList = () => {
               onChange={handleSearch}
             />
           </div>
-          <Button 
-            variant="outline" 
+          <Button
+            variant="outline"
             className="gap-2"
             onClick={() => setShowFilters(!showFilters)}
           >
@@ -357,7 +377,7 @@ const ProjectsList = () => {
             <ChevronDown size={16} className={`transform transition-transform ${showFilters ? 'rotate-180' : ''}`} />
           </Button>
         </div>
-        
+
         {/* Filter Options */}
         {showFilters && (
           <motion.div
@@ -394,7 +414,7 @@ const ProjectsList = () => {
           </motion.div>
         )}
       </div>
-      
+
       {/* Error Message */}
       {error && (
         <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg mb-6 flex items-center">
@@ -402,7 +422,7 @@ const ProjectsList = () => {
           <p>{error}</p>
         </div>
       )}
-      
+
       {/* Loading State */}
       {loading && (
         <div className="flex justify-center items-center py-20">
@@ -410,7 +430,7 @@ const ProjectsList = () => {
           <span className="ml-2 text-blue-600 font-medium">Loading projects...</span>
         </div>
       )}
-      
+
       {/* Projects Count */}
       {!loading && !error && (
         <div className="flex justify-between items-center mb-4">
@@ -422,7 +442,7 @@ const ProjectsList = () => {
           </div>
         </div>
       )}
-      
+
       {/* Projects List */}
       {!loading && !error && (
         <div className="space-y-4">
@@ -441,7 +461,7 @@ const ProjectsList = () => {
           )}
         </div>
       )}
-      
+
       {/* Pagination */}
       {!loading && !error && pagination.totalPages > 1 && (
         <div className="flex justify-center mt-8 gap-2">
@@ -455,7 +475,7 @@ const ProjectsList = () => {
             <ArrowLeft size={14} />
             Previous
           </Button>
-          
+
           <div className="flex items-center gap-1 px-2">
             {Array.from({ length: Math.min(5, pagination.totalPages) }, (_, i) => {
               // Calculate page numbers to show (always show current page in the middle if possible)
@@ -469,7 +489,7 @@ const ProjectsList = () => {
               } else {
                 pageNum = pagination.currentPage - 2 + i;
               }
-              
+
               return (
                 <Button
                   key={pageNum}
@@ -482,13 +502,13 @@ const ProjectsList = () => {
                 </Button>
               );
             })}
-            
+
             {/* Show ellipsis if there are more pages */}
             {pagination.totalPages > 5 && pagination.currentPage < pagination.totalPages - 3 && (
               <span className="text-gray-500">...</span>
             )}
           </div>
-          
+
           <Button
             variant="outline"
             size="sm"
@@ -503,7 +523,7 @@ const ProjectsList = () => {
       )}
 
       {/* Task Application Modal */}
-      <TaskApplicationModal 
+      <TaskApplicationModal
         isOpen={isApplyModalOpen}
         onClose={() => setIsApplyModalOpen(false)}
         taskId={selectedTask?.externalId}
