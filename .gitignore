@@ -27,4 +27,4 @@ dist-ssr
 .netlify
 scripts/
 
-.env
+.env.development

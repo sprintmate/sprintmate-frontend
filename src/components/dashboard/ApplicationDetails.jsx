@@ -283,7 +283,9 @@ const ApplicationDetails = () => {
 
   // Handle going back to dashboard - Updated to use browser history
   const handleBackToDashboard = () => {
-    navigate('/company/dashboard/tasks'); // Explicitly navigate to the tasks page
+    // Use browser's history to go back to the previous page
+    // This ensures we respect the navigation path the user took to get here
+    navigate(-1);
   };
 
   // Handle page change
