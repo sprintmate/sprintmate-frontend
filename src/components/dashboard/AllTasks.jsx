@@ -188,30 +188,32 @@ const AllTasks = () => {
   };
 
   const handleViewApplications = (taskId) => {
-    navigate(`/company/dashboard/tasks/${taskId}/applications`);
+
+    console.log("Task ID:", taskId);
+    navigate(`/company/dashboard/applications/${taskId.id}`);
   };
 
-  const handleApplicantsClick = async (task) => {
-    // Fetch the first application for the task (or all, as needed)
-    try {
-      const token = getToken();
-      const response = await axios.get(
-        `${import.meta.env.VITE_API_BASE_URL}/v1/tasks/${task.id}/applications`,
-        {
-          headers: {
-            'Authorization': token,
-            'Content-Type': 'application/json'
-          }
-        }
-      );
-      if (response.data && Array.isArray(response.data.content) && response.data.content.length > 0) {
-        setSelectedApplication(response.data.content[0]); // Show first application for demo
-        setIsModalOpen(true);
-      }
-    } catch (err) {
-      // Optionally handle error
-    }
-  };
+  // const handleApplicantsClick = async (task) => {
+  //   // Fetch the first application for the task (or all, as needed)
+  //   try {
+  //     const token = getToken();
+  //     const response = await axios.get(
+  //       `${import.meta.env.VITE_API_BASE_URL}/v1/tasks/${task.id}/applications`,
+  //       {
+  //         headers: {
+  //           'Authorization': token,
+  //           'Content-Type': 'application/json'
+  //         }
+  //       }
+  //     );
+  //     if (response.data && Array.isArray(response.data.content) && response.data.content.length > 0) {
+  //       setSelectedApplication(response.data.content[0]); // Show first application for demo
+  //       setIsModalOpen(true);
+  //     }
+  //   } catch (err) {
+  //     // Optionally handle error
+  //   }
+  // };
 
   // Helper function to format date
   const formatDate = (dateString) => {
@@ -415,7 +417,7 @@ const AllTasks = () => {
                         variant="ghost"
                         size="sm"
                         className="text-blue-600 hover:text-blue-700 hover:bg-blue-50/50 h-8"
-                        onClick={() => handleApplicantsClick(task)}
+                        onClick={() => handleViewApplications(task)}
                       >
                         <Users size={14} className="mr-1" />
                         <span>{task.applications} {task.applications === 1 ? 'Applicant' : 'Applicants'}</span>

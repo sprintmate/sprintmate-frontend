@@ -103,6 +103,8 @@ const ApplicationDetailsComponent = () => {
   const [applicationsData, setApplicationsData] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
 
+  console.log(taskId , "***********************")
+
   // Fetch applications list if needed
   // useEffect(() => {
   //   if (taskId && !applicationId) {
@@ -473,31 +475,29 @@ const MyTasks = () => {
 
   // Navigate to task applications with first application ID when available
   const handleViewApplications = (taskId) => {
-    const task = recentTasks.find(task => task.id === taskId);
-    // Otherwise, just navigate to the applications list
-    navigate(`/company/dashboard/tasks/${taskId}/applications`);
+     navigate(`/company/dashboard/applications/${taskId.id}`);
   };
 
-  const handleApplicantsClick = async (task) => {
-    try {
-      const token = getToken();
-      const response = await axios.get(
-        `${import.meta.env.VITE_API_BASE_URL}/v1/tasks/${task.id}/applications`,
-        {
-          headers: {
-            'Authorization': token,
-            'Content-Type': 'application/json'
-          }
-        }
-      );
-      if (response.data && Array.isArray(response.data.content) && response.data.content.length > 0) {
-        setSelectedApplication(response.data.content[0]);
-        setIsModalOpen(true);
-      }
-    } catch (err) {
-      // Optionally handle error
-    }
-  };
+  // const handleApplicantsClick = async (task) => {
+  //   try {
+  //     const token = getToken();
+  //     const response = await axios.get(
+  //       `${import.meta.env.VITE_API_BASE_URL}/v1/tasks/${task.id}/applications`,
+  //       {
+  //         headers: {
+  //           'Authorization': token,
+  //           'Content-Type': 'application/json'
+  //         }
+  //       }
+  //     );
+  //     if (response.data && Array.isArray(response.data.content) && response.data.content.length > 0) {
+  //       setSelectedApplication(response.data.content[0]);
+  //       setIsModalOpen(true);
+  //     }
+  //   } catch (err) {
+  //     // Optionally handle error
+  //   }
+  // };
 
   return (
     <div className="px-4 sm:px-6 lg:px-8 py-6 space-y-8 max-w-[1500px] mx-auto">
@@ -972,7 +972,7 @@ const MyTasks = () => {
                             variant="ghost"
                             size="sm"
                             className="text-blue-600 hover:text-blue-700 hover:bg-blue-50/50 h-8"
-                            onClick={() => handleApplicantsClick(task)}
+                            onClick={() => handleViewApplications(task)}
                           >
                             <Users size={14} className="mr-1" />
                             <span>{task.applications} {task.applications === 1 ? 'Applicant' : 'Applicants'}</span>
@@ -1586,6 +1586,7 @@ const CompanyDashboard = () => {
             {/* <Route path="/all-tasks" element={<AllTasks />} /> */}
             <Route path="/post-task" element={<PostTask />} />
             <Route path="/applications" element={<Applications />} />
+            <Route path="/applications/:taskId" element={<ApplicationDetailsComponent />} />
             <Route path="/settings" element={<SettingsPage />} />
             <Route path="/profile" element={<UserProfile />} />
             <Route path="/profile/edit" element={<UserProfile />} />

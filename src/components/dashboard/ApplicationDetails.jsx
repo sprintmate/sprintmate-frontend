@@ -283,9 +283,7 @@ const ApplicationDetails = () => {
 
   // Handle going back to dashboard - Updated to use browser history
   const handleBackToDashboard = () => {
-    // Use browser's history to go back to the previous page
-    // This ensures we respect the navigation path the user took to get here
-    navigate(-1);
+    navigate('/company/dashboard/tasks'); // Explicitly navigate to the tasks page
   };
 
   // Handle page change
@@ -428,7 +426,7 @@ const ApplicationDetails = () => {
           </div>
         </div>
 
-        <div className="flex gap-2">
+        {/* <div className="flex gap-2">
           <Button variant="outline" className="gap-1 border-blue-200 hover:bg-blue-50 hover:text-blue-700">
             <Download size={16} />
             Export
@@ -437,7 +435,7 @@ const ApplicationDetails = () => {
             <Briefcase size={16} />
             Post Similar Job
           </Button>
-        </div>
+        </div> */}
       </div>
 
       {/* Enhanced Task info card */}
