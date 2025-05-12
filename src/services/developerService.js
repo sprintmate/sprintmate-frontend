@@ -34,7 +34,15 @@ export const getDeveloperProfile = async (developerId) => {
 };
 
 export const getDeveloperStatistics = async () => {
-  return apiFetch('/v1/developers/statistics');
+  const url = '/v1/developers/statistics';
+  try {
+    const response = await httpInstance.get(url);
+    console.log("response ", response)
+    return response.data;
+  } catch (error) {
+    console.error('Error creating user:', error);
+    throw error;
+  }
 };
 
 // Tasks

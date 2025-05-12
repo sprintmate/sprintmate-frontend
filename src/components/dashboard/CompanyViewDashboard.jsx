@@ -38,6 +38,7 @@ import {
   GlowContainer
 } from '@/components/ui/dashboardAnimations';
 import RazorpayPayment from '../common/RazorpayPayment'; // Import RazorpayPayment component
+import { capitalizeWords } from '../../utils/applicationUtils';
 
 // Dummy Data as fallback in case localStorage is empty
 const dashboardData = {
@@ -528,7 +529,7 @@ const CompanyViewDashboard = () => {
     } else if (user && user.companyProfiles && user.companyProfiles.length > 0) {
       return user.companyProfiles[0].companyName;
     }
-    return dashboardData.companyName;
+    return capitalizeWords(dashboardData.companyName);
   };
   
   if (isLoading) {

@@ -8,13 +8,17 @@ import { Briefcase, Search, CheckCircle2, TrendingUp, Users, Clock, ArrowRight, 
 import { getToken } from '../../services/authService';
 import axios from 'axios';
 import CurrencyFormatter from '../ui/CurrencyFormatter';
-import { formatDate } from '../../utils/applicationUtils';
+import { capitalizeWords, formatDate } from '../../utils/applicationUtils';
+import { getDeveloperStatistics } from '../../services/developerService';
+import DashboardStats from '../common/DashboardAnalyticsStats';
 
 const DeveloperHome = ({ developer }) => {
   // Extract developer skills
   const skills = developer?.developerProfiles?.[0]?.skills?.split(',') || [];
   const name = developer?.name || 'Developer';
   const firstName = name.split(' ')[0];
+
+  const developerId = developer?.developerProfiles?.[0].externalId;
 
 
   // State for recommended projects from API
@@ -83,22 +87,24 @@ const DeveloperHome = ({ developer }) => {
     const fetchStats = async () => {
       try {
         setStatsLoading(true);
-        const token = getToken();
-        const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/v1/developers/statistics`, {
-          headers: {
-            'Authorization': `Bearer ${token}` // <-- Fix: add Bearer
-          }
-        });
-        if (response.ok) {
-          const data = await response.json();
-          setStatsData({
-            availableProjects: data.availableProjects ?? 0,
-            appliedProjects: data.appliedProjects ?? 0,
-            activeDevelopers: data.activeDevelopers ?? 0,
-            averageResponse: data.averageResponse ?? "N/A"
-          });
-          setStatusStats(data);
-        }
+        // const token = getToken();
+        // const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/v1/developers/statistics`, {
+        //   headers: {
+        //     'Authorization': `Bearer ${token}` // <-- Fix: add Bearer
+        //   }
+        // });
+        const response = await getDeveloperStatistics();
+        console.log('response from api ', response);
+        // if (response.ok) {
+        const data = response
+        // setStatsData({
+        //   availableProjects: data.availableProjects ?? 0,
+        //   appliedProjects: data.appliedProjects ?? 0,
+        //   activeDevelopers: data.activeDevelopers ?? 0,
+        //   averageResponse: data.averageResponse ?? "N/A"
+        // });
+        setStatusStats(response);
+        // }
       } catch (err) {
         // Optionally handle error
       } finally {
@@ -147,8 +153,8 @@ const DeveloperHome = ({ developer }) => {
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
           <div>
             <h1 className="text-2xl font-bold text-gray-900">Welcome ,
-              <Link to={`/developer/profile/${developer?.userId}`} className="text-blue-600 hover:underline ml-1">
-                {firstName}!
+              <Link to={`/developer/dashboard/profile/${developerId}`} className="text-blue-600 hover:underline ml-1">
+                {capitalizeWords(firstName)}!
               </Link>
             </h1>
             <p className="mt-1 text-gray-600">Here's what's happening with your applications and recommended projects.</p>
@@ -163,7 +169,7 @@ const DeveloperHome = ({ developer }) => {
       </motion.div>
 
       {/* Stats Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      {/* <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {stats.map((stat, index) => (
           <motion.div
             key={`stat-${index}`} // Use a unique key
@@ -190,10 +196,10 @@ const DeveloperHome = ({ developer }) => {
             </Card>
           </motion.div>
         ))}
-      </div>
+      </div> */}
 
       {/* Application Status Statistics */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      {/* <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {Object.entries(statusStats).map(([status, count], idx) => (
           <motion.div
             key={status}
@@ -219,7 +225,9 @@ const DeveloperHome = ({ developer }) => {
             </Card>
           </motion.div>
         ))}
-      </div>
+      </div> */}
+
+      <DashboardStats data={statusStats} />
 
       {/* Skills section */}
       {skills.length > 0 && (
