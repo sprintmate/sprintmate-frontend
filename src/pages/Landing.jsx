@@ -67,6 +67,7 @@ import { useNavigate } from "react-router-dom";
 import { authUtils } from "../utils/authUtils";
 import { fetchAppConfig, fetchAppConfigWithCache } from "../api/configService";
 import SocialLinks from "../components/SocialLink";
+import FeedbackForm from "../components/common/FeedbackForm";
 
 function Landing() {
   // Refs for scroll animations
@@ -983,7 +984,7 @@ function Landing() {
               {/* Contact Form */}
               <div className="col-span-2 md:col-span-4">
                 <h4 className="font-semibold mb-4">Get in Touch</h4>
-                <form
+                {/* <form
                   className="space-y-3"
                   onSubmit={(e) => {
                     e.preventDefault();
@@ -1004,7 +1005,10 @@ function Landing() {
                   >
                     Send Message
                   </Button>
-                </form>
+                </form> */}
+
+               <FeedbackForm/>
+
                 <div className="mt-4 text-sm text-gray-600">
                   <p className="flex items-center gap-2">
                     <MessageSquare className="w-4 h-4" />
