@@ -12,12 +12,11 @@ import {
 import { getToken } from '../../services/authService';
 import {
   TaskApplicationStatus,
-  Role,
   STATUS_LABELS,
   getAllowedTransitions,
   canRoleUpdateStatus,
-  STATUS_DIALOG_CONFIG
-} from '../../constants/taskApplicationStatusMachine';
+  STATUS_DIALOG_CONFIG,
+} from '../../constants/taskApplicationStatus';
 
 import { authUtils } from '../../utils/authUtils';
 import { updateApplicationStatus,withdrawApplication } from '../../api/taskApplicationService';
@@ -26,6 +25,7 @@ import { ApplicationStatus } from '../../constants/ApplicationStatus';
 import { ConfirmationDialog } from '../ui/ConfirmationDialogue';
 import SecureDocumentViewer from '../DocumentViewer';
 import CurrencyFormatter from '../ui/CurrencyFormatter';
+import { useNavigate } from 'react-router-dom'; // Ensure this is imported
 
 
 // Status badge component with appropriate styling for each status
@@ -52,14 +52,17 @@ const StatusBadge = ({ status }) => {
 
 // Application card component
 const ApplicationCard = ({ application, index, onStatusUpdate }) => {
+  const navigate = useNavigate(); // Hook for navigation
+  const { task, externalId: applicationId } = application;
+  const taskId = task?.externalId;
+
   const [isExpanded, setIsExpanded] = useState(false);
   // const [isWithdrawDialogOpen, setIsWithdrawDialogOpen] = useState(false);
   const [pendingStatus, setPendingStatus] = useState(null); // e.g., 'WITHDRAWN'
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  const { task, proposal, status, createdAt, externalId: applicationId } = application;
-  const taskId = task?.externalId;
+  const { status, createdAt } = application;
   const role = authUtils.getUserProfile().role;
   console.log("role fetched from user profile ", role);
   const [attachedDocs, setAttachedDocs] = useState([]);
@@ -290,8 +293,12 @@ const ApplicationCard = ({ application, index, onStatusUpdate }) => {
             </button>
 
             <div className="flex gap-2">
-              {/* View Details (always visible) */}
-              <Button size="sm" className="gap-1">
+              {/* View Details Button */}
+              <Button
+                size="sm"
+                className="gap-1"
+                onClick={() => navigate(`/developer/dashboard/applications/${taskId}/${applicationId}`)}
+              >
                 View Details
                 <ArrowRight className="w-3 h-3" />
               </Button>
