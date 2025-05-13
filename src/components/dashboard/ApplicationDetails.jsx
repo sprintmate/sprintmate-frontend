@@ -39,7 +39,7 @@ import { updateApplicationStatus, acceptApplicationStatus, getTaskApplications }
 
 import { refundPayment, cancelPayment } from '../../api/paymentService';
 
-import { reloadPage } from '../../utils/applicationUtils';
+import { getDeveloperProfileRedirectionPath, reloadPage } from '../../utils/applicationUtils';
 import { ApplicationStatus } from '../../constants/ApplicationStatus';
 import { authUtils } from '../../utils/authUtils';
 
@@ -50,10 +50,12 @@ import {
   getAllowedTransitions,
   canRoleUpdateStatus,
   STATUS_DIALOG_CONFIG
-} from '../../constants/taskApplicationStatus';
+} from '../../constants/taskApplicationStatusMachine';
 
 import SecureDocumentViewer from '../DocumentViewer';
 import { getChatRedirectionPath } from '../chat/Rooms';
+import ProfilePicViewer from '../common/ProfilePicViewer';
+import CurrencyFormatter from '../ui/CurrencyFormatter';
 
 const STATUS_MAP = {
   pending: { color: 'bg-yellow-100 text-yellow-800', icon: <Clock size={14} className="mr-1" /> },
@@ -285,7 +287,7 @@ const ApplicationDetails = () => {
   const handleBackToDashboard = () => {
     // Use browser's history to go back to the previous page
     // This ensures we respect the navigation path the user took to get here
-    navigate(-1);
+    navigate('/company/dashboard/tasks');
   };
 
   // Handle page change
@@ -312,13 +314,13 @@ const ApplicationDetails = () => {
     }
   };
 
- 
-   const handleOpenChat = (app) => {
-          const taskId = app.task.externalId;         
-          const applicationId = app.externalId;
-          const url = getChatRedirectionPath(taskId, applicationId);
-          navigate(url);
-    };
+
+  const handleOpenChat = (app) => {
+    const taskId = app.task.externalId;
+    const applicationId = app.externalId;
+    const url = getChatRedirectionPath(taskId, applicationId);
+    navigate(url);
+  };
 
   // Handle payment success
   const handlePaymentSuccess = async (paymentData) => {
@@ -454,7 +456,10 @@ const ApplicationDetails = () => {
               </div>
               <div>
                 <h3 className="text-sm font-medium text-gray-500 mb-2 flex items-center">
-                  <DollarSign size={14} className="mr-1.5" /> Budget
+                  {/* <DollarSign size={14} className="mr-1.5" />  */}
+
+                  <CurrencyFormatter currency={task.currency} className='mr-1.5' >
+                  </CurrencyFormatter> Budget
                 </h3>
                 <p className="text-gray-900 font-medium">
                   {task.budget ? `${task.budget} ${task.currency || ''}` : 'Not specified'}
@@ -521,7 +526,7 @@ const ApplicationDetails = () => {
       </div>
 
       {/* Enhanced Tabs */}
-      <div className="bg-white rounded-t-lg shadow-sm border border-gray-100 border-b-0">
+      {/* <div className="bg-white rounded-t-lg shadow-sm border border-gray-100 border-b-0">
         <SimpleTabs
           tabs={[
 
@@ -533,7 +538,7 @@ const ApplicationDetails = () => {
           activeTab={activeTab}
           onChange={setActiveTab}
         />
-      </div>
+      </div> */}
 
       {/* Application list with enhanced UI */}
       <div className="bg-white rounded-b-lg p-6 shadow-sm border border-gray-100 mb-6">
@@ -545,16 +550,23 @@ const ApplicationDetails = () => {
                   <div className="flex flex-col md:flex-row">
                     {/* Left sidebar with developer info */}
                     <div className="bg-gray-50 p-5 md:w-1/4 border-r border-gray-100 flex flex-col items-center justify-center space-y-3">
-                      <SimpleAvatar
-                        name={application.developer?.name || "Developer"}
-                        profilePicture={application.developer?.portfolio?.PROFILE_PIC ?
-                          `${url}/v1/documents/${application.developer.portfolio.PROFILE_PIC}` : undefined}
+                      <ProfilePicViewer
+                        documentId={application?.developer?.portfolio?.PROFILE_PIC}
+                        developerName={application?.developer?.developerName || ''}
                         className="h-20 w-20"
                       />
                       <div className="text-center">
-                        <h3 className="font-semibold text-gray-900">
-                          {application.developer?.name || `Developer ID: ${application.developer?.externalId?.substring(0, 8)}...`}
-                        </h3>
+                        <a
+                          href={getDeveloperProfileRedirectionPath(application.developer.externalId)}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="font-semibold text-gray-900 hover:underline"
+                        >
+                          <h3 className="font-semibold text-gray-900">
+                            {application.developer.developerName}
+                          </h3>
+                        </a>
+
                         <div className="text-sm text-gray-500 mt-1">
                           {application.developer?.about?.substring(0, 30) || 'Developer'}
                           {application.developer?.about?.length > 30 ? '...' : ''}

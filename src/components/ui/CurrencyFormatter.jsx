@@ -1,6 +1,7 @@
 import React from 'react';
 
-const CurrencyFormatter = ({ currency, children }) => {
+const CurrencyFormatter = ({ currency, children,className = "" }) => {
+  console.log('currnecy ', currency)
   const getCurrencySymbol = (currencyCode) => {
     try {
       // Using Intl.NumberFormat to get currency symbol
@@ -24,7 +25,7 @@ const CurrencyFormatter = ({ currency, children }) => {
   const currencySymbol = getCurrencySymbol(currency);
 
   return (
-    <span>
+    <span className= {className} >
       {currencySymbol} {children}
     </span>
   );

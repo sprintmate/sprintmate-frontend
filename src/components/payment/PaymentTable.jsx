@@ -38,7 +38,7 @@ const PaymentTable = ({
     isDeveloperView = false,
     onWithdrawSuccess
 }) => {
-    const [selectedStatuses, setSelectedStatuses] = useState(['HELD', 'RELEASED', 'REFUNDED', 'CANCELLED', 'PROCESSING', 'FAILED', 'PAID', 'WITHDRAWN' ]);
+    const [selectedStatuses, setSelectedStatuses] = useState(['HELD', 'RELEASED', 'REFUNDED', 'CANCELLED', 'PROCESSING', 'FAILED', 'PAID', 'WITHDRAWN']);
     const [searchQuery, setSearchQuery] = useState('');
     const [withdrawingPaymentId, setWithdrawingPaymentId] = useState(null);
     const [isBankAccountFormOpen, setIsBankAccountFormOpen] = useState(false);
@@ -225,7 +225,16 @@ const PaymentTable = ({
                                         {payments.map((p) => (
                                             <tr key={p.externalId} className="hover:bg-gray-50">
                                                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{p.paymentId}</td>
-                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{p.applicationReferenceId}</td>
+                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                                    <a
+                                                        href={`/applications/${p.applicationReferenceId}`}
+                                                        target="_blank"
+                                                        rel="noopener noreferrer"
+                                                    >
+                                                        {p.applicationReferenceId}
+                                                    </a>
+
+                                                </td>
                                                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">₹{p.displayAmount}</td>
                                                 <td className="px-6 py-4 whitespace-nowrap">
                                                     <Badge className={getStatusColor(p.status)}>

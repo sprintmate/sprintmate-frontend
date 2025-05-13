@@ -905,7 +905,7 @@ const MyTasks = () => {
                           {/* Task metadata - Budget, Deadline, Duration */}
                           <div className="flex flex-wrap gap-4 mt-3 pl-11 text-sm text-gray-600">
                             <div className="flex items-center gap-1">
-                              <DollarSign size={14} className="text-blue-500" />
+                              <CurrencyFormatter currency={task.currency} className="text-blue-500" />
                               <span>{task.budget}</span>
                             </div>
 
@@ -963,11 +963,11 @@ const MyTasks = () => {
                       {/* Task action buttons */}
                       <div className="flex items-center justify-between mt-4 pt-3 border-t border-gray-100 pl-3">
                         <div className="flex items-center gap-2">
-                          <Button variant="ghost" size="sm" className="text-gray-500 hover:text-gray-700 hover:bg-gray-50/50 -ml-2 h-8">
+                          {/* <Button variant="ghost" size="sm" className="text-gray-500 hover:text-gray-700 hover:bg-gray-50/50 -ml-2 h-8">
                             <Eye size={14} className="mr-1" />
                             <span className="hidden sm:inline">{task.views} views</span>
                             <span className="sm:hidden">{task.views}</span>
-                          </Button>
+                          </Button> */}
                           <Button
                             variant="ghost"
                             size="sm"
@@ -1057,6 +1057,7 @@ import Rooms from '../components/chat/Rooms';
 import ApplicationDetailsModal from '../components/ApplicationDetailsModal';
 import SettingsPage from './SettingsPage';
 import DeveloperProfile from '../components/developer/DeveloperProfile';
+import CurrencyFormatter from '../components/ui/CurrencyFormatter';
 
 // Add UserProfile component
 const UserProfile = () => {
