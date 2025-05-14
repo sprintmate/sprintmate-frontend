@@ -799,6 +799,7 @@ import DeveloperProfile from '../components/developer/DeveloperProfile';
 import CurrencyFormatter from '../components/ui/CurrencyFormatter';
 import { fetchCompanyProfle, fetchCompanyTaskStatistics } from '../api/companyService';
 import DashboardStats from '../components/common/DashboardAnalyticsStats';
+import CompanyProfile from '../components/company/CompanyProfile';
 
 // Add UserProfile component
 const UserProfile = () => {
@@ -1341,6 +1342,8 @@ const CompanyDashboard = () => {
             <Route path="/tasks/:taskId/applications" element={<ApplicationDetailsComponent />} />
             {/* <Route path="/tasks/:taskId/applications/:applicationId" element={<Applications />} /> */}
             <Route path="applications/:taskId/:applicationId" element={<ApplicationTaskDetails />} />
+            <Route path="/company-profile/:companyId" element={<CompanyProfile />} />
+
 
             <Route path="*" element={<NotFound />} />
 
