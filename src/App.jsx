@@ -7,6 +7,7 @@ import { Toaster } from 'react-hot-toast';
 import Login from './pages/Login';
 import ProtectedRoute from './components/ProtectedRoute';
 import ProfileCompletionChecker from './components/ProfileCompletionChecker';
+import ErrorBoundary from './components/common/ErrorBoundary';
 
 const Landing = React.lazy(() => import('./pages/Landing'));
 const DeveloperDashboard = React.lazy(() => import('./pages/DeveloperDashboard'));
@@ -21,62 +22,64 @@ const App = () => {
     <AuthProvider>
       <Toaster position="top-right" />
       <div className="bg-white min-h-screen">
-        <Suspense fallback={
-          <div className="min-h-screen flex items-center justify-center">
-            <div className="w-16 h-16 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
-          </div>
-        }>
-          <Routes>
-            <Route path="/" element={<Landing />} />
-            <Route path="/developer/login" element={<Login />} />
-            <Route path="/company/login" element={<Login />} />
-            <Route path="/oauth/callback" element={<OAuthCallback />} />
-            
-            {/* Handle both routes for OAuth redirects */}
-            <Route path="/auth/callback" element={<OAuthCallback />} />
-            
-            {/* Add login route that redirects to developer login by default */}
-            <Route path="/login" element={<Navigate to="/developer/login" replace />} />
-            
-            {/* Profile registration routes - These should NOT be protected */}
-            <Route path="/complete-company-profile/:userId" element={<CompanyProfileRegistration />} />
-            <Route path="/complete-developer-profile/:userId" element={<DeveloperProfileRegistration />} />
-            
-            {/* Protected Routes */}
-            <Route
-              path="/developer/dashboard/*"
-              element={
-                <ProtectedRoute>
-                  <DeveloperDashboard />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/developer/profile/:developerId"
-              element={
-                <ProtectedRoute>
-                  <DeveloperProfilePage />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/developer/create-profile"
-              element={
-                <ProtectedRoute>
-                  <CreateDeveloperProfile />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/company/dashboard/*"
-              element={
-                <ProtectedRoute>
-                  <CompanyDashboard />
-                </ProtectedRoute>
-              }
-            />
-          </Routes>
-        </Suspense>
+        <ErrorBoundary>
+          <Suspense fallback={
+            <div className="min-h-screen flex items-center justify-center">
+              <div className="w-16 h-16 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+            </div>
+          }>
+            <Routes>
+              <Route path="/" element={<Landing />} />
+              <Route path="/developer/login" element={<Login />} />
+              <Route path="/company/login" element={<Login />} />
+              <Route path="/oauth/callback" element={<OAuthCallback />} />
+              
+              {/* Handle both routes for OAuth redirects */}
+              <Route path="/auth/callback" element={<OAuthCallback />} />
+              
+              {/* Add login route that redirects to developer login by default */}
+              <Route path="/login" element={<Navigate to="/developer/login" replace />} />
+              
+              {/* Profile registration routes - These should NOT be protected */}
+              <Route path="/complete-company-profile/:userId" element={<CompanyProfileRegistration />} />
+              <Route path="/complete-developer-profile/:userId" element={<DeveloperProfileRegistration />} />
+              
+              {/* Protected Routes */}
+              <Route
+                path="/developer/dashboard/*"
+                element={
+                  <ProtectedRoute>
+                    <DeveloperDashboard />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/developer/profile/:developerId"
+                element={
+                  <ProtectedRoute>
+                    <DeveloperProfilePage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/developer/create-profile"
+                element={
+                  <ProtectedRoute>
+                    <CreateDeveloperProfile />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/company/dashboard/*"
+                element={
+                  <ProtectedRoute>
+                    <CompanyDashboard />
+                  </ProtectedRoute>
+                }
+              />
+            </Routes>
+          </Suspense>
+        </ErrorBoundary>
       </div>
     </AuthProvider>
   );
