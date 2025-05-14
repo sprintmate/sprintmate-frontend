@@ -38,7 +38,7 @@ import {
 import { UserRole } from '../constants/Role';
 import RazorpayPayment from '../components/common/RazorpayPayment';
 import { refundPayment, cancelPayment } from '../api/paymentService';
-import { getBaseRedirectionPath, getDeveloperProfileRedirectionPath, reloadPage } from '../utils/applicationUtils';
+import { getApplicationDetailsRedirectionPath, getBaseRedirectionPath, getDeveloperProfileRedirectionPath, reloadPage } from '../utils/applicationUtils';
 import { updateApplicationStatus } from '../api/taskApplicationService';
 import { acceptApplicationStatus } from '../api/taskApplicationService';
 import { MultiSelect } from "@/components/ui/multi-select";
@@ -309,9 +309,9 @@ const Applications = () => {
                                 <th scope="col" className="px-6 py-3 font-semibold text-gray-600">Task Title</th>
                                 <th scope="col" className="px-6 py-3 font-semibold text-gray-600">Budget</th>
                                 <th scope="col" className="px-6 py-3 font-semibold text-gray-600">Deadline</th>
-                                <th scope="col" className="px-6 py-3 font-semibold text-gray-600">Task Status</th>
+                                {/* <th scope="col" className="px-6 py-3 font-semibold text-gray-600">Task Status</th> */}
                                 <th scope="col" className="px-6 py-3 font-semibold text-gray-600">Application Status</th>
-                                <th scope="col" className="px-6 py-3 font-semibold text-gray-600">Developer</th>
+                                <th scope="col" className="px-6 py-3 font-semibold text-gray-600">Developer's Application</th>
                                 <th scope="col" className="px-6 py-3 font-semibold text-gray-600">Proposal</th>
                                 <th scope="col" className="px-6 py-3 font-semibold text-gray-600">Applied On</th>
                                 <th scope="col" className="px-6 py-3 font-semibold text-gray-600">Actions</th>
@@ -378,9 +378,9 @@ const Applications = () => {
                                                 <span>{app.task?.deadline ? new Date(app.task.deadline).toLocaleDateString() : 'N/A'}</span>
                                             </div>
                                         </td>
-                                        <td className="px-6 py-4">
+                                        {/* <td className="px-6 py-4">
                                             <Badge variant="outline">{app.task?.status}</Badge>
-                                        </td>
+                                        </td> */}
                                         <td className="px-6 py-4">
                                             <Badge
                                                 variant={
@@ -397,7 +397,7 @@ const Applications = () => {
                                         <td className="px-6 py-4 max-w-xs">
                                             {app.developer.developerName ? (
                                                 <a
-                                                    href={getDeveloperProfileRedirectionPath(app.developer.externalId)}
+                                                    href={getApplicationDetailsRedirectionPath(app.task.externalId,app.externalId)}
                                                     target="_blank"
                                                     rel="noopener noreferrer"
                                                     className="inline-flex items-center gap-1 text-blue-600 hover:underline hover:text-blue-800"

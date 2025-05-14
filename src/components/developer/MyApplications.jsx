@@ -7,7 +7,7 @@ import axios from 'axios';
 import {
   Briefcase, Clock, DollarSign, Calendar, ExternalLink, ChevronDown,
   Check, X, AlertCircle, Filter, Search, Loader2, Sparkles, User,Paperclip,
-  ArrowRight, Github, Linkedin, Code, MessageSquare, Tag, FileCode
+  ArrowRight, Github, Linkedin, Code, MessageSquare, Tag, FileCode,Building2
 } from 'lucide-react';
 import { getToken } from '../../services/authService';
 import {
@@ -25,7 +25,8 @@ import { ApplicationStatus } from '../../constants/ApplicationStatus';
 import { ConfirmationDialog } from '../ui/ConfirmationDialogue';
 import SecureDocumentViewer from '../DocumentViewer';
 import CurrencyFormatter from '../ui/CurrencyFormatter';
-import { useNavigate } from 'react-router-dom'; // Ensure this is imported
+import { useNavigate ,Link} from 'react-router-dom'; // Ensure this is imported
+import { getCompanyProfileRedirectionPath } from '../../utils/applicationUtils';
 
 
 // Status badge component with appropriate styling for each status
@@ -82,7 +83,8 @@ const ApplicationCard = ({ application, index, onStatusUpdate }) => {
     tags: task?.tags || "",
     externalId: task?.externalId || `temp-${Date.now()}-${index}`,
     status: task?.status || "OPEN",
-    expectedEarnings: application.expectedEarnings
+    expectedEarnings: application.expectedEarnings,
+    proposal : application.proposal
   };
 
   // Format date from ISO string
@@ -183,6 +185,11 @@ const ApplicationCard = ({ application, index, onStatusUpdate }) => {
               <div className="space-y-1">
                 <h3 className="font-semibold text-lg text-gray-900">{safeTask.title}</h3>
                 <div className="flex items-center text-sm text-gray-500 gap-2">
+                <Building2 size={14} className="text-gray-500" />
+                  <Link to={getCompanyProfileRedirectionPath(application?.companyProfile.companyId)} className="text-blue-500 hover:underline">
+                    {application?.companyProfile.companyName || "Company"}
+                  </Link>
+
                   <Calendar className="w-4 h-4" />
                   <span>Applied on {formatDate(createdAt)}</span>
                   <span className="text-gray-300">•</span>
@@ -241,7 +248,7 @@ const ApplicationCard = ({ application, index, onStatusUpdate }) => {
                     <div>
                       <h4 className="font-medium text-sm text-gray-700 mb-2">My Proposal</h4>
                       <div className="bg-blue-50 p-3 rounded-md border border-blue-100 text-sm text-gray-700">
-                        <p className="italic">{proposal || '-'}</p>
+                        <p className="italic">{application?.proposal || '-'}</p>
                       </div>
                     </div>
 

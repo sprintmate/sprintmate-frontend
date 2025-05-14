@@ -35,7 +35,7 @@ import { UserRole } from '../constants/Role';
 import DeveloperPayments from './DeveloperPayments';
 import Rooms from '../components/chat/Rooms';
 import CompanyProfile from '../components/company/CompanyProfile';
-import ApplicationDetails from '../routes';
+import ApplicationTaskDetails from '../components/common/routes';
 
 // Sidebar link component
 const SidebarLink = ({ to, icon: Icon, label, isActive, isExpanded }) => {
@@ -320,13 +320,14 @@ const DeveloperDashboard = () => {
             <Route index element={<DeveloperHome developer={developer} />} />
             <Route path="projects" element={<ProjectsList />} />
             <Route path="applications" element={<MyApplications />} />
-            <Route path="applications/:taskId/:applicationId" element={<ApplicationDetails />} />
+            <Route path="applications/:taskId/:applicationId" element={<ApplicationTaskDetails />} />
             <Route path="settings" element={<SettingsPage />} />
             <Route path="earnings" element={<DeveloperPayments />} />
             <Route path="profile/:developerId" element={<DeveloperProfile />} />
             <Route path="inbox" element={<Rooms />} />
             <Route path="/chat/:taskId/:applicationId" element={<ChatRoomWrapper />} />
             <Route path="/company-profile/:companyId" element={<CompanyProfile />} />
+            <Route path="/developer-profile/:developerId" element={<DeveloperProfile />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </div>

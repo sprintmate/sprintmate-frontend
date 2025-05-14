@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Filter, Search, ChevronLeft, ChevronRight, X, Wallet } from 'lucide-react';
+import { Filter, Search, ChevronLeft, ChevronRight, X, Wallet,ExternalLinkIcon } from 'lucide-react';
 import { Checkbox } from '@/components/ui/checkbox';
 import {
     Popover,
@@ -14,7 +14,7 @@ import { withDrawFunds } from '../../api/paymentService';
 import AddBankAccount from './AddBankAccount';
 import { RiArrowRightCircleLine } from 'react-icons/ri';
 
-import { reloadPage } from '../../utils/applicationUtils';
+import { getApplicationDetailsRedirectionPath, reloadPage } from '../../utils/applicationUtils';
 
 const PAYMENT_STATUSES = [
     { value: 'HELD', label: 'Held' },
@@ -210,7 +210,7 @@ const PaymentTable = ({
                                     <thead>
                                         <tr className="bg-gray-50">
                                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Payment ID</th>
-                                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Task Application</th>
+                                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Task Details</th>
                                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Amount</th>
                                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
                                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Method</th>
@@ -225,15 +225,16 @@ const PaymentTable = ({
                                         {payments.map((p) => (
                                             <tr key={p.externalId} className="hover:bg-gray-50">
                                                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{p.paymentId}</td>
-                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                                <td>
                                                     <a
-                                                        href={`/applications/${p.applicationReferenceId}`}
+                                                        href={getApplicationDetailsRedirectionPath(p.taskId, p.applicationReferenceId)}
                                                         target="_blank"
                                                         rel="noopener noreferrer"
+                                                        className="text-blue-600 underline flex items-center gap-1"
                                                     >
-                                                        {p.applicationReferenceId}
+                                                        {p.taskTitle}
+                                                        <ExternalLinkIcon className="w-4 h-4" />
                                                     </a>
-
                                                 </td>
                                                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">₹{p.displayAmount}</td>
                                                 <td className="px-6 py-4 whitespace-nowrap">

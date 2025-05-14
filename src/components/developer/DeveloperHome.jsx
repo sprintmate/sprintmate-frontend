@@ -100,32 +100,6 @@ const DeveloperHome = ({ developer }) => {
     fetchStats();
   }, []);
 
-  const stats = [
-    {
-      title: "Available Projects",
-      value: statsLoading ? "..." : statsData.availableProjects,
-      icon: <Briefcase className="h-4 w-4 text-blue-600" />,
-      color: "blue"
-    },
-    {
-      title: "Applied Projects",
-      value: statsLoading ? "..." : statsData.appliedProjects,
-      icon: <CheckCircle2 className="h-4 w-4 text-green-600" />,
-      color: "green"
-    },
-    {
-      title: "Active Developers",
-      value: statsLoading ? "..." : statsData.activeDevelopers,
-      icon: <Users className="h-4 w-4 text-purple-600" />,
-      color: "purple"
-    },
-    {
-      title: "Average Response",
-      value: statsLoading ? "..." : statsData.averageResponse,
-      icon: <Clock className="h-4 w-4 text-amber-600" />,
-      color: "amber"
-    }
-  ];
 
   // State for recent activities
   const [recentActivities, setRecentActivities] = useState([]);

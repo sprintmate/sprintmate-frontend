@@ -331,12 +331,9 @@ const RazorpayPayment = ({
           <Tooltip.Content
             side="top"
             align="center"
-            className="rounded-md bg-slate-800 px-2 py-1 text-xs text-white"
+            className="max-w-[180px] break-words rounded-md bg-slate-800 px-2 py-1 text-xs text-white text-center"
           >
-            {isLoading
-              ? "Fetching breakdown…"
-              : "Accept the application and block funds"
-            }
+            Accept the application and block funds
             <Tooltip.Arrow className="fill-slate-800" />
           </Tooltip.Content>
         </Tooltip.Root>

@@ -32,6 +32,10 @@ export const getCompanyProfileRedirectionPath = (companyId) => {
   return `${getBaseRedirectionPath()}/company-profile/${companyId}`
 }
 
+export const getApplicationDetailsRedirectionPath = (taskId,applicationId) => {
+  return `${getBaseRedirectionPath()}/applications/${taskId}/${applicationId}`
+
+}
 
 export const formatDate = (dateString) => {
   if (!dateString) return "No deadline";

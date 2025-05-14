@@ -798,12 +798,12 @@ const ApplicationDetails = () => {
                   ? 'Try adjusting your filters to see more results'
                   : 'You haven\'t received any applications for this task yet.'}
               </p>
-              {!searchTerm && statusFilter === 'all' && (
+              {/* {!searchTerm && statusFilter === 'all' && (
                 <Button className="bg-blue-600 hover:bg-blue-700 gap-1 shadow-sm">
                   <ExternalLink size={16} />
                   Share Job Posting
                 </Button>
-              )}
+              )} */}
             </CardContent>
           </Card>
         )}

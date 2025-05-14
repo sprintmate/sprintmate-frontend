@@ -94,6 +94,7 @@ import AllTasks from '@/components/dashboard/AllTasks';
 import Applications from './CompanyApplication';
 import ChatRoomWrapper from '../components/chat/ChatRoomWrapper';
 import { getTaskApplications } from '../api/taskApplicationService';
+import ApplicationTaskDetails from '../components/common/routes';
 
 
 // Applications Component - Pass applicationId to ApplicationDetails
@@ -1339,6 +1340,8 @@ const CompanyDashboard = () => {
             {/* New routes for task applications */}
             <Route path="/tasks/:taskId/applications" element={<ApplicationDetailsComponent />} />
             {/* <Route path="/tasks/:taskId/applications/:applicationId" element={<Applications />} /> */}
+            <Route path="applications/:taskId/:applicationId" element={<ApplicationTaskDetails />} />
+
             <Route path="*" element={<NotFound />} />
 
           </Routes>
