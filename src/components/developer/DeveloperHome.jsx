@@ -87,22 +87,8 @@ const DeveloperHome = ({ developer }) => {
     const fetchStats = async () => {
       try {
         setStatsLoading(true);
-        // const token = getToken();
-        // const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/v1/developers/statistics`, {
-        //   headers: {
-        //     'Authorization': `Bearer ${token}` // <-- Fix: add Bearer
-        //   }
-        // });
         const response = await getDeveloperStatistics();
         console.log('response from api ', response);
-        // if (response.ok) {
-        const data = response
-        // setStatsData({
-        //   availableProjects: data.availableProjects ?? 0,
-        //   appliedProjects: data.appliedProjects ?? 0,
-        //   activeDevelopers: data.activeDevelopers ?? 0,
-        //   averageResponse: data.averageResponse ?? "N/A"
-        // });
         setStatusStats(response);
         // }
       } catch (err) {
@@ -203,64 +189,6 @@ const DeveloperHome = ({ developer }) => {
       </motion.div>
 
       {/* Stats Grid */}
-      {/* <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        {stats.map((stat, index) => (
-          <motion.div
-            key={`stat-${index}`} // Use a unique key
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: index * 0.1 }}
-          >
-            <Card className="border-gray-100">
-              <CardContent className="p-4">
-                <div className="flex justify-between items-center">
-                  <div className={`w-10 h-10 rounded-lg bg-${stat.color}-50 flex items-center justify-center`}>
-                    {stat.icon}
-                  </div>
-                  <span className={`text-${stat.color}-600 text-sm font-medium flex items-center gap-1`}>
-                    <TrendingUp size={14} />
-                    Active
-                  </span>
-                </div>
-                <div className="mt-3">
-                  <h3 className="text-xl font-bold text-gray-900">{stat.value}</h3>
-                  <p className="text-sm text-gray-500">{stat.title}</p>
-                </div>
-              </CardContent>
-            </Card>
-          </motion.div>
-        ))}
-      </div> */}
-
-      {/* Application Status Statistics */}
-      {/* <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        {Object.entries(statusStats).map(([status, count], idx) => (
-          <motion.div
-            key={status}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: idx * 0.1 }}
-          >
-            <Card className="border-gray-100">
-              <CardContent className="p-4">
-                <div className="flex justify-between items-center">
-                  <div className={`w-10 h-10 rounded-lg bg-${statusColors[status] || "gray"}-50 flex items-center justify-center`}>
-                    {statusIcons[status] || <Briefcase className="h-4 w-4 text-gray-600" />}
-                  </div>
-                  <span className={`text-${statusColors[status] || "gray"}-600 text-sm font-medium`}>
-                    {status}
-                  </span>
-                </div>
-                <div className="mt-3">
-                  <h3 className="text-xl font-bold text-gray-900">{statsLoading ? "..." : count}</h3>
-                  <p className="text-sm text-gray-500">{status}</p>
-                </div>
-              </CardContent>
-            </Card>
-          </motion.div>
-        ))}
-      </div> */}
-
       <DashboardStats data={statusStats} />
 
       {/* Skills section */}

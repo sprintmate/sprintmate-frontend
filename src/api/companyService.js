@@ -32,3 +32,15 @@ export const postTask = async (companyId,taskPayload) => {
     throw error;
   }
 };
+
+
+export const fetchCompanyTaskStatistics = async (companyId) => {
+  const url = `/v1/company-profiles/${companyId}/tasks/statistics`;
+  try {
+    const response = await httpInstance.get(url);
+    return response;
+  } catch (error) {
+    console.error('Error creating postTask:', error);
+    throw error;
+  }
+};
