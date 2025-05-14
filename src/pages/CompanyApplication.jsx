@@ -1,10 +1,12 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef,useCallback } from 'react';
 import { Routes, Route, NavLink, useLocation, Link, useNavigate, useParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import CurrencyFormatter from '../components/ui/CurrencyFormatter';
+import debounce from 'lodash.debounce';
+
 import {
     User, Calendar, Clock, ChevronLeft, Award,
     Briefcase, CheckCircle, XCircle, Filter, Search,
@@ -114,6 +116,10 @@ const Applications = () => {
     const fetchApplications = async () => {
         setIsLoading(true);
         try {
+            if (searchTerm.trim() && searchTerm.trim().length >= 1 && searchTerm.trim().length <= 4) {
+                console.log('aborting api call')
+                return; // Do not proceed with the API call
+            }
             const queryParams = new URLSearchParams({
                 size: pageSize,
                 page: currentPage,
@@ -141,11 +147,21 @@ const Applications = () => {
         }
     };
 
+    // const debouncedFetchApplications = useCallback(debounce(fetchApplications, 500), [searchTerm, currentPage, appliedFilters]);
+
+    const debouncedFetchApplications = useCallback(
+        debounce(fetchApplications, 500), 
+        [searchTerm] 
+    );
+
+
+
     useEffect(() => {
         if (userProfile?.userId && companyProfile?.externalId) {
-            fetchApplications();
+            debouncedFetchApplications();
         }
-    }, [currentPage, appliedFilters, searchTerm]);
+    }, [searchTerm, currentPage, appliedFilters]);
+
 
     const handleStatusUpdate = async (taskId, applicationId, newStatus) => {
         try {

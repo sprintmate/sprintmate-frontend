@@ -605,7 +605,7 @@ const MyTasks = () => {
                 </button>
               </Link>
             </motion.div>
-            <motion.div
+            {/* <motion.div
               initial={{ opacity: 0, scale: 0.8 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ delay: 0.4, duration: 0.5 }}
@@ -615,7 +615,7 @@ const MyTasks = () => {
                 <span className="hidden sm:inline">Filter Tasks</span>
                 <span className="sm:hidden">Filter</span>
               </button>
-            </motion.div>
+            </motion.div> */}
           </div>
         </div>
       </motion.div>
