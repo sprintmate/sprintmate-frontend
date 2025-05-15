@@ -1,4 +1,5 @@
 import CryptoJS from 'crypto-js';
+import { identifyUser, resetTracking } from './analytics';
 
 const AUTH_TOKEN_KEY = 'authToken';
 const USER_PROFILE_KEY = 'userProfile';
@@ -50,7 +51,10 @@ export const authUtils = {
   removeAuthToken: () => removeItem(AUTH_TOKEN_KEY),
 
   // User profile
-  setUserProfile: (profile) => setItem(USER_PROFILE_KEY, profile),
+  setUserProfile: (profile) => {
+    setItem(USER_PROFILE_KEY, profile);
+    identifyUser();
+  },
   getUserProfile: () => getItem(USER_PROFILE_KEY),
   removeUserProfile: () => removeItem(USER_PROFILE_KEY),
 
@@ -96,5 +100,6 @@ export const authUtils = {
     authUtils.removeAuthToken();
     authUtils.removeUserProfile();
     authUtils.removeOAuthRole();
+    resetTracking();
   }
 };

@@ -7,6 +7,8 @@ import { useToast } from '@/components/ui/use-toast';
 import axios from 'axios';
 import { authUtils } from '@/utils/authUtils';
 import { isSuccessStatus } from '../../utils/applicationUtils';
+import { trackEvent } from '../../utils/analytics';
+import { AnalyticEvents } from '../../constants/AnalyticsEvents';
 
 
 const TaskApplicationModal = ({ isOpen, onClose, taskId, onSuccess }) => {
@@ -119,6 +121,8 @@ const TaskApplicationModal = ({ isOpen, onClose, taskId, onSuccess }) => {
           timeout: 15000
         }
       );
+
+      trackEvent(AnalyticEvents.TASK_APPLIED,{taskId:taskId})
       
       if(isSuccessStatus(response.status)) {
         setSuccess(true);

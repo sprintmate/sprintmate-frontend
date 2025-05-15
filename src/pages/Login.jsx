@@ -19,6 +19,8 @@ import {
 import { FaGoogle, FaGithub } from 'react-icons/fa';
 import { createUser, generateToken, fetchUserProfile } from '../api/userService';
 import { getPostLoginRedirectPath } from '../utils/redirectionUtil';
+import { trackEvent } from '../utils/analytics';
+import { AnalyticEvents } from '../constants/AnalyticsEvents';
 
 
 
@@ -61,6 +63,9 @@ const Login = () => {
           cred: formData.cred
         });
 
+        trackEvent(AnalyticEvents.SIGN_UP,{email:formData.email,role: oauthRole})
+        
+
         toast.success("Account created! Logging in...");
       }
 
@@ -70,6 +75,7 @@ const Login = () => {
       });
 
       console.log('token response ', tokenResponse)
+      trackEvent(AnalyticEvents.USER_LOGGED_IN,{userId:tokenResponse.userId})
 
       if (tokenResponse?.token) {
         console.log('inside if block ', tokenResponse)
@@ -103,11 +109,14 @@ const Login = () => {
   const handleGoogleLogin = () => {
     authUtils.setOAuthRole(oauthRole);
     window.location.href = `${import.meta.env.VITE_API_BASE_URL}/oauth2/authorization/google?role=${userType}`;
+    trackEvent(AnalyticEvents.CTA_CLICKED,{label:"handleGoogleLogin"})
   };
 
   const handleGithubLogin = () => {
     authUtils.setOAuthRole(oauthRole);
     window.location.href = `${import.meta.env.VITE_API_BASE_URL}/oauth2/authorization/github?role=${userType}`;
+    trackEvent(AnalyticEvents.CTA_CLICKED,{label:"handleGithubLogin"})
+
   };
 
   const handleToggleMode = () => {

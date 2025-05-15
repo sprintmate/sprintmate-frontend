@@ -10,6 +10,8 @@ import axios from 'axios';
 import { postTask } from '../../api/companyService';
 import { authUtils } from '../../utils/authUtils';
 import { fetchUserProfile } from '../../api/userService';
+import { trackEvent } from '../../utils/analytics';
+import { AnalyticEvents } from '../../constants/AnalyticsEvents';
 
 // Custom checkbox component
 const CustomCheckbox = ({ id, checked, onCheckedChange, label }) => {
@@ -320,6 +322,8 @@ const PostTaskForm = () => {
       };
             
       const postTaskResponse = await postTask(companyId,payload);
+      
+      trackEvent(AnalyticEvents.TASK_POSTED,postTaskResponse);
       
       if (postTaskResponse) {
         toast({

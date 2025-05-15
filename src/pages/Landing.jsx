@@ -68,6 +68,8 @@ import { authUtils } from "../utils/authUtils";
 import { fetchAppConfig, fetchAppConfigWithCache } from "../api/configService";
 import SocialLinks from "../components/SocialLink";
 import FeedbackForm from "../components/common/FeedbackForm";
+import { trackEvent } from "../utils/analytics";
+import { getUTMParams } from "../utils/utm";
 
 function Landing() {
   // Refs for scroll animations
@@ -93,7 +95,9 @@ function Landing() {
   // Check if device is mobile
   useEffect(() => {
     // Clear localStorage and sessionStorage
-    authUtils.clearAllData();
+    const utm = getUTMParams();
+    trackEvent('landing_page_view', utm);   
+     authUtils.clearAllData();
     const checkMobile = () => {
       setIsMobile(window.innerWidth < 768);
     };

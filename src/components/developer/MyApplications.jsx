@@ -6,26 +6,28 @@ import { Badge } from '@/components/ui/badge';
 import axios from 'axios';
 import {
   Briefcase, Clock, DollarSign, Calendar, ExternalLink, ChevronDown,
-  Check, X, AlertCircle, Filter, Search, Loader2, Sparkles, User,Paperclip,
-  ArrowRight, Github, Linkedin, Code, MessageSquare, Tag, FileCode,Building2
+  Check, X, AlertCircle, Filter, Search, Loader2, Sparkles, User, Paperclip,
+  ArrowRight, Github, Linkedin, Code, MessageSquare, Tag, FileCode, Building2
 } from 'lucide-react';
 import { getToken } from '../../services/authService';
+
 import {
-  TaskApplicationStatus,
-  STATUS_LABELS,
   getAllowedTransitions,
+  TaskApplicationStatus,
+  Role,
+  STATUS_LABELS,
   canRoleUpdateStatus,
-  STATUS_DIALOG_CONFIG,
-} from '../../constants/taskApplicationStatus';
+  STATUS_DIALOG_CONFIG
+} from '../../constants/taskApplicationStatusMachine';
 
 import { authUtils } from '../../utils/authUtils';
-import { updateApplicationStatus,withdrawApplication } from '../../api/taskApplicationService';
+import { updateApplicationStatus, withdrawApplication } from '../../api/taskApplicationService';
 import { ApplicationStatus } from '../../constants/ApplicationStatus';
 
 import { ConfirmationDialog } from '../ui/ConfirmationDialogue';
 import SecureDocumentViewer from '../DocumentViewer';
 import CurrencyFormatter from '../ui/CurrencyFormatter';
-import { useNavigate ,Link} from 'react-router-dom'; // Ensure this is imported
+import { useNavigate, Link } from 'react-router-dom'; // Ensure this is imported
 import { getCompanyProfileRedirectionPath } from '../../utils/applicationUtils';
 
 
@@ -84,7 +86,7 @@ const ApplicationCard = ({ application, index, onStatusUpdate }) => {
     externalId: task?.externalId || `temp-${Date.now()}-${index}`,
     status: task?.status || "OPEN",
     expectedEarnings: application.expectedEarnings,
-    proposal : application.proposal
+    proposal: application.proposal
   };
 
   // Format date from ISO string
@@ -134,8 +136,8 @@ const ApplicationCard = ({ application, index, onStatusUpdate }) => {
 
     try {
 
-      if(newStatus === ApplicationStatus.WITHDRAWN) {
-        const response = await withdrawApplication(taskId,applicationId);
+      if (newStatus === ApplicationStatus.WITHDRAWN) {
+        const response = await withdrawApplication(taskId, applicationId);
         console.log('Withdraw response:', response);
 
       } else {
@@ -143,13 +145,13 @@ const ApplicationCard = ({ application, index, onStatusUpdate }) => {
           status: newStatus,
           taskAttachments: attachedDocs
         }
-        const response = await updateApplicationStatus(taskId,applicationId,updatePayload);
+        const response = await updateApplicationStatus(taskId, applicationId, updatePayload);
         console.log('update application response:', response);
 
       }
       // Close dialog
       // setIsWithdrawDialogOpen(false);
-       setPendingStatus(null);
+      setPendingStatus(null);
 
       // Update parent component with new status
       if (onStatusUpdate) {
@@ -185,7 +187,7 @@ const ApplicationCard = ({ application, index, onStatusUpdate }) => {
               <div className="space-y-1">
                 <h3 className="font-semibold text-lg text-gray-900">{safeTask.title}</h3>
                 <div className="flex items-center text-sm text-gray-500 gap-2">
-                <Building2 size={14} className="text-gray-500" />
+                  <Building2 size={14} className="text-gray-500" />
                   <Link to={getCompanyProfileRedirectionPath(application?.companyProfile.companyId)} className="text-blue-500 hover:underline">
                     {application?.companyProfile.companyName || "Company"}
                   </Link>
@@ -253,19 +255,19 @@ const ApplicationCard = ({ application, index, onStatusUpdate }) => {
                     </div>
 
 
-                     {/* Attachments */}
-                     {Array.isArray(application.taskAttachments) && application.taskAttachments.length > 0 && (
-                        <div className="mt-4 pt-4 border-t border-gray-100">
-                          <div className="text-sm font-medium text-gray-500 mb-2 flex items-center">
-                            <Paperclip size={14} className="mr-1.5" /> Attachments
-                          </div>
-                          <div className="space-y-4">
-                            {application.taskAttachments.map((id) => (
-                              <SecureDocumentViewer key={id} documentId={id} />
-                            ))}
-                          </div>
+                    {/* Attachments */}
+                    {Array.isArray(application.taskAttachments) && application.taskAttachments.length > 0 && (
+                      <div className="mt-4 pt-4 border-t border-gray-100">
+                        <div className="text-sm font-medium text-gray-500 mb-2 flex items-center">
+                          <Paperclip size={14} className="mr-1.5" /> Attachments
                         </div>
-                      )}
+                        <div className="space-y-4">
+                          {application.taskAttachments.map((id) => (
+                            <SecureDocumentViewer key={id} documentId={id} />
+                          ))}
+                        </div>
+                      </div>
+                    )}
 
 
                     {/* Additional details */}
@@ -274,7 +276,7 @@ const ApplicationCard = ({ application, index, onStatusUpdate }) => {
                         <h4 className="font-medium text-gray-700 mb-1">Task ID</h4>
                         <p className="text-gray-600 break-all">{safeTask.externalId}</p>
                       </div> */}
-                       <div>
+                      <div>
                         <h4 className="font-medium text-gray-700 mb-1">Task ETA</h4>
                         <p className="text-gray-600 break-all">{formatDate(safeTask.deadline)}</p>
                       </div>
@@ -300,15 +302,6 @@ const ApplicationCard = ({ application, index, onStatusUpdate }) => {
             </button>
 
             <div className="flex gap-2">
-              {/* View Details Button */}
-              <Button
-                size="sm"
-                className="gap-1"
-                onClick={() => navigate(`/developer/dashboard/applications/${taskId}/${applicationId}`)}
-              >
-                View Details
-                <ArrowRight className="w-3 h-3" />
-              </Button>
 
               {/* Dynamic Status Transition Buttons */}
               {getAllowedTransitions(status)
@@ -326,6 +319,17 @@ const ApplicationCard = ({ application, index, onStatusUpdate }) => {
                     {STATUS_LABELS[nextStatus] || `Move to ${nextStatus}`}
                   </Button>
                 ))}
+
+              {/* View Details Button */}
+              <Button
+                size="sm"
+                className="gap-1"
+                onClick={() => navigate(`/developer/dashboard/applications/${taskId}/${applicationId}`)}
+              >
+                View Details
+                <ArrowRight className="w-3 h-3" />
+              </Button>
+
             </div>
 
 

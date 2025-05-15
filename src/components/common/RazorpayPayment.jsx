@@ -13,6 +13,8 @@ import { createOrderPayment } from '../../api/paymentService';
 import CurrencyFormatter from "../ui/CurrencyFormatter";
 
 import * as Tooltip from "@radix-ui/react-tooltip"
+import { trackEvent } from '../../utils/analytics';
+import { AnalyticEvents } from '../../constants/AnalyticsEvents';
 
 
 const RazorpayPayment = ({
@@ -81,6 +83,8 @@ const RazorpayPayment = ({
       if (taskId) {
         payloadData.taskId = taskId;
       }
+      trackEvent(AnalyticEvents.PAYMENT_INITIATED,payloadData);
+
 
       const createResponse = paymentHoldResponse;
 
@@ -176,9 +180,9 @@ const RazorpayPayment = ({
             );
 
             console.log("Payment capture successful:", captureResponse.data);
-
+            trackEvent(AnalyticEvents.PAYMENT_MADE,captureResponse.data);
             // Print entire capture response for debugging
-            console.log("Complete capture response:", JSON.stringify(captureResponse.data, null, 2));
+            // console.log("Complete capture response:", JSON.stringify(captureResponse.data, null, 2));
 
             if (captureResponse.data.status === 'HELD' || captureResponse.data.status === 'CREATED') {
               onSuccess && onSuccess({

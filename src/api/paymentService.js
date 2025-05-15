@@ -1,3 +1,6 @@
+import { Label } from 'recharts';
+import { AnalyticEvents } from '../constants/AnalyticsEvents';
+import { trackEvent } from '../utils/analytics';
 import httpInstance from './axiosInstance';
 
 
@@ -7,6 +10,8 @@ export const refundPayment = async (paymentId) => {
             `/v1/order/payments/refund`,
             { paymentId }
         );
+        trackEvent(AnalyticEvents.PAYMENT_UPDATE,{label:'refundPayment',paymentId:paymentId})
+
         return response.data;
     } catch (error) {
         console.error('Error refund payment:', error);
@@ -20,6 +25,7 @@ export const cancelPayment = async (paymentId) => {
             `/v1/order/payments/cancel/${paymentId}`,
             {}
         );
+        trackEvent(AnalyticEvents.PAYMENT_UPDATE,{label:'cancelPayment',paymentId:paymentId})
         return response.data;
     } catch (error) {
         console.error('Error refund payment:', error);
@@ -57,6 +63,7 @@ export const createBankDetails = async (bankData) => {
             `/v1/payment-instrumentations`,
             bankData
         );
+        trackEvent(AnalyticEvents.BANK_DETAIL_UPDATED,{label:'createBankDetails'})
         return response.data;
     } catch (error) {
         console.error('Error fetchBankDetails payment:', error);
@@ -72,6 +79,7 @@ export const withDrawFunds = async (paymentId) => {
             `/v1/order/payments/withdraw`,
             { paymentId }
         );
+        trackEvent(AnalyticEvents.PAYMENT_UPDATE,{label:'withdraw funds',paymentId:paymentId})
         return response.data;
     } catch (error) {
         console.error('Error withDrawFunds payment:', error);
@@ -87,6 +95,7 @@ export const createOrderPayment = async (paymentData) => {
             url,
             paymentData 
         );
+        trackEvent(AnalyticEvents.PAYMENT_INITIATED,paymentData)
         return response;
     } catch (error) {
         console.error('Error createOrderPayment payment:', error);
