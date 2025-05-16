@@ -8,6 +8,7 @@ import { Badge } from '@/components/ui/badge';
 import { Calendar, DollarSign, Tag, Layers, ShieldCheck, FileText, Loader2 } from 'lucide-react';
 import axios from 'axios';
 import { getToken } from '../../services/authService';
+import { authUtils } from '../../utils/authUtils';
 
 const categories = [
   { value: 'p0', label: 'P0 (Critical)' },
@@ -25,6 +26,9 @@ function EditTask() {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
 
+  // Get companyId from authUtils
+  const companyId = authUtils.getUserProfile()?.companyProfiles?.[0]?.externalId;
+
   // Fetch task details
   useEffect(() => {
     const fetchTask = async () => {
@@ -33,7 +37,7 @@ function EditTask() {
       try {
         const token = getToken();
         const response = await axios.get(
-          `${import.meta.env.VITE_API_BASE_URL}/v1/company-profiles/abcd/tasks/${taskId}`,
+          `${import.meta.env.VITE_API_BASE_URL}/v1/company-profiles/${companyId}/tasks/${taskId}`,
           {
             headers: {
               'Authorization': `Bearer ${token}`,
@@ -48,8 +52,9 @@ function EditTask() {
           category: response.data.category || '',
           budget: response.data.budget || '',
           currency: response.data.currency || 'INR',
-          deadline: response.data.deadline ? response.data.deadline.slice(0, 16) : '',
-          tags: response.data.tags || '',
+          deadline: response.data.deadline
+            ? response.data.deadline.replace(' ', 'T').slice(0, 16)
+            : '',
           ndaRequired: !!response.data.ndaRequired
         });
       } catch (err) {
@@ -58,8 +63,8 @@ function EditTask() {
         setLoading(false);
       }
     };
-    fetchTask();
-  }, [taskId]);
+    if (companyId) fetchTask();
+  }, [taskId, companyId]);
 
   // Handle form changes
   const handleChange = (e) => {
@@ -70,18 +75,42 @@ function EditTask() {
     }));
   };
 
-  // Handle Save (simulate API call)
+  // Format deadline for API (YYYY-MM-DD HH:mm:ss)
+  const formatDeadlineForApi = (dt) => {
+    if (!dt) return '';
+    const d = new Date(dt);
+    const pad = (n) => n.toString().padStart(2, '0');
+    return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}:00`;
+  };
+
+  // Handle Save (real API call)
   const handleSave = async (e) => {
     e.preventDefault();
     setSaving(true);
     setError('');
     try {
-      // Simulate PATCH/PUT API call here
-      // await axios.patch(...);
-      setTimeout(() => {
-        setSaving(false);
-        navigate(-1); // Go back after save
-      }, 1200);
+      const token = getToken();
+      const payload = {
+        title: form.title,
+        description: form.description,
+        category: form.category,
+        budget: Number(form.budget),
+        currency: form.currency,
+        deadline: formatDeadlineForApi(form.deadline),
+        ndaRequired: form.ndaRequired
+      };
+      await axios.put(
+        `${import.meta.env.VITE_API_BASE_URL}/v1/company-profiles/${companyId}/tasks/${taskId}`,
+        payload,
+        {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          }
+        }
+      );
+      setSaving(false);
+      navigate(-1); // Go back after save
     } catch (err) {
       setError('Failed to save task.');
       setSaving(false);
@@ -163,23 +192,19 @@ function EditTask() {
             placeholder="Describe the task in detail"
           />
         </div>
-        {/* Category */}
+        {/* Category as string input */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1 flex items-center gap-1">
             <Tag size={16} className="text-blue-400" /> Category
           </label>
-          <select
+          <Input
             name="category"
             value={form.category}
             onChange={handleChange}
-            className="w-full border border-gray-200 rounded-lg p-2"
             required
-          >
-            <option value="">Select category</option>
-            {categories.map((cat) => (
-              <option key={cat.value} value={cat.value}>{cat.label}</option>
-            ))}
-          </select>
+            className="w-full"
+            placeholder="Enter category (e.g. p0, p1, p2, p3)"
+          />
         </div>
         {/* Budget */}
         <div className="grid grid-cols-2 gap-4">
@@ -200,16 +225,12 @@ function EditTask() {
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Currency</label>
-            <select
+            <Input
               name="currency"
               value={form.currency}
-              onChange={handleChange}
-              className="w-full border border-gray-200 rounded-lg p-2"
-            >
-              <option value="INR">INR</option>
-              <option value="USD">USD</option>
-              <option value="EUR">EUR</option>
-            </select>
+              disabled
+              className="w-full bg-gray-100 cursor-not-allowed"
+            />
           </div>
         </div>
         {/* Deadline */}
@@ -225,24 +246,6 @@ function EditTask() {
             className="w-full"
             required
           />
-        </div>
-        {/* Tags */}
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1 flex items-center gap-1">
-            <Tag size={16} className="text-blue-400" /> Tags
-          </label>
-          <Input
-            name="tags"
-            value={form.tags}
-            onChange={handleChange}
-            className="w-full"
-            placeholder="Comma separated (e.g. react,node.js)"
-          />
-          <div className="flex flex-wrap gap-2 mt-2">
-            {form.tags.split(',').filter(Boolean).map((tag, idx) => (
-              <Badge key={idx} variant="outline" className="bg-blue-50 border-blue-200 text-blue-700">{tag.trim()}</Badge>
-            ))}
-          </div>
         </div>
         {/* NDA Required */}
         <div className="flex items-center gap-2">
