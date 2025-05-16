@@ -47,6 +47,9 @@ function TaskDetails() {
     location.state?.from ||
     (window.location.pathname.startsWith('/developer') ? '/developer/dashboard/projects' : '/company/dashboard/tasks');
 
+  // Determine if company flow
+  const isCompanyFlow = backPath === '/company/dashboard/tasks' || window.location.pathname.startsWith('/company');
+
   if (loading) {
     return (
       <div className="flex justify-center items-center h-64 text-gray-500">Loading task details...</div>
@@ -79,14 +82,23 @@ function TaskDetails() {
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5 }}
     >
-      {/* Back Button */}
-      <div className="mb-4">
+      {/* Back & Edit Buttons */}
+      <div className="mb-4 flex items-center gap-2">
         <button
           onClick={() => navigate(backPath)}
           className="inline-flex items-center px-3 py-1.5 rounded bg-blue-50 border border-blue-200 text-blue-700 hover:bg-blue-100 transition text-sm font-medium"
         >
           &#8592; Back
         </button>
+        {/* Show Edit button for company flow and OPEN status */}
+        {isCompanyFlow && task.status === 'OPEN' && (
+          <button
+            onClick={() => navigate(`/company/dashboard/edit-task/${task.externalId}`)}
+            className="inline-flex items-center px-3 py-1.5 rounded bg-yellow-50 border border-yellow-200 text-yellow-700 hover:bg-yellow-100 transition text-sm font-medium"
+          >
+            Edit Task
+          </button>
+        )}
       </div>
 
       {/* Animated Header */}

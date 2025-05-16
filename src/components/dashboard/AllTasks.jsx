@@ -432,7 +432,7 @@ const AllTasks = () => {
                         variant="outline"
                         size="sm"
                         className="gap-1"
-                        onClick={() => navigate(`/developer/dashboard/projects/${task.id}`)}
+                        onClick={() => navigate(`/company/dashboard/myTasks/${task.id}`)}
                       >
                         View Details
                       </Button>
