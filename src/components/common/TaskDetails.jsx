@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import axios from 'axios';
 import { motion } from 'framer-motion';
 import { Card, CardHeader, CardTitle, CardContent, CardDescription } from '@/components/ui/card';
@@ -11,6 +11,8 @@ import { getToken } from '../../services/authService';
 
 function TaskDetails() {
   const { taskId } = useParams();
+  const navigate = useNavigate();
+  const location = useLocation();
   const [task, setTask] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -39,6 +41,11 @@ function TaskDetails() {
     };
     fetchTask();
   }, [taskId]);
+
+  // Determine back path
+  const backPath =
+    location.state?.from ||
+    (window.location.pathname.startsWith('/developer') ? '/developer/dashboard/projects' : '/company/dashboard/tasks');
 
   if (loading) {
     return (
@@ -72,6 +79,16 @@ function TaskDetails() {
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5 }}
     >
+      {/* Back Button */}
+      <div className="mb-4">
+        <button
+          onClick={() => navigate(backPath)}
+          className="inline-flex items-center px-3 py-1.5 rounded bg-blue-50 border border-blue-200 text-blue-700 hover:bg-blue-100 transition text-sm font-medium"
+        >
+          &#8592; Back
+        </button>
+      </div>
+
       {/* Animated Header */}
       <motion.div
         className="rounded-xl shadow-lg bg-gradient-to-r from-blue-50 via-white to-green-50 border border-blue-100 mb-8"

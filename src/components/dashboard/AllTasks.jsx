@@ -427,6 +427,16 @@ const AllTasks = () => {
                         <span>{task.applications} {task.applications === 1 ? 'Applicant' : 'Applicants'}</span>
                       </Button>
                     </div>
+                    <div>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="gap-1"
+                        onClick={() => navigate(`/developer/dashboard/projects/${task.id}`)}
+                      >
+                        View Details
+                      </Button>
+                    </div>
                   </div>
                 </CardContent>
               </Card>
