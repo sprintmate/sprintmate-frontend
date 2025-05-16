@@ -36,6 +36,7 @@ import DeveloperPayments from './DeveloperPayments';
 import Rooms from '../components/chat/Rooms';
 import CompanyProfile from '../components/company/CompanyProfile';
 import ApplicationTaskDetails from '../components/common/routes';
+import TaskDetails from '../components/common/TaskDetails';
 
 // Sidebar link component
 const SidebarLink = ({ to, icon: Icon, label, isActive, isExpanded }) => {
@@ -321,6 +322,7 @@ const DeveloperDashboard = () => {
             <Route path="projects" element={<ProjectsList />} />
             <Route path="applications" element={<MyApplications />} />
             <Route path="applications/:taskId/:applicationId" element={<ApplicationTaskDetails />} />
+            <Route path="projects/:taskId" element={<TaskDetails />} />
             <Route path="settings" element={<SettingsPage />} />
             <Route path="earnings" element={<DeveloperPayments />} />
             <Route path="profile/:developerId" element={<DeveloperProfile />} />
