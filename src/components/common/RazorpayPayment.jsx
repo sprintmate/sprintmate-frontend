@@ -343,7 +343,7 @@ const RazorpayPayment = ({
         </Tooltip.Root>
       </Tooltip.Provider>
 
-      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+      {/* <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Payment Breakdown</DialogTitle>
@@ -354,7 +354,7 @@ const RazorpayPayment = ({
               <p className="text-gray-500">Fetching payment details...</p>
             ) : (
               <ul className="space-y-1">
-                {paymentHoldResponse?.data?.amountBreakdown.map((item, index) => (
+                {paymentHoldResponse?.data?.amountBreakdown?.map((item, index) => (
                   <li key={index} className="flex justify-between">
                     <span className="text-gray-700">{item.message}</span>
                     <span className="font-medium text-gray-900">
@@ -388,7 +388,66 @@ const RazorpayPayment = ({
             </Button>
           </DialogFooter>
         </DialogContent>
-      </Dialog>
+      </Dialog> */}
+
+<Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+  <DialogContent>
+    <DialogHeader>
+      <DialogTitle>
+        {!isLoading && paymentHoldResponse?.data?.amountBreakdown?.length > 0
+          ? 'Payment Breakdown'
+          : 'Payment Summary'}
+      </DialogTitle>
+    </DialogHeader>
+
+    <div className="mb-3 p-3 bg-blue-50 rounded-md text-sm">
+      {isLoading ? (
+        <p className="text-gray-500">Fetching payment details...</p>
+      ) : paymentHoldResponse?.data?.amountBreakdown?.length > 0 ? (
+        <ul className="space-y-1">
+          {paymentHoldResponse.data.amountBreakdown.map((item, index) => (
+            <li key={index} className="flex justify-between">
+              <span className="text-gray-700">{item.message}</span>
+              <span className="font-medium text-gray-900">
+                <CurrencyFormatter currency={paymentHoldResponse.data.currency}>
+                  {item.amount}
+                </CurrencyFormatter>
+              </span>
+            </li>
+          ))}
+          <li className="flex justify-between pt-1 border-t border-blue-200 mt-1">
+            <span className="font-medium text-gray-900">Total</span>
+            <span className="font-medium text-blue-800">
+              <CurrencyFormatter currency={paymentHoldResponse.data.currency}>
+                {paymentHoldResponse.data.displayAmount}
+              </CurrencyFormatter>
+            </span>
+          </li>
+        </ul>
+      ) : (
+        <div className="flex justify-between text-gray-700">
+          <span>Total Payment</span>
+          <span className="font-medium text-blue-800">
+            <CurrencyFormatter currency={paymentHoldResponse?.data?.currency}>
+              {paymentHoldResponse?.data?.displayAmount}
+            </CurrencyFormatter>
+          </span>
+        </div>
+      )}
+    </div>
+
+    <DialogFooter>
+      <Button
+        onClick={() => handleContinuePayment()}
+        className="bg-green-600 hover:bg-green-700 text-white"
+        disabled={!paymentHoldResponse}
+      >
+        Continue Payment
+      </Button>
+    </DialogFooter>
+  </DialogContent>
+</Dialog>
+
 
       {error && (
         <div className="flex items-center text-red-600 text-sm mt-2">
