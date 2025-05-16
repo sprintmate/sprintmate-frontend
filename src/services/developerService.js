@@ -67,6 +67,8 @@ export const getApplications = async (page = 0, size = 10) => {
 };
 
 export const applyForTask = async (taskId, applicationData) => {
+  // trackEvent(AnalyticEvents.TASK_APPLIED,{taskId:taskId})
+
   return apiFetch(`/v1/tasks/${taskId}/apply`, {
     method: 'POST',
     body: JSON.stringify(applicationData)

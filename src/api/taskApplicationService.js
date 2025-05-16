@@ -2,6 +2,8 @@ import httpInstance from './axiosInstance';
 import { isSuccessStatus } from '../utils/applicationUtils';
 
 import { ApplicationStatus } from '../constants/ApplicationStatus';
+import { AnalyticEvents } from '../constants/AnalyticsEvents';
+import { trackEvent } from '../utils/analytics';
 
 export const updateApplicationStatus = async (taskId, applicationId, status) => {
     try {
@@ -9,6 +11,7 @@ export const updateApplicationStatus = async (taskId, applicationId, status) => 
             `/v1/tasks/${taskId}/applications/${applicationId}/status`,
             status
         );
+        trackEvent(AnalyticEvents.TASK_APPLICATION_UPDATE,{taskId:taskId,applicationId:applicationId,status:status})
         return isSuccessStatus(response.status);
     } catch (error) {
         console.error('Error updating application status:', error);
@@ -27,6 +30,7 @@ export const withdrawApplication = async (taskId, applicationId) => {
             `/v1/tasks/${taskId}/applications/${applicationId}/withdraw`,
             {}
         );
+    trackEvent(AnalyticEvents.TASK_APPLICATION_UPDATE,{label:'withdraw',applicationId:applicationId})    
         return isSuccessStatus(response.status);
     } catch (error) {
         console.error('Error updating application status:', error);

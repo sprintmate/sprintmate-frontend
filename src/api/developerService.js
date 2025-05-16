@@ -1,3 +1,5 @@
+import { AnalyticEvents } from '../constants/AnalyticsEvents';
+import { trackEvent } from '../utils/analytics';
 import httpInstance from './axiosInstance';
 
 
@@ -17,6 +19,7 @@ import httpInstance from './axiosInstance';
     try {
       const url = `/v1/developers`
       const response = await httpInstance.post(url,payload);
+      trackEvent(AnalyticEvents.PROFILE_CREATED,payload)
       return response.data;
     } catch (error) {
       console.error('Error createDeveloperProfile :', error);
