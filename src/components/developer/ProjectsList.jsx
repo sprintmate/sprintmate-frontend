@@ -332,13 +332,13 @@ const ProjectsList = () => {
             </button>
 
             <div className="flex gap-2">
-              <Button
+              {/* <Button
                 variant="outline"
                 size="sm"
                 className="border-gray-300"
               >
                 Save
-              </Button>
+              </Button> */}
               <Button
                 size="sm"
                 onClick={() => applyToProject(safeProject)}

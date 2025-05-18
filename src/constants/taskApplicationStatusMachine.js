@@ -15,7 +15,11 @@ export const TaskApplicationStatus = {
     ACCEPTED: "ACCEPTED",
     REJECTED: "REJECTED",
     CANCELLED: "CANCELLED",
-    COMPLETED: "COMPLETED"
+    COMPLETED: "COMPLETED",
+    RECOMMENDED : "RECOMMENDED",
+    INVITED: "INVITED",
+    ACCEPT :"Accept",
+    DECLINE: "Decline"
 };
 
 export const STATUS_LABELS = {
@@ -27,27 +31,50 @@ export const STATUS_LABELS = {
     [TaskApplicationStatus.ACCEPTED]: "Accept",
     [TaskApplicationStatus.REJECTED]: "Reject",
     [TaskApplicationStatus.CANCELLED]: "Cancel",
-    [TaskApplicationStatus.COMPLETED]: "Mark Completed"
+    [TaskApplicationStatus.COMPLETED]: "Mark Completed",
+    // [TaskApplicationStatus.RECOMMENDED]: "Invite To Apply",
+    [TaskApplicationStatus.INVITED]: "Invite To Apply",
+    [TaskApplicationStatus.ACCEPT]: "Accept Invitation",
+    [TaskApplicationStatus.DECLINE]: "Decline Invitation",
 };
 
 export const ROLE_ALLOWED_STATUSES = {
+
     [Role.ADMIN]: new Set(Object.values(TaskApplicationStatus)),
+
     [Role.DEVELOPER]: new Set([
         TaskApplicationStatus.APPLIED,
         TaskApplicationStatus.WITHDRAWN,
         TaskApplicationStatus.IN_PROGRESS,
-        TaskApplicationStatus.SUBMITTED
+        TaskApplicationStatus.SUBMITTED,
+        TaskApplicationStatus.ACCEPT,
+        TaskApplicationStatus.DECLINE
+
+
     ]),
     [Role.CORPORATE]: new Set([
         TaskApplicationStatus.SHORTLISTED,
         TaskApplicationStatus.ACCEPTED,
         TaskApplicationStatus.REJECTED,
         TaskApplicationStatus.CANCELLED,
-        TaskApplicationStatus.COMPLETED
+        TaskApplicationStatus.COMPLETED,
+        TaskApplicationStatus.INVITED
+
     ])
 };
 
 export const STATUS_TRANSITIONS = {
+
+    [TaskApplicationStatus.RECOMMENDED]: new Set([
+        TaskApplicationStatus.INVITED,
+        TaskApplicationStatus.APPLIED
+    ]),
+
+    [TaskApplicationStatus.INVITED]: new Set([
+       TaskApplicationStatus.ACCEPT,
+       TaskApplicationStatus.DECLINE
+    ]),
+
     [TaskApplicationStatus.APPLIED]: new Set([
         TaskApplicationStatus.SHORTLISTED,
         TaskApplicationStatus.REJECTED,
@@ -115,5 +142,10 @@ export const STATUS_DIALOG_CONFIG = {
       message: "Are you sure you want to shortlist this application?",
       confirmText: "Shortlist"
     },
+    RECOMMENDED: {
+        title: "Shortlist Application RECOMMENDED",
+        message: "Are you sure you want to shortlist this application RECOMMENDED?",
+        confirmText: "Shortlist RECOMMENDED"
+      },
   };
   

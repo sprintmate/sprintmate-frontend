@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef,useCallback } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Routes, Route, NavLink, useLocation, Link, useNavigate, useParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Badge } from '@/components/ui/badge';
@@ -38,7 +38,7 @@ import {
 import { UserRole } from '../constants/Role';
 import RazorpayPayment from '../components/common/RazorpayPayment';
 import { refundPayment, cancelPayment } from '../api/paymentService';
-import { getApplicationDetailsRedirectionPath, getBaseRedirectionPath, getDeveloperProfileRedirectionPath, reloadPage } from '../utils/applicationUtils';
+import { getApplicationDetailsRedirectionPath, getBaseRedirectionPath, getDeveloperProfileRedirectionPath, getMatchLabelAndColor, reloadPage } from '../utils/applicationUtils';
 import { updateApplicationStatus } from '../api/taskApplicationService';
 import { acceptApplicationStatus } from '../api/taskApplicationService';
 import { MultiSelect } from "@/components/ui/multi-select";
@@ -53,7 +53,11 @@ const APPLICATION_STATUSES = [
     { value: 'SUBMITTED', label: 'Submitted' },
     { value: 'COMPLETED', label: 'Completed' },
     { value: 'APPLIED', label: 'Applied' },
-    { value: 'CANCELLED', label: 'Cancelled' }
+    { value: 'CANCELLED', label: 'Cancelled' },
+    { value: 'RECOMMENDED', label: 'Recommended' },
+    { value: 'INVITED', label: 'Invited' }
+
+
 
 ];
 
@@ -61,7 +65,11 @@ const SORT_OPTIONS = [
     { value: 'createdAt,desc', label: 'Newest First' },
     { value: 'createdAt,asc', label: 'Oldest First' },
     { value: 'updatedAt,desc', label: 'Recently Updated' },
-    { value: 'updatedAt,asc', label: 'Least Recently Updated' }
+    { value: 'updatedAt,asc', label: 'Least Recently Updated' },
+    { value: 'matchingScore,DESC', label: 'High Match Score' },
+    { value: 'matchingScore,ASC', label: 'Low Match Score' }
+
+
 ];
 
 
@@ -95,7 +103,7 @@ const Applications = () => {
 
     const [totalPages, setTotalPages] = useState(0);
     const [totalItems, setTotalItems] = useState(0);
-    const [selectedStatuses, setSelectedStatuses] = useState([]);
+    const [selectedStatuses, setSelectedStatuses] = useState([TaskApplicationStatus.APPLIED,TaskApplicationStatus.RECOMMENDED]);
     const [sortBy, setSortBy] = useState('createdAt,desc');
     const [appliedFilters, setAppliedFilters] = useState({
         statuses: [],
@@ -125,11 +133,18 @@ const Applications = () => {
                 page: currentPage,
                 sort: appliedFilters.sort
             });
+
             if (appliedFilters.statuses.length > 0) {
                 appliedFilters.statuses.forEach(status => {
                     queryParams.append('statuses', status);
                 });
+            } else if(selectedStatuses.length > 0) {
+                selectedStatuses.forEach(status => {
+                    queryParams.append('statuses', status);
+
+                })
             }
+
             if (searchTerm.trim()) {
                 queryParams.append('search', searchTerm.trim());
             }
@@ -150,8 +165,8 @@ const Applications = () => {
     // const debouncedFetchApplications = useCallback(debounce(fetchApplications, 500), [searchTerm, currentPage, appliedFilters]);
 
     const debouncedFetchApplications = useCallback(
-        debounce(fetchApplications, 500), 
-        [searchTerm] 
+        debounce(fetchApplications, 500),
+        [searchTerm, currentPage, appliedFilters]
     );
 
 
@@ -307,10 +322,11 @@ const Applications = () => {
                         <thead className="text-xs uppercase bg-gray-50">
                             <tr>
                                 <th scope="col" className="px-6 py-3 font-semibold text-gray-600">Task Title</th>
-                                <th scope="col" className="px-6 py-3 font-semibold text-gray-600">Budget</th>
-                                <th scope="col" className="px-6 py-3 font-semibold text-gray-600">Deadline</th>
+                                {/* <th scope="col" className="px-6 py-3 font-semibold text-gray-600">Budget</th> */}
+                                {/* <th scope="col" className="px-6 py-3 font-semibold text-gray-600">Deadline</th> */}
                                 {/* <th scope="col" className="px-6 py-3 font-semibold text-gray-600">Task Status</th> */}
                                 <th scope="col" className="px-6 py-3 font-semibold text-gray-600">Application Status</th>
+                                <th scope="col" className="px-6 py-3 font-semibold text-gray-600">Match Score</th>
                                 <th scope="col" className="px-6 py-3 font-semibold text-gray-600">Developer's Application</th>
                                 <th scope="col" className="px-6 py-3 font-semibold text-gray-600">Proposal</th>
                                 <th scope="col" className="px-6 py-3 font-semibold text-gray-600">Applied On</th>
@@ -365,19 +381,19 @@ const Applications = () => {
                                                 <span className="font-medium text-gray-900">{app.task?.title}</span>
                                             </div>
                                         </td>
-                                        <td className="px-6 py-4">
+                                        {/* <td className="px-6 py-4">
                                             <div className="flex items-center gap-1">
                                                 <CurrencyFormatter currency={app.task?.currency}>
                                                     {app.task?.budget}
                                                 </CurrencyFormatter>
                                             </div>
-                                        </td>
-                                        <td className="px-6 py-4">
+                                        </td> */}
+                                        {/* <td className="px-6 py-4">
                                             <div className="flex items-center gap-1">
                                                 <Calendar size={14} className="text-blue-500" />
                                                 <span>{app.task?.deadline ? new Date(app.task.deadline).toLocaleDateString() : 'N/A'}</span>
                                             </div>
-                                        </td>
+                                        </td> */}
                                         {/* <td className="px-6 py-4">
                                             <Badge variant="outline">{app.task?.status}</Badge>
                                         </td> */}
@@ -394,10 +410,33 @@ const Applications = () => {
                                                 {app.status}
                                             </Badge>
                                         </td>
+
+                                        <td className="px-6 py-4">
+                                            {(typeof app.matchingScore === 'number' && app.matchingScore >= 10) ? (() => {
+                                                const { label, color } = getMatchLabelAndColor(app.matchingScore);
+                                                return (
+                                                    <div className="inline-flex items-center gap-2">
+                                                        <span
+                                                            title="Match based on skill/experience fit"
+                                                            className="text-xs font-medium px-2 py-0.5 rounded"
+                                                            style={{ backgroundColor: color, color: '#fff' }}
+                                                        >
+                                                            {label}
+                                                        </span>
+                                                        <span className="text-sm text-gray-700 font-medium">
+                                                            {app.matchingScore.toFixed(2)}%
+                                                        </span>
+                                                    </div>
+                                                );
+                                            })() : (
+                                                <span className="text-gray-400">—</span>
+                                            )}
+                                        </td>
+
                                         <td className="px-6 py-4 max-w-xs">
                                             {app.developer.developerName ? (
                                                 <a
-                                                    href={getApplicationDetailsRedirectionPath(app.task.externalId,app.externalId)}
+                                                    href={getApplicationDetailsRedirectionPath(app.task.externalId, app.externalId)}
                                                     target="_blank"
                                                     rel="noopener noreferrer"
                                                     className="inline-flex items-center gap-1 text-blue-600 hover:underline hover:text-blue-800"

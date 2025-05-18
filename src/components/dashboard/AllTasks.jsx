@@ -157,7 +157,8 @@ const AllTasks = () => {
           // duration: '2 weeks', // Placeholder for duration
           techStack: task.tags ? task.tags.split(',').map(tag => tag.trim()) : [],
           ndaRequired: task.ndaRequired,
-          currency:task.currency
+          currency:task.currency,
+          applicationsRecommendationCount : task?.applicationsRecommendationCount
         }));
 
         setTasks(formattedTasks);
@@ -189,33 +190,11 @@ const AllTasks = () => {
     setCurrentPage(0); // Reset to first page when sort changes
   };
 
-  const handleViewApplications = (taskId) => {
-
+  const handleViewApplications = (taskId,statuses='') => {
     console.log("Task ID:", taskId);
-    navigate(`/company/dashboard/applications/${taskId.id}`);
+    const query = new URLSearchParams({ statuses }).toString();
+    navigate(`/company/dashboard/applications/${taskId.id}?${query}`);
   };
-
-  // const handleApplicantsClick = async (task) => {
-  //   // Fetch the first application for the task (or all, as needed)
-  //   try {
-  //     const token = getToken();
-  //     const response = await axios.get(
-  //       `${import.meta.env.VITE_API_BASE_URL}/v1/tasks/${task.id}/applications`,
-  //       {
-  //         headers: {
-  //           'Authorization': token,
-  //           'Content-Type': 'application/json'
-  //         }
-  //       }
-  //     );
-  //     if (response.data && Array.isArray(response.data.content) && response.data.content.length > 0) {
-  //       setSelectedApplication(response.data.content[0]); // Show first application for demo
-  //       setIsModalOpen(true);
-  //     }
-  //   } catch (err) {
-  //     // Optionally handle error
-  //   }
-  // };
 
   // Helper function to format date
   const formatDate = (dateString) => {
@@ -412,11 +391,7 @@ const AllTasks = () => {
                   {/* Task action buttons */}
                   <div className="flex items-center justify-between mt-4 pt-3 border-t border-gray-100 pl-3">
                     <div className="flex items-center gap-2">
-                      {/* <Button variant="ghost" size="sm" className="text-gray-500 hover:text-gray-700 hover:bg-gray-50/50 -ml-2 h-8">
-                        <Eye size={14} className="mr-1" />
-                        <span className="hidden sm:inline">{task.views} views</span>
-                        <span className="sm:hidden">{task.views}</span>
-                      </Button> */}
+                  
                       <Button
                         variant="ghost"
                         size="sm"
@@ -426,6 +401,20 @@ const AllTasks = () => {
                         <Users size={14} className="mr-1" />
                         <span>{task.applications} {task.applications === 1 ? 'Applicant' : 'Applicants'}</span>
                       </Button>
+
+                     { task.applicationsRecommendationCount > 0 && (
+                      <Button
+                      variant="ghost"
+                      size="sm"
+                      className="text-blue-600 hover:text-blue-700 hover:bg-blue-50/50 h-8"
+                      onClick={() => handleViewApplications(task,'recommended')}
+                    >
+                      <Users size={14} className="mr-1" />
+                      <span>{task.applicationsRecommendationCount} Top Recommended Profiles </span>
+                    </Button>
+                     )
+                     } 
+                      
                     </div>
                     <div>
                       <Button

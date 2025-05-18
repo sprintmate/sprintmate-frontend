@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -9,7 +9,7 @@ import axios from 'axios';
 import CurrencyFormatter from '../ui/CurrencyFormatter';
 import { capitalizeWords, formatDate, getCompanyProfileRedirectionPath, getDeveloperProfileRedirectionPath } from '../../utils/applicationUtils';
 import { authUtils } from '../../utils/authUtils';
-import { updateApplicationStatus, withdrawApplication } from '../../api/taskApplicationService';
+import { applyToTask, updateApplicationStatus, withdrawApplication } from '../../api/taskApplicationService';
 import { ApplicationStatus } from '../../constants/ApplicationStatus';
 import { ConfirmationDialog } from '../ui/ConfirmationDialogue';
 import SecureDocumentViewer from '../DocumentViewer';
@@ -31,6 +31,26 @@ const ApplicationTaskDetails = () => {
   const [error, setError] = useState(null);
   const [pendingStatus, setPendingStatus] = useState(null);
   const [attachedDocs, setAttachedDocs] = useState([]);
+  const queryParams = new URLSearchParams(location.search);
+  const invitation = queryParams.get('invitation') || '';
+
+  const [developerId, setDeveloperId] = useState(null);
+
+
+
+  const hasHandledInvitation = useRef(false);
+
+  // useEffect(() => {
+  //   if (hasHandledInvitation.current || !invitation || !application) return;
+
+  //   if (invitation === 'accept' && application.status !== ApplicationStatus.APPLIED) {
+  //     handleStatusChange(TaskApplicationStatus.APPLIED);
+  //     hasHandledInvitation.current = true;
+  //   } else if (invitation === 'decline' && application.status !== ApplicationStatus.CANCELLED) {
+  //     handleStatusChange(TaskApplicationStatus.CANCELLED);
+  //     hasHandledInvitation.current = true;
+  //   }
+  // }, [invitation, application]);
 
   // Fetch application details
   useEffect(() => {
@@ -51,11 +71,28 @@ const ApplicationTaskDetails = () => {
         );
 
         if (response.data) {
+          console.log(response.data);
+          setDeveloperId(response.data.developer.externalId)
+          try {
+            if (invitation === 'accept' && response.data.status === TaskApplicationStatus.INVITED) {
+              // handleStatusChange(TaskApplicationStatus.SHORTLISTED);
+             await applyToTask(taskId,response.data.developer.externalId,'');
+              reloadPage();
+              // hasHandledInvitation.current = true;
+            } else if (invitation === 'decline' && response.data.status === TaskApplicationStatus.INVITED) {
+              handleStatusChange(TaskApplicationStatus.CANCELLED);
+              // reloadPage();
+              // hasHandledInvitation.current = true;
+            }
+          } catch (err) {
+            console.log('error in updating ', err)
+          }
           setApplication(response.data);
         } else {
           setError('Application not found');
         }
       } catch (err) {
+        console.log('error in updating',err)
         setError(err.response?.data?.message || 'Failed to load application details');
       } finally {
         setIsLoading(false);
@@ -81,24 +118,10 @@ const ApplicationTaskDetails = () => {
       }
 
       setPendingStatus(null);
-
-      // Refetch application details
-      const token = getToken();
-      const response = await axios.get(
-        `${import.meta.env.VITE_API_BASE_URL}/v1/developers/applications/${applicationId}`,
-        {
-          headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json'
-          }
-        }
-      );
-
-      if (response.data) {
-        setApplication(response.data);
-      }
+      reloadPage();
+      // fetchApplicationDetails();
     } catch (error) {
-      setError(error.response?.data?.message || 'Failed to update application status');
+      // setError(error.response?.data?.message || 'Failed to update application status');
     } finally {
       setIsLoading(false);
     }
@@ -188,6 +211,12 @@ const ApplicationTaskDetails = () => {
   const handleStatusUpdate = async (applicationId, newStatus) => {
     try {
       setIsLoading(true);
+      if(newStatus === TaskApplicationStatus.ACCEPT) {
+        await applyToTask(taskId,developerId,'');
+        reloadPage();
+      } else if(newStatus === TaskApplicationStatus.DECLINE) {
+        newStatus = TaskApplicationStatus.CANCELLED
+      }
       await updateApplicationStatus(taskId, applicationId, { status: newStatus });
       reloadPage();
       // Show success message

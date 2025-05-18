@@ -59,3 +59,15 @@ export const capitalizeWords = (str) => {
     .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()) // Capitalize each word
     .join(' '); // Join the words back together
 };
+
+export const getMatchLabelAndColor = (score) => {
+  if (score >= 60) {
+    return { label: 'Excellent Match', color: '#27ae60' }; // Darker Green
+  } else if (score >= 30) {
+    return { label: 'Good Fit', color: '#f39c12' }; // Warm Amber
+  } else if (score >= 20) {
+    return { label: 'Fair Match', color: '#d35400' }; // Deep Orange
+  } else {
+    return { label: 'Poor Match', color: '#c0392b' }; // Dark Red
+  }
+};

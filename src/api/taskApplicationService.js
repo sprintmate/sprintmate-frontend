@@ -11,7 +11,7 @@ export const updateApplicationStatus = async (taskId, applicationId, status) => 
             `/v1/tasks/${taskId}/applications/${applicationId}/status`,
             status
         );
-        trackEvent(AnalyticEvents.TASK_APPLICATION_UPDATE,{taskId:taskId,applicationId:applicationId,status:status})
+        trackEvent(AnalyticEvents.TASK_APPLICATION_UPDATE, { taskId: taskId, applicationId: applicationId, status: status })
         return isSuccessStatus(response.status);
     } catch (error) {
         console.error('Error updating application status:', error);
@@ -21,7 +21,7 @@ export const updateApplicationStatus = async (taskId, applicationId, status) => 
 
 
 export const acceptApplicationStatus = async (taskId, applicationId) => {
-    return updateApplicationStatus(taskId, applicationId, {status:ApplicationStatus.ACCEPTED});
+    return updateApplicationStatus(taskId, applicationId, { status: ApplicationStatus.ACCEPTED });
 };
 
 export const withdrawApplication = async (taskId, applicationId) => {
@@ -30,7 +30,7 @@ export const withdrawApplication = async (taskId, applicationId) => {
             `/v1/tasks/${taskId}/applications/${applicationId}/withdraw`,
             {}
         );
-    trackEvent(AnalyticEvents.TASK_APPLICATION_UPDATE,{label:'withdraw',applicationId:applicationId})    
+        trackEvent(AnalyticEvents.TASK_APPLICATION_UPDATE, { label: 'withdraw', applicationId: applicationId })
         return isSuccessStatus(response.status);
     } catch (error) {
         console.error('Error updating application status:', error);
@@ -39,7 +39,7 @@ export const withdrawApplication = async (taskId, applicationId) => {
 }
 
 
-export const fetchApplications = async(userId,companyId,queryParams) => {
+export const fetchApplications = async (userId, companyId, queryParams) => {
     const url = `/v1/users/${userId}/company-profile/${companyId}/applications?${queryParams.toString()}`;
 
     try {
@@ -51,11 +51,27 @@ export const fetchApplications = async(userId,companyId,queryParams) => {
     }
 }
 
-export const getTaskApplications = async(taskId,queryParams) => {
+export const getTaskApplications = async (taskId, queryParams) => {
     const url = `/v1/tasks/${taskId}/applications?${queryParams.toString()}`;
 
     try {
         const response = await httpInstance.get(url);
+        return response;
+    } catch (error) {
+        console.error('Error updating application status:', error);
+        throw error;
+    }
+}
+
+export const applyToTask = async (taskId, developerId, proposal = '') => {
+    const payload = {
+        developerId,
+        proposal
+    };
+    const url = `/v1/tasks/${taskId}/apply`;
+
+    try {
+        const response = await httpInstance.post(url, payload);
         return response;
     } catch (error) {
         console.error('Error updating application status:', error);

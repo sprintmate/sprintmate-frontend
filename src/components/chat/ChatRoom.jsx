@@ -80,7 +80,6 @@ const ChatRoom = ({ room, onClose }) => {
   };
 
 
-
   const { sendMessage, isConnected } = useWebSocket(room?.externalId, handleNewMessage);
 
   useEffect(() => {

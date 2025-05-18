@@ -10,7 +10,7 @@ import {
   DollarSign, Star, Download, ArrowUpRight,
   MessageSquare, FileText, AlertCircle, ExternalLink,
   ChevronRight, Send, X, Phone, Video, MoreVertical,
-  Paperclip, Smile, Image, ChevronDown, Play, Pause
+  Paperclip, Smile, Image, ChevronDown, Play, Pause,BarChart
 } from 'lucide-react';
 import {
   Card,
@@ -39,7 +39,7 @@ import { updateApplicationStatus, acceptApplicationStatus, getTaskApplications }
 
 import { refundPayment, cancelPayment } from '../../api/paymentService';
 
-import { getDeveloperProfileRedirectionPath, reloadPage } from '../../utils/applicationUtils';
+import { getDeveloperProfileRedirectionPath, getMatchLabelAndColor, reloadPage } from '../../utils/applicationUtils';
 import { ApplicationStatus } from '../../constants/ApplicationStatus';
 import { authUtils } from '../../utils/authUtils';
 
@@ -203,6 +203,9 @@ const SimpleTabs = ({ tabs, activeTab, onChange }) => {
 const ApplicationDetails = () => {
   const { taskId } = useParams();
 
+  const queryParams = new URLSearchParams(location.search);
+  const statuses = queryParams.get('statuses') || '';
+
   const navigate = useNavigate();
 
   const [applications, setApplications] = useState([]);
@@ -240,7 +243,8 @@ const ApplicationDetails = () => {
         const queryParams = new URLSearchParams({
           size: 20,
           page: 0,
-          sort: 'updatedAt,desc'
+          sort: 'updatedAt,desc',
+          fetchRecommended: statuses === 'recommended'
         });
         const response = await getTaskApplications(taskId, queryParams);
         console.log(response);
@@ -645,6 +649,28 @@ const ApplicationDetails = () => {
                             </a>
                           </div>
                         )}
+
+                        {/* Match Score */}
+                        {typeof application.matchingScore === 'number' && application.matchingScore >= 10 && (
+                          <div className="mt-4 border-t border-gray-100 pt-4">
+                            <div className="text-sm font-medium text-gray-500 mb-2 flex items-center">
+                              <BarChart size={14} className="mr-1.5" /> Match Score
+                            </div>
+                            <div className="flex items-center gap-2 text-sm font-medium text-gray-600 bg-gray-50 p-3 rounded-md border border-gray-100">
+                              <span
+                                title="Match based on skill/experience fit"
+                                className="px-2 py-0.5 rounded text-xs font-semibold"
+                                style={{ backgroundColor: getMatchLabelAndColor(application.matchingScore).color, color: '#fff' }}
+                              >
+                                {getMatchLabelAndColor(application.matchingScore).label}
+                              </span>
+                              <span className="text-sm text-gray-700">
+                                {application.matchingScore.toFixed(2)}%
+                              </span>
+                            </div>
+                          </div>
+                        )}
+
                       </div>
 
                       {/* Proposal */}
@@ -656,6 +682,7 @@ const ApplicationDetails = () => {
                           {application.proposal || 'No proposal provided'}
                         </div>
                       </div>
+
 
                       {/* Attachments */}
                       {Array.isArray(application.taskAttachments) && application.taskAttachments.length > 0 && (

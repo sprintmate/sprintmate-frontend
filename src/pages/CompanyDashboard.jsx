@@ -103,39 +103,16 @@ const ApplicationDetailsComponent = () => {
   const { taskId, applicationId } = useParams();
   const [applicationsData, setApplicationsData] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
-
+  const queryParams = new URLSearchParams(location.search);
+  const statuses = queryParams.get('statuses') || '';
   console.log(taskId, "***********************")
+  console.log('statuses', statuses, "***********************")
 
-  // Fetch applications list if needed
-  // useEffect(() => {
-  //   if (taskId && !applicationId) {
-  //     // Fetch application list to redirect to the first one
-  //     setIsLoading(true);
-  //     const fetchApplications = async () => {
-  //       try {
-  //         const queryParams = new URLSearchParams({
-  //           size: 20,
-  //           page: 0,
-  //           sort: 'updatedAt,desc'
-  //       });
-  //         const response = await getTaskApplications(taskId,queryParams)
-  //         if (response.data && response.data.length > 0) {
-  //           console.log(response, "(((((((((((((((((((*********)))))))))))))))))");
-  //           navigate(`/company/dashboard/tasks/${taskId}/applications`);
-  //         }
-  //       } catch (err) {
-  //         console.error("Error fetching applications:", err);
-  //       } finally {
-  //         setIsLoading(false);
-  //       }
-  //     };
-  //     fetchApplications();
-  //   }
-  // }, [taskId, applicationId, navigate]);
 
   useEffect(() => {
     if (taskId) {
-      navigate(`/company/dashboard/tasks/${taskId}/applications`);
+      const query = new URLSearchParams({ statuses }).toString();
+      navigate(`/company/dashboard/tasks/${taskId}/applications?${query}`);
     }
   }, [taskId, applicationId, navigate]);
 
@@ -269,8 +246,8 @@ const MyTasks = () => {
 
         if (!companyId) return;
         const response = await fetchCompanyTaskStatistics(companyId);
-        console.log('fetchCompanyStatistics',response)
-        setAnalytics(response.data); 
+        console.log('fetchCompanyStatistics', response)
+        setAnalytics(response.data);
       } catch (error) {
         console.error("Error fetching company statistics:", error);
         setError("Failed to load statistics. Please try again later.");
@@ -331,7 +308,9 @@ const MyTasks = () => {
           views: Math.floor(Math.random() * 200) + 50,
           hasAttachments: !!task.attachments && Object.keys(task.attachments).length > 0,
           attachments: task.attachments || {},
-          ndaRequired: task.ndaRequired
+          ndaRequired: task.ndaRequired,
+          applicationsRecommendationCount : task?.applicationsRecommendationCount
+
         }));
 
         setRecentTasks(formattedTasks);
@@ -405,30 +384,16 @@ const MyTasks = () => {
   };
 
   // Navigate to task applications with first application ID when available
-  const handleViewApplications = (taskId) => {
-    navigate(`/company/dashboard/applications/${taskId.id}`);
+  // const handleViewApplications = (taskId) => {
+  //   navigate(`/company/dashboard/applications/${taskId.id}`);
+  // };
+
+  const handleViewApplications = (taskId,statuses='') => {
+    console.log("Task ID:", taskId);
+    const query = new URLSearchParams({ statuses }).toString();
+    navigate(`/company/dashboard/applications/${taskId.id}?${query}`);
   };
 
-  // const handleApplicantsClick = async (task) => {
-  //   try {
-  //     const token = getToken();
-  //     const response = await axios.get(
-  //       `${import.meta.env.VITE_API_BASE_URL}/v1/tasks/${task.id}/applications`,
-  //       {
-  //         headers: {
-  //           'Authorization': token,
-  //           'Content-Type': 'application/json'
-  //         }
-  //       }
-  //     );
-  //     if (response.data && Array.isArray(response.data.content) && response.data.content.length > 0) {
-  //       setSelectedApplication(response.data.content[0]);
-  //       setIsModalOpen(true);
-  //     }
-  //   } catch (err) {
-  //     // Optionally handle error
-  //   }
-  // };
 
   return (
     <div className="px-4 sm:px-6 lg:px-8 py-6 space-y-8 max-w-[1500px] mx-auto">
@@ -550,10 +515,10 @@ const MyTasks = () => {
           </div>
         </div>
       </motion.div>
-  
+
       {/* Enhanced Analytics Cards */}
       <DashboardStats data={analytics} />
-      
+
       {/* Split View Container - Responsive grid */}
       <div className="grid lg:grid-cols-3 gap-6">
         {/* Recent Tasks - Major Half */}
@@ -716,6 +681,18 @@ const MyTasks = () => {
                             <Users size={14} className="mr-1" />
                             <span>{task.applications} {task.applications === 1 ? 'Applicant' : 'Applicants'}</span>
                           </Button>
+                          {task.applicationsRecommendationCount > 0 && (
+                            <Button
+                            variant="ghost"
+                            size="sm"
+                            className="text-blue-600 hover:text-blue-700 hover:bg-blue-50/50 h-8"
+                            onClick={() => handleViewApplications(task, 'recommended')}
+                          >
+                            <Users size={14} className="mr-1" />
+                            <span>{task.applicationsRecommendationCount} Top Recommended Profiles </span>
+                          </Button>
+                          )}
+                        
                         </div>
 
                         <div className="text-xs text-gray-500">
@@ -858,7 +835,7 @@ const UserProfile = () => {
 
   // Extract first letters of first and last name for avatar
   const getInitials = (name) => {
-    if(!name) return "-";
+    if (!name) return "-";
     return name
       .split(' ')
       .map(n => n[0])
@@ -1343,8 +1320,8 @@ const CompanyDashboard = () => {
             <Route path="/developer-profile/:developerId" element={<DeveloperProfile />} />
             <Route path="chat/:taskId/:applicationId" element={<ChatRoomWrapper />} />
             {/* New routes for task applications */}
+
             <Route path="/tasks/:taskId/applications" element={<ApplicationDetailsComponent />} />
-            {/* <Route path="/tasks/:taskId/applications/:applicationId" element={<Applications />} /> */}
             <Route path="applications/:taskId/:applicationId" element={<ApplicationTaskDetails />} />
             <Route path="/company-profile/:companyId" element={<CompanyProfile />} />
 
