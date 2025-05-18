@@ -283,7 +283,12 @@ const DeveloperHome = ({ developer }) => {
                             ? new Date(project.createdAt).toLocaleDateString()
                             : ''}
                       </span>
-                      <Button variant="outline" size="sm" className="gap-1">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="gap-1"
+                        onClick={() => navigate(`/developer/dashboard/projects/${project.externalId || project.id}`)}
+                      >
                         View Details
                         <ArrowRight size={14} />
                       </Button>

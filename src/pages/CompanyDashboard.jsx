@@ -800,6 +800,8 @@ import CurrencyFormatter from '../components/ui/CurrencyFormatter';
 import { fetchCompanyProfle, fetchCompanyTaskStatistics } from '../api/companyService';
 import DashboardStats from '../components/common/DashboardAnalyticsStats';
 import CompanyProfile from '../components/company/CompanyProfile';
+import TaskDetails from '../components/common/TaskDetails';
+import EditTask from '../components/dashboard/EditTask';
 
 // Add UserProfile component
 const UserProfile = () => {
@@ -1327,6 +1329,8 @@ const CompanyDashboard = () => {
           <Routes>
             <Route path="/" element={<MyTasks />} />
             <Route path="/tasks" element={<AllTasks />} />
+            <Route path="/myTasks/:taskId" element={<TaskDetails />} />
+            <Route path="/edit-task/:taskId" element={<EditTask />} />
             {/* <Route path="/all-tasks" element={<AllTasks />} /> */}
             <Route path="/post-task" element={<PostTask />} />
             <Route path="/applications" element={<Applications />} />
