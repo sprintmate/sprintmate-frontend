@@ -10,6 +10,7 @@ import { authUtils } from '../../utils/authUtils';
 import { fetchCompanyProfle } from '../../api/companyService';
 import { getProfileEditRedirectionPath } from '../../utils/applicationUtils';
 import { fetchUserProfile } from '../../services/authService';
+import  EditProfile from '../profile/EditProfile';
 
 const CompanyProfile = () => {
 
@@ -132,17 +133,6 @@ const CompanyProfile = () => {
               </p>
             </div>
 
-            {/* {isOwner && (
-              <Button
-                variant="outline"
-                size="sm"
-                className="gap-2"
-                onClick={() => navigate(getProfileEditRedirectionPath())}
-              >
-                <Edit size={16} />
-                Edit Profile // todo fix here
-              </Button>
-            )} */}
 
             {isOwner && !isEditing && (
               <Button
@@ -159,8 +149,9 @@ const CompanyProfile = () => {
             {isEditing && (
                <EditProfile
                userData={userData}
+               open={isEditing}
                onSave={handleProfileUpdate}
-               onCancel={handleCancelEdit}
+               onCancel={() => setIsEditing(false)}
              />
             )}
 

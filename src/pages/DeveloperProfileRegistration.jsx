@@ -30,6 +30,7 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Badge } from '@/components/ui/badge';
 import { authUtils } from '../utils/authUtils';
 import { createDeveloperProfile } from '../api/developerService';
+import { uploadFile as documentUploadFile } from '../api/documentService';
 
 // Available options for work types (enums from backend)
 const availabilityOptions = [
@@ -130,20 +131,23 @@ const DeveloperProfileRegistration = () => {
       setIsLoading(true);
 
       const formData = new FormData();
+      const uploadFileType = fileType == 'resume' ? 'LATEST_RESUME' : 'PROFILE_PIC';
       formData.append('file', fileToUpload);
-      formData.append('type', "LATEST_RESUME");
+      formData.append('type', uploadFileType);
 
-      const token = authUtils.getAuthToken();
-      const response = await axios.post(
-        `${import.meta.env.VITE_API_BASE_URL}/v1/documents/upload`,
-        formData,
-        {
-          headers: {
-            'Authorization': token,
-            'Content-Type': 'multipart/form-data'
-          }
-        }
-      );
+      // const token = authUtils.getAuthToken();
+      // const response = await axios.post(
+      //   `${import.meta.env.VITE_API_BASE_URL}/v1/documents/upload`,
+      //   formData,
+      //   {
+      //     headers: {
+      //       'Authorization': token,
+      //       'Content-Type': 'multipart/form-data'
+      //     }
+      //   }
+      // );
+
+      const response = await documentUploadFile(formData);
 
       // Use externalId from response as fileId
       if (response.data && response.data.externalId) {

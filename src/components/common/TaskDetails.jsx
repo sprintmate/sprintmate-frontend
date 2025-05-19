@@ -139,7 +139,7 @@ function TaskDetails() {
           </div>
           <div className="flex flex-col items-end gap-2">
             <span className="text-lg font-semibold text-green-700 flex items-center">
-              <DollarSign size={18} className="mr-1" />
+              {/* <DollarSign size={18} className="mr-1" /> */}
               <CurrencyFormatter currency={task.currency}>{task.budget}</CurrencyFormatter>
             </span>
             <span className="text-xs text-gray-500">
@@ -221,14 +221,14 @@ function TaskDetails() {
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.3, duration: 0.4 }}
       >
-        <div className="text-xs text-gray-400">
+        {/* <div className="text-xs text-gray-400">
           Created by: <span className="font-medium text-gray-600">{task.createdBy}</span> | Last updated: <span className="font-medium text-gray-600">{task.updatedAt ? formatDate(task.updatedAt) : 'N/A'}</span>
-        </div>
-        <div>
+        </div> */}
+        {/* <div>
           <Badge variant="outline" className="bg-gray-50 border-gray-200 text-gray-600">
             Task ID: {task.externalId}
           </Badge>
-        </div>
+        </div> */}
       </motion.div>
     </motion.div>
   );

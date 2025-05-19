@@ -1,3 +1,4 @@
+import { authUtils } from '../utils/authUtils';
 import httpInstance from './axiosInstance';
 
 
@@ -11,6 +12,17 @@ export const createUser = async (userData) => {
     }
   };
 
+  export const updateUser = async (userId,userData) => {
+    try {
+      const response = await httpInstance.put(`/v1/users/${userId}`, userData);
+      // authUtils.removeUserProfile();
+      // authUtils.setUserProfile(fetchUserProfile());
+      return response;
+    } catch (error) {
+      console.error('Error creating user:', error);
+      throw error;
+    }
+  };
 
 export const generateToken = async (loginData) => {
     try {

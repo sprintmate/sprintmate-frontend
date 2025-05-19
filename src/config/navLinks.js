@@ -19,7 +19,7 @@ import {
       { to: "/company/dashboard/applications", icon: Users, label: 'Applications' },
       { to: '/company/dashboard/payments', icon: DollarSign, label: 'Payments' },
       { to: '/company/dashboard/profile/:companyId', icon: User, label: 'Profile' },
-      { to: "/company/dashboard/settings", icon: Settings, label: 'Settings' },
+      // { to: "/company/dashboard/settings", icon: Settings, label: 'Settings' },
 
     ],
     developer: [
@@ -29,7 +29,7 @@ import {
       { to: '/developer/dashboard/projects', icon: Briefcase, label: 'Find Projects' },
       { to: '/developer/dashboard/applications', icon: CheckSquare, label: 'My Applications' },
       { to: '/developer/dashboard/profile/:developerId', icon: User, label: 'Profile' },
-      { to: '/developer/dashboard/settings', icon: Settings, label: 'Settings' },
+      // { to: '/developer/dashboard/settings', icon: Settings, label: 'Settings' },  
 
     ]
   };

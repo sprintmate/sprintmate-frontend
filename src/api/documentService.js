@@ -5,6 +5,8 @@ import httpInstance from './axiosInstance';
 
 const BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
+
+
 export const uploadDocuments = async (files, type = "LOGO") => {
   try {
     const uploaded = await Promise.all(
@@ -27,7 +29,7 @@ export const uploadDocuments = async (files, type = "LOGO") => {
 };
 
 
-const uploadFile = async (formData, urlPath) => {
+export const uploadFile = async (formData, urlPath='') => {
   const token = authUtils.getAuthToken();
 
   const headers = {

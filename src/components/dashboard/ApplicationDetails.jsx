@@ -10,7 +10,7 @@ import {
   DollarSign, Star, Download, ArrowUpRight,
   MessageSquare, FileText, AlertCircle, ExternalLink,
   ChevronRight, Send, X, Phone, Video, MoreVertical,
-  Paperclip, Smile, Image, ChevronDown, Play, Pause,BarChart
+  Paperclip, Smile, Image, ChevronDown, Play, Pause, BarChart
 } from 'lucide-react';
 import {
   Card,
@@ -56,6 +56,7 @@ import SecureDocumentViewer from '../DocumentViewer';
 import { getChatRedirectionPath } from '../chat/Rooms';
 import ProfilePicViewer from '../common/ProfilePicViewer';
 import CurrencyFormatter from '../ui/CurrencyFormatter';
+import { fetchSecureDocument } from '../../api/documentService';
 
 const STATUS_MAP = {
   pending: { color: 'bg-yellow-100 text-yellow-800', icon: <Clock size={14} className="mr-1" /> },
@@ -220,6 +221,8 @@ const ApplicationDetails = () => {
   const [selectedApplication, setSelectedApplication] = useState(null);
   const [activeTab, setActiveTab] = useState('all');
   const [pendingStatus, setPendingStatus] = useState(null); // e.g., 'WITHDRAWN'
+  const [resumeUrl, setResumeUrl] = useState(null);
+
 
   const role = authUtils.getUserProfile().role;
 
@@ -241,9 +244,9 @@ const ApplicationDetails = () => {
       setIsLoading(true);
       try {
         const fetchRecommended = statuses === 'recommended';
-        let sort =  'updatedAt,desc';
-        if(fetchRecommended) {
-         sort = 'matchingScore,desc';
+        let sort = 'updatedAt,desc';
+        if (fetchRecommended) {
+          sort = 'matchingScore,desc';
         }
 
         const queryParams = new URLSearchParams({
@@ -264,6 +267,7 @@ const ApplicationDetails = () => {
         }
 
         setApplications(content || []);
+        console.log('fetched contenxt', content)
         setTotalPages(totalPagesFromApi || 1);
       } catch (err) {
         console.error('Error fetching applications:', err);
@@ -642,19 +646,38 @@ const ApplicationDetails = () => {
                         </div>
 
                         {/* Resume button */}
+      
                         {application.developer?.portfolio?.LATEST_RESUME && (
                           <div className="md:text-right my-3 md:my-0">
-                            <a
-                              href={`${url}/v1/files/${application.developer.portfolio.LATEST_RESUME}`}
-                              target="_blank"
-                              rel="noopener noreferrer"
+                            <button
+                              type="button"
                               className="inline-flex items-center px-3 py-1 rounded-md border border-blue-200 text-blue-600 bg-blue-50 hover:bg-blue-100 transition-colors text-sm font-medium"
+                              onClick={async () => {
+                                try {
+                                  const resumeKey = application.developer?.portfolio?.LATEST_RESUME;
+                                  if (!resumeKey) return;
+
+                                  const resumeUrl = await fetchSecureDocument(resumeKey);
+                                  console.log("Fetched resume URL:", resumeUrl);
+
+                                  if (resumeUrl?.blob && resumeUrl?.fileName) {
+                                    const link = document.createElement('a');
+                                    link.href = URL.createObjectURL(resumeUrl.blob);
+                                    link.download = resumeUrl.fileName;
+                                    document.body.appendChild(link);
+                                    link.click();
+                                    link.remove();
+                                  }
+                                } catch (error) {
+                                  console.error("Error downloading resume:", error);
+                                }
+                              }}
                             >
                               <Download size={14} className="mr-1.5" />
-                              Resume
-                            </a>
+                              Download Resume
+                            </button>
                           </div>
-                        )}
+                        )}                       
 
                         {/* Match Score */}
                         {typeof application.matchingScore === 'number' && application.matchingScore >= 10 && (

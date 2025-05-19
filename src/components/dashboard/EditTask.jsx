@@ -9,6 +9,7 @@ import { Calendar, DollarSign, Tag, Layers, ShieldCheck, FileText, Loader2 } fro
 import axios from 'axios';
 import { getToken } from '../../services/authService';
 import { authUtils } from '../../utils/authUtils';
+import CurrencyFormatter from '../ui/CurrencyFormatter';
 
 const categories = [
   { value: 'p0', label: 'P0 (Critical)' },
@@ -55,7 +56,8 @@ function EditTask() {
           deadline: response.data.deadline
             ? response.data.deadline.replace(' ', 'T').slice(0, 16)
             : '',
-          ndaRequired: !!response.data.ndaRequired
+          ndaRequired: !!response.data.ndaRequired,
+          tags : response.data.tags
         });
       } catch (err) {
         setError('Failed to load task details.');
@@ -97,7 +99,8 @@ function EditTask() {
         budget: Number(form.budget),
         currency: form.currency,
         deadline: formatDeadlineForApi(form.deadline),
-        ndaRequired: form.ndaRequired
+        ndaRequired: form.ndaRequired,
+        tags : form.tags
       };
       await axios.put(
         `${import.meta.env.VITE_API_BASE_URL}/v1/company-profiles/${companyId}/tasks/${taskId}`,
@@ -192,6 +195,22 @@ function EditTask() {
             placeholder="Describe the task in detail"
           />
         </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1 flex items-center gap-1">
+            <FileText size={16} className="text-blue-400" /> Tech Stack
+          </label>
+          <Input
+            name="tags"
+            value={form.tags}
+            onChange={handleChange}
+            required
+            className="w-full"
+            maxLength={100}
+            placeholder="TechStack"
+          />
+        </div>
+
         {/* Category as string input */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1 flex items-center gap-1">
@@ -210,7 +229,7 @@ function EditTask() {
         <div className="grid grid-cols-2 gap-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1 flex items-center gap-1">
-              <DollarSign size={16} className="text-blue-400" /> Budget
+              <CurrencyFormatter currency={form.currency} size={16} className="text-blue-400" /> Budget
             </label>
             <Input
               name="budget"

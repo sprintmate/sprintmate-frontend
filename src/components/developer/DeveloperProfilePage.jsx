@@ -286,10 +286,10 @@ const DeveloperProfilePage = () => {
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-4">
-                    <div>
+                    {/* <div>
                       <p className="text-sm text-gray-500">Developer ID</p>
                       <p className="font-medium text-gray-900 break-all">{developer.externalId}</p>
-                    </div>
+                    </div> */}
                     <div>
                       <p className="text-sm text-gray-500">Joined</p>
                       <p className="font-medium text-gray-900">{formatDate(developer.createdAt)}</p>

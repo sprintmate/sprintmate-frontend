@@ -22,6 +22,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Label } from '@/components/ui/label';
 import { authUtils } from '../utils/authUtils';
 import { createCompanyProfile } from '../api/companyService';
+import { uploadFile as documentUploadFile } from '../api/documentService';
+
 
 const industries = [
   { value: 'Tech', label: 'Technology' },
@@ -95,21 +97,23 @@ const CompanyProfileRegistration = () => {
       formData.append('file', fileToUpload);
       formData.append('type', 'LOGO');
 
-      const token = authUtils.getAuthToken();
-      const uploadUrl = `${import.meta.env.VITE_API_BASE_URL}/v1/documents/upload`;
+      // const token = authUtils.getAuthToken();
+      // const uploadUrl = `${import.meta.env.VITE_API_BASE_URL}/v1/documents/upload`;
       // Log the upload URL for debugging
-      console.log('Uploading to:', uploadUrl);
+      // console.log('Uploading to:', uploadUrl);
 
-      const response = await axios.post(
-        uploadUrl,
-        formData,
-        {
-          headers: {
-            'Authorization': token,
-            'Content-Type': 'multipart/form-data'
-          }
-        }
-      );
+      // const response = await axios.post(
+      //   uploadUrl,
+      //   formData,
+      //   {
+      //     headers: {
+      //       'Authorization': token,
+      //       'Content-Type': 'multipart/form-data'
+      //     }
+      //   }
+      // );
+
+      const response = await documentUploadFile(formData);
 
       // Use externalId from response as fileId
       if (response.data && response.data.externalId) {

@@ -8,6 +8,10 @@ import { useParams } from 'react-router-dom';
 import { fetchDeveloperProfile } from '../../api/developerService';
 import { fetchSecureDocument } from '../../api/documentService';
 import { authUtils } from '../../utils/authUtils';
+import { fetchUserProfile } from '../../services/authService';
+import { set } from 'react-hook-form';
+import EditProfile from '../profile/EditProfile';
+import { normalizeSocialUrl } from '../../utils/applicationUtils';
 
 
 const DeveloperProfile = () => {
@@ -16,10 +20,15 @@ const DeveloperProfile = () => {
   const [developer, setData] = useState(null);
   const [profilePicUrl, setProfilePicUrl] = useState(null);
   const [resumeUrl, setResumeUrl] = useState(null);
+  const [userData, setUserData] = useState(null);
+  const [isEditing, setIsEditing] = useState(false);
+
   useEffect(() => {
     const fetchData = async () => {
       try {
         const response = await fetchDeveloperProfile(developerId);
+        const developerUserResponse = await fetchUserProfile();
+        setUserData(developerUserResponse);
         setData(response);
 
         if (response.portfolio?.PROFILE_PIC) {
@@ -58,6 +67,33 @@ const DeveloperProfile = () => {
 
 
   const devProfile = developer;
+
+
+  const handleProfileUpdate = async (updatedData) => {
+    try {
+      // This would typically be an API call to update the profile
+      console.log("Profile data to update:", updatedData);
+      // setUserData(prev => ({
+      //   ...prev,
+      //   ...updatedData
+      // }));
+
+      // // Navigate back to view mode
+      // navigate('/company/dashboard/profile');
+      // return Promise.resolve();
+    } catch (error) {
+      console.error("Error updating profile:", error);
+      return Promise.reject(error);
+    }
+  };
+
+  // Handle cancel edit
+  const handleCancelEdit = () => {
+    console.log('cancel clicked')
+    // navigate('/company/dashboard/profile');
+  };
+
+
 
   return (
     <div className="max-w-4xl mx-auto px-4 md:px-8 space-y-6">
@@ -108,16 +144,8 @@ const DeveloperProfile = () => {
               </p>
             </div>
 
-            {/* <Button 
-              variant="outline" 
-              size="sm" 
-              className="gap-2"
-            >
-              <Edit size={16} />
-              Edit Profile
-            </Button> */}
 
-            {isOwner && (
+            {/* {isOwner && (
               <Button
                 variant="outline"
                 size="sm"
@@ -126,7 +154,29 @@ const DeveloperProfile = () => {
                 <Edit size={16} />
                 Edit Profile
               </Button>
+            )} */}
+
+            {isOwner && !isEditing && (
+              <Button
+                variant="outline"
+                size="sm"
+                className="gap-2"
+                onClick={() => setIsEditing(true)}
+              >
+                <Edit size={16} />
+                Edit Profile
+              </Button>
             )}
+
+            {isEditing && (
+              <EditProfile
+                userData={userData}
+                open={isEditing}
+                onSave={handleProfileUpdate}
+                onCancel={() => setIsEditing(false)}
+              />
+            )}
+
           </div>
 
           {/* About section */}
@@ -160,10 +210,10 @@ const DeveloperProfile = () => {
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  <div>
+                  {/* <div>
                     <p className="text-sm text-gray-500">User ID</p>
                     <p className="font-medium text-gray-900 break-all">{developer.userId}</p>
-                  </div>
+                  </div> */}
                   <div>
                     <p className="text-sm text-gray-500">Availability</p>
                     <p className="font-medium text-gray-900">{devProfile?.availability || "Not specified"}</p>
@@ -209,7 +259,7 @@ const DeveloperProfile = () => {
                         <div className="flex items-center">
                           <Github className="h-4 w-4 text-gray-700 mr-2" />
                           <a
-                            href={devProfile.portfolio.GITHUB}
+                            href={normalizeSocialUrl(devProfile.portfolio.GITHUB)}
                             target="_blank"
                             rel="noopener noreferrer"
                             className="text-blue-600 hover:text-blue-800 hover:underline text-sm"
@@ -223,7 +273,7 @@ const DeveloperProfile = () => {
                         <div className="flex items-center">
                           <Linkedin className="h-4 w-4 text-gray-700 mr-2" />
                           <a
-                            href={devProfile.portfolio.LINKEDIN}
+                            href={normalizeSocialUrl(devProfile.portfolio.LINKEDIN)}
                             target="_blank"
                             rel="noopener noreferrer"
                             className="text-blue-600 hover:text-blue-800 hover:underline text-sm"
