@@ -4,21 +4,28 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { User, Mail, Briefcase, Code, FileText, Github, Linkedin, Globe, Edit } from 'lucide-react';
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import { fetchSecureDocument } from '../../api/documentService';
 import { authUtils } from '../../utils/authUtils';
 import { fetchCompanyProfle } from '../../api/companyService';
-
+import { getProfileEditRedirectionPath } from '../../utils/applicationUtils';
+import { fetchUserProfile } from '../../services/authService';
 
 const CompanyProfile = () => {
 
   const { companyId } = useParams();
   const [company, setData] = useState(null);
+  const [userData,setUserData] = useState(null);
   const [logoUrl, setLogoUrl] = useState(null);
+  const [isEditing, setIsEditing] = useState(false);
+  const navigate = useNavigate();
+
   useEffect(() => {
     const fetchData = async () => {
       try {
         const response = await fetchCompanyProfle(companyId);
+        const userProfile = await fetchUserProfile();
+        setUserData(userProfile);
         setData(response);
         if (response.attachments?.LOGO) {
           const profileUrl = (await fetchSecureDocument(response.attachments.LOGO)).fileUrl;
@@ -49,6 +56,32 @@ const CompanyProfile = () => {
 
 
   const companyProfile = company;
+
+  const handleProfileUpdate = async (updatedData) => {
+    try {
+      // This would typically be an API call to update the profile
+      console.log("Profile data to update:", updatedData);
+      // setUserData(prev => ({
+      //   ...prev,
+      //   ...updatedData
+      // }));
+
+      // // Navigate back to view mode
+      // navigate('/company/dashboard/profile');
+      // return Promise.resolve();
+    } catch (error) {
+      console.error("Error updating profile:", error);
+      return Promise.reject(error);
+    }
+  };
+
+  // Handle cancel edit
+  const handleCancelEdit = () => {
+    console.log('cancel clicked')
+    // navigate('/company/dashboard/profile');
+  };
+
+
 
   return (
     <div className="max-w-4xl mx-auto px-4 md:px-8 space-y-6">
@@ -99,25 +132,38 @@ const CompanyProfile = () => {
               </p>
             </div>
 
-            {/* <Button 
-              variant="outline" 
-              size="sm" 
-              className="gap-2"
-            >
-              <Edit size={16} />
-              Edit Profile
-            </Button> */}
-
-            {isOwner && (
+            {/* {isOwner && (
               <Button
                 variant="outline"
                 size="sm"
                 className="gap-2"
+                onClick={() => navigate(getProfileEditRedirectionPath())}
+              >
+                <Edit size={16} />
+                Edit Profile // todo fix here
+              </Button>
+            )} */}
+
+            {isOwner && !isEditing && (
+              <Button
+                variant="outline"
+                size="sm"
+                className="gap-2"
+                onClick={() => setIsEditing(true)}
               >
                 <Edit size={16} />
                 Edit Profile
               </Button>
             )}
+
+            {isEditing && (
+               <EditProfile
+               userData={userData}
+               onSave={handleProfileUpdate}
+               onCancel={handleCancelEdit}
+             />
+            )}
+
           </div>
 
           {/* About section */}
@@ -166,7 +212,7 @@ const CompanyProfile = () => {
                 </div>
               </CardContent>
             </Card>
-{/* 
+            {/* 
             <Card>
               <CardHeader className="pb-2">
                 <CardTitle className="text-sm text-gray-500 uppercase tracking-wider">Resume & Portfolio</CardTitle>

@@ -18,6 +18,7 @@ import {
       { to: "/company/dashboard/post-task", icon: FileText, label: 'Post Task' },
       { to: "/company/dashboard/applications", icon: Users, label: 'Applications' },
       { to: '/company/dashboard/payments', icon: DollarSign, label: 'Payments' },
+      { to: '/company/dashboard/profile/:companyId', icon: User, label: 'Profile' },
       { to: "/company/dashboard/settings", icon: Settings, label: 'Settings' },
 
     ],

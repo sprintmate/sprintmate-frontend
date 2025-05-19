@@ -34,7 +34,10 @@ export const getCompanyProfileRedirectionPath = (companyId) => {
 
 export const getApplicationDetailsRedirectionPath = (taskId,applicationId) => {
   return `${getBaseRedirectionPath()}/applications/${taskId}/${applicationId}`
+}
 
+export const getProfileEditRedirectionPath = () => {
+  return `${getBaseRedirectionPath()}/profile/edit`
 }
 
 export const formatDate = (dateString) => {

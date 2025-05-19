@@ -240,11 +240,17 @@ const ApplicationDetails = () => {
     const fetchApplications = async () => {
       setIsLoading(true);
       try {
+        const fetchRecommended = statuses === 'recommended';
+        let sort =  'updatedAt,desc';
+        if(fetchRecommended) {
+         sort = 'matchingScore,desc';
+        }
+
         const queryParams = new URLSearchParams({
           size: 20,
           page: 0,
-          sort: 'updatedAt,desc',
-          fetchRecommended: statuses === 'recommended'
+          sort: sort,
+          fetchRecommended: fetchRecommended
         });
         const response = await getTaskApplications(taskId, queryParams);
         console.log(response);
