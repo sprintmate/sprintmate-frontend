@@ -947,7 +947,7 @@ const CompanyDashboard = () => {
   // Add handleLogout function similar to developer flow
   const handleLogout = () => {
     authUtils.clearAllData();
-    navigate('/login');
+    navigate('/company/login');
   };
 
   return (
