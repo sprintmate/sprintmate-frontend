@@ -179,7 +179,7 @@ const TaskApplicationModal = ({ isOpen, onClose, taskId, onSuccess }) => {
               stiffness: 300, 
               damping: 25 
             }}
-            className="relative bg-white dark:bg-gray-900 rounded-xl shadow-xl w-full max-w-lg overflow-hidden cursor-auto"
+            className="relative bg-white darkdummy:bg-gray-900 rounded-xl shadow-xl w-full max-w-lg overflow-hidden cursor-auto"
           >
             {/* Decorative header */}
             <div className="h-3 bg-gradient-to-r from-blue-600 to-purple-600 relative overflow-hidden cursor-auto">
@@ -200,7 +200,7 @@ const TaskApplicationModal = ({ isOpen, onClose, taskId, onSuccess }) => {
             <button
               onClick={handleClose}
               disabled={loading}
-              className="absolute top-3 right-3 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 transition-colors cursor-pointer"
+              className="absolute top-3 right-3 text-gray-500 hover:text-gray-700 darkdummy:text-gray-400 darkdummy:hover:text-gray-200 transition-colors cursor-pointer"
             >
               <X size={18} />
             </button>
@@ -213,21 +213,21 @@ const TaskApplicationModal = ({ isOpen, onClose, taskId, onSuccess }) => {
                     animate={{ scale: 1 }}
                     transition={{ type: "spring", stiffness: 300, damping: 25 }}
                   >
-                    <div className="w-16 h-16 mx-auto bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400 rounded-full flex items-center justify-center">
+                    <div className="w-16 h-16 mx-auto bg-green-100 darkdummy:bg-green-900/30 text-green-600 darkdummy:text-green-400 rounded-full flex items-center justify-center">
                       <CheckCircle2 size={32} />
                     </div>
-                    <h3 className="mt-4 text-xl font-bold text-gray-900 dark:text-gray-100">Application Submitted!</h3>
-                    <p className="mt-2 text-gray-600 dark:text-gray-400">
+                    <h3 className="mt-4 text-xl font-bold text-gray-900 darkdummy:text-gray-100">Application Submitted!</h3>
+                    <p className="mt-2 text-gray-600 darkdummy:text-gray-400">
                       Your application has been successfully submitted. You'll be notified if the client responds.
                     </p>
                   </motion.div>
                 ) : (
                   <>
-                    <div className="w-16 h-16 mx-auto bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded-full flex items-center justify-center mb-4 cursor-auto">
+                    <div className="w-16 h-16 mx-auto bg-blue-100 darkdummy:bg-blue-900/30 text-blue-600 darkdummy:text-blue-400 rounded-full flex items-center justify-center mb-4 cursor-auto">
                       <FileText size={26} />
                     </div>
-                    <h3 className="text-xl font-bold text-gray-900 dark:text-gray-100 cursor-auto">Apply for Project</h3>
-                    <p className="mt-2 text-gray-600 dark:text-gray-400 cursor-auto">
+                    <h3 className="text-xl font-bold text-gray-900 darkdummy:text-gray-100 cursor-auto">Apply for Project</h3>
+                    <p className="mt-2 text-gray-600 darkdummy:text-gray-400 cursor-auto">
                       Explain why you're a great fit for this project and what makes you stand out.
                     </p>
                   </>
@@ -237,12 +237,12 @@ const TaskApplicationModal = ({ isOpen, onClose, taskId, onSuccess }) => {
               {!success && (
                 <>
                   {/* Tips section - ensure cursor is visible */}
-                  <div className="mb-4 p-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-100 dark:border-blue-800 rounded-lg cursor-auto">
+                  <div className="mb-4 p-3 bg-blue-50 darkdummy:bg-blue-900/20 border border-blue-100 darkdummy:border-blue-800 rounded-lg cursor-auto">
                     <div className="flex gap-2">
-                      <Sparkles className="text-blue-600 dark:text-blue-400 flex-shrink-0 mt-0.5" size={16} />
+                      <Sparkles className="text-blue-600 darkdummy:text-blue-400 flex-shrink-0 mt-0.5" size={16} />
                       <div>
-                        <h4 className="text-sm font-medium text-blue-800 dark:text-blue-300">Application Tips</h4>
-                        <ul className="mt-1 text-xs text-blue-700 dark:text-blue-300 space-y-1">
+                        <h4 className="text-sm font-medium text-blue-800 darkdummy:text-blue-300">Application Tips</h4>
+                        <ul className="mt-1 text-xs text-blue-700 darkdummy:text-blue-300 space-y-1">
                           <li>• Highlight relevant experience and skills</li>
                           <li>• Mention your approach to the project</li>
                           <li>• Set clear expectations about your availability</li>
@@ -254,7 +254,7 @@ const TaskApplicationModal = ({ isOpen, onClose, taskId, onSuccess }) => {
                   {/* Form - ensure cursor is visible */}
                   <div className="space-y-4 cursor-auto">
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 cursor-auto">
+                      <label className="block text-sm font-medium text-gray-700 darkdummy:text-gray-300 mb-1 cursor-auto">
                         Your Proposal
                       </label>
                       <div className="relative cursor-text">
@@ -262,18 +262,18 @@ const TaskApplicationModal = ({ isOpen, onClose, taskId, onSuccess }) => {
                           value={proposal}
                           onChange={handleProposalChange}
                           placeholder="I would be a great fit for this project because..."
-                          className="w-full min-h-[140px] rounded-lg border-gray-300 dark:border-gray-700 dark:bg-gray-800 cursor-text"
+                          className="w-full min-h-[140px] rounded-lg border-gray-300 darkdummy:border-gray-700 darkdummy:bg-gray-800 cursor-text"
                           disabled={loading}
                         />
-                        <div className="absolute bottom-2 right-2 text-xs text-gray-500 dark:text-gray-400 cursor-auto">
+                        <div className="absolute bottom-2 right-2 text-xs text-gray-500 darkdummy:text-gray-400 cursor-auto">
                           {charCount}/{maxChars}
                         </div>
                       </div>
                     </div>
                     
                     {error && (
-                      <div className="p-3 bg-red-50 dark:bg-red-900/20 border border-red-100 dark:border-red-800 rounded-lg cursor-auto">
-                        <div className="flex items-center gap-2 text-red-700 dark:text-red-400">
+                      <div className="p-3 bg-red-50 darkdummy:bg-red-900/20 border border-red-100 darkdummy:border-red-800 rounded-lg cursor-auto">
+                        <div className="flex items-center gap-2 text-red-700 darkdummy:text-red-400">
                           <AlertCircle size={16} className="flex-shrink-0" />
                           <span className="text-sm">{error}</span>
                         </div>

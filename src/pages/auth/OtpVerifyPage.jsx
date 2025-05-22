@@ -8,6 +8,9 @@ import { fetchUserProfile, verifyUser } from '../../api/userService';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { authUtils } from '../../utils/authUtils';
 import { getBaseRedirectionPath } from '../../utils/applicationUtils';
+import { getPostLoginRedirectPath } from '../../utils/redirectionUtil';
+import { toast } from 'react-hot-toast';
+
 
 const OtpVerifyPage = () => {
   const navigate = useNavigate();
@@ -26,7 +29,7 @@ const OtpVerifyPage = () => {
   
   useEffect(() => {
     if (!email) {
-      navigate('/login', { 
+      navigate('/', { 
         state: { 
           message: 'Please login first to verify your account' 
         }
@@ -80,9 +83,6 @@ const OtpVerifyPage = () => {
 };
 
 
-
-
-
   // Handle backspace
   const handleKeyDown = (index, e) => {
     if (e.key === 'Backspace' && !otp[index] && index > 0) {
@@ -126,6 +126,27 @@ const OtpVerifyPage = () => {
 
     try {
       const response = await verifyUser(otpString);
+
+      //   if (response.data?.token) {
+      //   console.log('inside if block ', response)
+      //   authUtils.setAuthToken(response.data.token);
+      //   setSuccess(true);
+      //   const userProfile = await fetchUserProfile();
+      //   console.log("user profile ", userProfile, 'userType', userType);
+      //   authUtils.setUserProfile(userProfile);
+      //   // toast.success(isSignUp ? 'Signup successful!' : 'Login successful!');
+      //   const redirectPath = await getPostLoginRedirectPath(userProfile);
+      //   console.log("redirectPath " , redirectPath);
+
+      //   if (redirectPath.includes('complete')) {
+      //     toast('Please complete your profile', { icon: 'ℹ️' });
+      //   } else {
+      //     toast.success('Successfully signed in!');
+      //     authUtils.removeOAuthRole();
+      //   }
+
+      //   navigate(redirectPath, { replace: true });
+      // }
       
       // Store the token and user ID
       if (response.data?.token) {
@@ -133,17 +154,22 @@ const OtpVerifyPage = () => {
         setSuccess(true);
         const userProfile = await fetchUserProfile();
         authUtils.setUserProfile(userProfile);
-        // Redirect after a short delay
-        // setTimeout(() => {
-          navigate(getBaseRedirectionPath(), { 
-            replace: true,
-            state: { 
-              message: 'Account verified successfully!' 
-            }
-          });
-        // }, 500);
+
+         const redirectPath = await getPostLoginRedirectPath(userProfile);
+        console.log("redirectPath " , redirectPath);
+
+        if (redirectPath.includes('complete')) {
+          toast('Please complete your profile', { icon: 'ℹ️' });
+        } else {
+          toast.success('Successfully signed in!');
+          authUtils.removeOAuthRole();
+        }
+
+        navigate(redirectPath, { replace: true });
+
       }
     } catch (err) {
+      console.log('error ' ,err)
       setError(err.response?.data?.message || 'Invalid OTP. Please try again.');
       // Clear OTP on error
       setOtp(['', '', '', '']);

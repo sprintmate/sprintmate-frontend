@@ -1,5 +1,5 @@
 // DeveloperDashboard.jsx
-import React, { useState, useRef, useEffect,useMemo } from 'react';
+import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { Routes, Route, useLocation, useNavigate, Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import axios from 'axios';
@@ -19,7 +19,7 @@ import {
 } from 'lucide-react';
 
 import CustomCursor from "@/components/ui/CustomCursor";
-import ChatRoomWrapper from '../components/chat/ChatRoomWrapper'; 
+import ChatRoomWrapper from '../components/chat/ChatRoomWrapper';
 
 // Import developer dashboard components
 import DeveloperHome from '@/components/developer/DeveloperHome';
@@ -44,8 +44,8 @@ const SidebarLink = ({ to, icon: Icon, label, isActive, isExpanded }) => {
     <Link
       to={to}
       className={`flex items-center py-3 px-3 rounded-lg transition-colors ${isActive
-          ? 'bg-blue-50 text-blue-600 font-medium'
-          : 'text-gray-700 hover:bg-gray-100'
+        ? 'bg-blue-50 text-blue-600 font-medium'
+        : 'text-gray-700 hover:bg-gray-100'
         }`}
     >
       <Icon size={20} className={isActive ? 'text-blue-600' : 'text-gray-500'} />
@@ -77,14 +77,14 @@ const DeveloperDashboard = () => {
     const fetchDeveloperProfile = async () => {
       try {
         const storedProfile = await fetchUserProfile();
-        console.log("fetched user profile from developer dashboard " , storedProfile)
+        console.log("fetched user profile from developer dashboard ", storedProfile)
         if (storedProfile) {
           setDeveloper(storedProfile);
           setDeveloperId(storedProfile?.developerProfiles[0]?.externalId)
           authUtils.setUserProfile(storedProfile);
           return;
         }
-  
+
         const token = authUtils.getAuthToken();
         if (!token) {
           navigate('/developer/login');
@@ -96,7 +96,7 @@ const DeveloperDashboard = () => {
         setIsLoading(false);
       }
     };
-  
+
     fetchDeveloperProfile();
   }, [navigate]);
 
@@ -106,7 +106,7 @@ const DeveloperDashboard = () => {
       to: link.to.replace(':developerId', developerId),
     }));
   }, [developerId]);
-  
+
 
   // Close sidebar when clicking outside on mobile
   useEffect(() => {
@@ -163,8 +163,10 @@ const DeveloperDashboard = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-blue-100/50 cursor-none flex">
-      <CustomCursor />
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-blue-100/50 flex">
+      {/* <CustomCursor /> */}
+      {false && <CustomCursor />}
+
 
       {/* Mobile overlay */}
       <AnimatePresence>

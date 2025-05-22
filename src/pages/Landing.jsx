@@ -96,8 +96,8 @@ function Landing() {
   useEffect(() => {
     // Clear localStorage and sessionStorage
     const utm = getUTMParams();
-    trackEvent('landing_page_view', utm);   
-     authUtils.clearAllData();
+    trackEvent('landing_page_view', utm);
+    authUtils.clearAllData();
     const checkMobile = () => {
       setIsMobile(window.innerWidth < 768);
     };
@@ -132,7 +132,10 @@ function Landing() {
 
   return (
     <div className="min-h-screen overflow-x-hidden bg-white">
-      {!isMobile && <CustomCursor />}
+      {/* {!isMobile && <CustomCursor />} */}
+      {false && <CustomCursor />}
+
+
 
       {/* Hero Section - Improved responsiveness */}
       <motion.section
@@ -1011,7 +1014,7 @@ function Landing() {
                   </Button>
                 </form> */}
 
-               <FeedbackForm/>
+                <FeedbackForm />
 
                 <div className="mt-4 text-sm text-gray-600">
                   <p className="flex items-center gap-2">

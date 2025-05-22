@@ -18,7 +18,7 @@ const Card = React.forwardRef(({ className, hover = true, variant = "default", g
       default:
         return glassmorphism 
           ? "bg-white/80 backdrop-blur-sm" 
-          : "bg-white dark:bg-gray-800";
+          : "bg-white darkdummy:bg-gray-800";
     }
   };
 
@@ -61,7 +61,7 @@ CardTitle.displayName = "CardTitle";
 const CardDescription = React.forwardRef(({ className, ...props }, ref) => (
   <p
     ref={ref}
-    className={`text-sm text-gray-500 dark:text-gray-400 ${className}`}
+    className={`text-sm text-gray-500 darkdummy:text-gray-400 ${className}`}
     {...props}
   />
 ));
