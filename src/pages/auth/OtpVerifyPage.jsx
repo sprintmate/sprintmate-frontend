@@ -4,7 +4,7 @@ import { Loader2, CheckCircle2, XCircle, ArrowLeft, Mail } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { fetchUserProfile, verifyUser } from '../../api/userService';
+import { fetchUserProfile, resendOtp, verifyUser } from '../../api/userService';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { authUtils } from '../../utils/authUtils';
 import { getBaseRedirectionPath } from '../../utils/applicationUtils';
