@@ -74,6 +74,25 @@ const Login = () => {
         cred: formData.cred
       });
 
+      console.log('response generateToken' , tokenResponse)
+
+      if (tokenResponse?.token) {
+        console.log('inside if block ', tokenResponse)
+        authUtils.setAuthToken(tokenResponse.token);
+      }
+
+      console.log('verified ',tokenResponse.isVerified)
+      if(!tokenResponse.isVerified) {
+        console.log('inside if verified ',tokenResponse.isVerified)
+
+        navigate('/verify', { 
+          state: { 
+            email: formData.email 
+          }
+        });
+        return;
+      }
+
       console.log('token response ', tokenResponse)
       trackEvent(AnalyticEvents.USER_LOGGED_IN,{userId:tokenResponse.userId})
 

@@ -8,6 +8,7 @@ import Login from './pages/Login';
 import ProtectedRoute from './components/ProtectedRoute';
 import ProfileCompletionChecker from './components/ProfileCompletionChecker';
 import ErrorBoundary from './components/common/ErrorBoundary';
+import OtpVerifyPage from './pages/auth/OtpVerifyPage';
 
 const Landing = React.lazy(() => import('./pages/Landing'));
 const DeveloperDashboard = React.lazy(() => import('./pages/DeveloperDashboard'));
@@ -77,6 +78,7 @@ const App = () => {
                   </ProtectedRoute>
                 }
               />
+              <Route path="/verify" element={<OtpVerifyPage />} />
             </Routes>
           </Suspense>
         </ErrorBoundary>

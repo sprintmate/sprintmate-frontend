@@ -1,5 +1,6 @@
 import { authUtils } from '../utils/authUtils';
 import httpInstance from './axiosInstance';
+import axios from 'axios';
 
 
 export const createUser = async (userData) => {
@@ -43,3 +44,21 @@ export const generateToken = async (loginData) => {
       throw error;
     }
   };
+
+export const verifyUser = async (otp) => {
+  try {
+    const response = await httpInstance.put('/v1/users/verify', { otp });
+    return response;
+  } catch (error) {
+    throw error;
+  }
+};
+
+export const resendOtp = async (email) => {
+  try {
+    const response = await httpInstance.post('/v1/tokens/resend-otp', { email });
+    return response;
+  } catch (error) {
+    throw error;
+  }
+};
