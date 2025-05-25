@@ -41,6 +41,9 @@ const Login = () => {
   const userType = location.pathname.includes('company') ? 'company' : 'developer';
   const oauthRole = userType === 'company' ? 'CORPORATE' : 'DEVELOPER';
 
+  const ENABLE_OTP_VERIFY = import.meta.env.VITE_ENABLE_OTP_VERIFICATION === 'true' ;
+
+
   const handleChange = (e) => {
     setFormData({
       ...formData,
@@ -63,8 +66,8 @@ const Login = () => {
           cred: formData.cred
         });
 
-        trackEvent(AnalyticEvents.SIGN_UP,{email:formData.email,role: oauthRole})
-        
+        trackEvent(AnalyticEvents.SIGN_UP, { email: formData.email, role: oauthRole })
+
 
         toast.success("Account created! Logging in...");
       }
@@ -74,27 +77,31 @@ const Login = () => {
         cred: formData.cred
       });
 
-      console.log('response generateToken' , tokenResponse)
+      console.log('response generateToken', tokenResponse)
 
       if (tokenResponse?.token) {
         console.log('inside if block ', tokenResponse)
         authUtils.setAuthToken(tokenResponse.token);
       }
 
-      console.log('verified ',tokenResponse.isVerified)
-      if(!tokenResponse.isVerified) {
-        console.log('inside if verified ',tokenResponse.isVerified)
+      console.log('verified ', tokenResponse.isVerified)
 
-        navigate('/verify', { 
-          state: { 
-            email: formData.email 
-          }
-        });
-        return;
+      if (ENABLE_OTP_VERIFY) {
+        if (!tokenResponse.isVerified) {
+          console.log('inside if verified ', tokenResponse.isVerified)
+
+          navigate('/verify', {
+            state: {
+              email: formData.email
+            }
+          });
+          return;
+        }
       }
 
+
       console.log('token response ', tokenResponse)
-      trackEvent(AnalyticEvents.USER_LOGGED_IN,{userId:tokenResponse.userId})
+      trackEvent(AnalyticEvents.USER_LOGGED_IN, { userId: tokenResponse.userId })
 
       if (tokenResponse?.token) {
         console.log('inside if block ', tokenResponse)
@@ -104,7 +111,7 @@ const Login = () => {
         authUtils.setUserProfile(userProfile);
         toast.success(isSignUp ? 'Signup successful!' : 'Login successful!');
         const redirectPath = await getPostLoginRedirectPath(userProfile);
-        console.log("redirectPath " , redirectPath);
+        console.log("redirectPath ", redirectPath);
 
         if (redirectPath.includes('complete')) {
           toast('Please complete your profile', { icon: 'ℹ️' });
@@ -128,13 +135,13 @@ const Login = () => {
   const handleGoogleLogin = () => {
     authUtils.setOAuthRole(oauthRole);
     window.location.href = `${import.meta.env.VITE_API_BASE_URL}/oauth2/authorization/google?role=${userType}`;
-    trackEvent(AnalyticEvents.CTA_CLICKED,{label:"handleGoogleLogin"})
+    trackEvent(AnalyticEvents.CTA_CLICKED, { label: "handleGoogleLogin" })
   };
 
   const handleGithubLogin = () => {
     authUtils.setOAuthRole(oauthRole);
     window.location.href = `${import.meta.env.VITE_API_BASE_URL}/oauth2/authorization/github?role=${userType}`;
-    trackEvent(AnalyticEvents.CTA_CLICKED,{label:"handleGithubLogin"})
+    trackEvent(AnalyticEvents.CTA_CLICKED, { label: "handleGithubLogin" })
 
   };
 

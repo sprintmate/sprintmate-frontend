@@ -11,6 +11,8 @@ const LoginForm = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const navigate = useNavigate();
+  const ENABLE_OTP_VERIFY = import.meta.env.VITE_ENABLE_OTP_VERIFICATION === 'true' ;
+
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -41,13 +43,16 @@ const LoginForm = () => {
         authUtils.setAuthToken(tokenResponse.token);
       }
 
-      if (!response.isVerified) {
-        navigate('/verify', {
-          state: {
-            email: payload.email
-          }
-        });
+      if (ENABLE_OTP_VERIFY) {
+        if (!response.isVerified) {
+          navigate('/verify', {
+            state: {
+              email: payload.email
+            }
+          });
+        }
       }
+
 
       if (response && response.token) {
         const token = response.token;
