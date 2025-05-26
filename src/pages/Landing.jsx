@@ -70,6 +70,7 @@ import SocialLinks from "../components/SocialLink";
 import FeedbackForm from "../components/common/FeedbackForm";
 import { trackEvent } from "../utils/analytics";
 import { getUTMParams } from "../utils/utm";
+import { Dialog } from "@headlessui/react"; // Add this for accessible modal
 
 function Landing() {
   // Refs for scroll animations
@@ -129,6 +130,295 @@ function Landing() {
       default: return image1;
     }
   };
+
+  // Popup state
+  const [popupOpen, setPopupOpen] = useState(false);
+  const [popupSection, setPopupSection] = useState(null);
+
+  // Section content
+  const sectionContent = {
+    About: {
+      title: "About",
+      desc: (
+        <>
+          <span className="font-semibold text-blue-600">SprintFlow</span> is a modern freelance platform connecting innovative companies with top-tier developers worldwide. Our mission is to streamline collaboration, ensuring every project is a success story.
+        </>
+      ),
+    },
+    Services: {
+      title: "Services",
+      desc: (
+        <>
+          <ul className="list-disc pl-5 space-y-1">
+            <li>Post and manage development tasks with ease</li>
+            <li>Smart AI-powered developer matching</li>
+            <li>Secure in-platform chat and file sharing</li>
+            <li>Milestone-based escrow payments</li>
+            <li>Real-time project tracking and feedback</li>
+            <li>Comprehensive support for both companies and developers</li>
+          </ul>
+        </>
+      ),
+    },
+    Blog: {
+      title: "Blog",
+      desc: (
+        <>
+          Explore insights, tips, and success stories from the world of remote work, freelance development, and digital transformation. Stay updated with the latest trends and platform updates.
+        </>
+      ),
+    },
+    Careers: {
+      title: "Careers",
+      desc: (
+        <>
+          Join our passionate team and help shape the future of freelance collaboration. We’re always looking for creative minds who thrive in a fast-paced, innovative environment.
+        </>
+      ),
+    },
+    Privacy: {
+      title: "Privacy Policy",
+      desc: (
+        <div className="relative px-3 py-5 rounded-2xl bg-gradient-to-br from-blue-50 via-white to-purple-50 shadow-lg border border-blue-100 max-w-3xl mx-auto text-[0.89rem] leading-tight">
+          <div className="flex items-center gap-2 mb-3 justify-center">
+            <Shield className="text-blue-500" size={20} />
+            <span className="uppercase tracking-widest text-[10px] font-semibold text-blue-600">Privacy Policy</span>
+          </div>
+          <div className="text-[10px] text-gray-400 mb-4 text-center">Last Updated: May 25, 2025</div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="space-y-4">
+              <div className="flex items-start gap-3">
+                <span className="flex-shrink-0 w-7 h-7 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-bold shadow-sm">1</span>
+                <div>
+                  <span className="font-semibold text-blue-700">What We Collect:</span>
+                  <ul className="ml-3 mt-1 list-disc text-gray-700 text-sm space-y-1">
+                    <li>Name, email, and profile info</li>
+                    <li>Payment and billing details</li>
+                    <li>Messages via platform chat</li>
+                    <li>Device/browser info for security</li>
+                  </ul>
+                </div>
+              </div>
+              <div className="flex items-start gap-3">
+                <span className="flex-shrink-0 w-7 h-7 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-bold shadow-sm">2</span>
+                <div>
+                  <span className="font-semibold text-blue-700">How We Use It:</span>
+                  <ul className="ml-3 mt-1 list-disc text-gray-700 text-sm space-y-1">
+                    <li>Match developers with tasks</li>
+                    <li>Process payments securely</li>
+                    <li>Improve platform safety & performance</li>
+                    <li>Send updates and support info</li>
+                  </ul>
+                </div>
+              </div>
+              <div className="flex items-start gap-3">
+                <span className="flex-shrink-0 w-7 h-7 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-bold shadow-sm">3</span>
+                <div>
+                  <span className="font-semibold text-blue-700">Data Sharing:</span>
+                  <span className="ml-1 text-gray-700">No selling. Shared only with trusted partners for platform operation (e.g., payments, analytics).</span>
+                </div>
+              </div>
+              <div className="flex items-start gap-3">
+                <span className="flex-shrink-0 w-7 h-7 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-bold shadow-sm">4</span>
+                <div>
+                  <span className="font-semibold text-blue-700">Cookies:</span>
+                  <span className="ml-1 text-gray-700">Used for sessions and improving experience. You can disable cookies in your browser.</span>
+                </div>
+              </div>
+            </div>
+            <div className="space-y-4">
+              <div className="flex items-start gap-3">
+                <span className="flex-shrink-0 w-7 h-7 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-bold shadow-sm">5</span>
+                <div>
+                  <span className="font-semibold text-blue-700">Security:</span>
+                  <span className="ml-1 text-gray-700">We use HTTPS, encryption, and access controls to protect your data.</span>
+                </div>
+              </div>
+              <div className="flex items-start gap-3">
+                <span className="flex-shrink-0 w-7 h-7 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-bold shadow-sm">6</span>
+                <div>
+                  <span className="font-semibold text-blue-700">Your Rights:</span>
+                  <span className="ml-1 text-gray-700">Access, update, or delete your data anytime in account settings. For removal, contact us.</span>
+                </div>
+              </div>
+              <div className="flex items-start gap-3">
+                <span className="flex-shrink-0 w-7 h-7 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-bold shadow-sm">7</span>
+                <div>
+                  <span className="font-semibold text-blue-700">Retention:</span>
+                  <span className="ml-1 text-gray-700">We keep data while your account is active or as required by law.</span>
+                </div>
+              </div>
+              <div className="flex items-start gap-3">
+                <span className="flex-shrink-0 w-7 h-7 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-bold shadow-sm">8</span>
+                <div>
+                  <span className="font-semibold text-blue-700">Children:</span>
+                  <span className="ml-1 text-gray-700">Platform is for users 18+. We do not knowingly collect data from minors.</span>
+                </div>
+              </div>
+              <div className="flex items-start gap-3">
+                <span className="flex-shrink-0 w-7 h-7 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-bold shadow-sm">9</span>
+                <div>
+                  <span className="font-semibold text-blue-700">Policy Updates:</span>
+                  <span className="ml-1 text-gray-700">We may update this policy. Major changes will be notified via email or alerts.</span>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div className="mt-6 flex items-center gap-2 text-xs text-gray-500 justify-center">
+            <MessageSquare className="w-4 h-4 text-blue-500" />
+            <span>Questions? <span className="underline text-blue-600">support@yourdomain.com</span></span>
+          </div>
+        </div>
+      ),
+    },
+    Terms: {
+      title: "Terms & Conditions",
+      desc: (
+        <div className="relative px-3 py-5 rounded-2xl bg-gradient-to-br from-blue-50 via-white to-purple-50 shadow-lg border border-blue-100 max-w-3xl mx-auto text-[0.89rem] leading-tight">
+          <div className="flex items-center gap-2 mb-3 justify-center">
+            <Sparkles className="text-blue-500" size={20} />
+            <span className="uppercase tracking-widest text-[10px] font-semibold text-blue-600">Terms & Conditions</span>
+          </div>
+          <div className="text-[10px] text-gray-400 mb-4 text-center">Last Updated: May 25, 2025</div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="space-y-4">
+              <div className="flex items-start gap-3">
+                <span className="flex-shrink-0 w-7 h-7 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-bold shadow-sm">1</span>
+                <div>
+                  <span className="font-semibold text-blue-700">Eligibility:</span>
+                  <span className="ml-1 text-gray-700">You must be 18+ to use SprintFlow.</span>
+                </div>
+              </div>
+              <div className="flex items-start gap-3">
+                <span className="flex-shrink-0 w-7 h-7 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-bold shadow-sm">2</span>
+                <div>
+                  <span className="font-semibold text-blue-700">Account:</span>
+                  <span className="ml-1 text-gray-700">Keep your login details secure. You’re responsible for your account activity.</span>
+                </div>
+              </div>
+              <div className="flex items-start gap-3">
+                <span className="flex-shrink-0 w-7 h-7 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-bold shadow-sm">3</span>
+                <div>
+                  <span className="font-semibold text-blue-700">How It Works:</span>
+                  <ul className="ml-3 mt-1 list-disc text-gray-700 text-sm space-y-1">
+                    <li>Companies post tasks.</li>
+                    <li>Developers apply and collaborate via chat.</li>
+                    <li>All project communication stays on the platform.</li>
+                  </ul>
+                </div>
+              </div>
+              <div className="flex items-start gap-3">
+                <span className="flex-shrink-0 w-7 h-7 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-bold shadow-sm">4</span>
+                <div>
+                  <span className="font-semibold text-blue-700">Payments:</span>
+                  <span className="ml-1 text-gray-700">Secure, milestone-based payments via trusted gateways. Raise disputes within 14 days if needed.</span>
+                </div>
+              </div>
+            </div>
+            <div className="space-y-4">
+              <div className="flex items-start gap-3">
+                <span className="flex-shrink-0 w-7 h-7 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-bold shadow-sm">5</span>
+                <div>
+                  <span className="font-semibold text-blue-700">Respect:</span>
+                  <span className="ml-1 text-gray-700">No fraud, abuse, or bots. Treat all users professionally.</span>
+                </div>
+              </div>
+              <div className="flex items-start gap-3">
+                <span className="flex-shrink-0 w-7 h-7 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-bold shadow-sm">6</span>
+                <div>
+                  <span className="font-semibold text-blue-700">Ownership:</span>
+                  <span className="ml-1 text-gray-700">You own your work. Platform content and code belong to SprintFlow.</span>
+                </div>
+              </div>
+              <div className="flex items-start gap-3">
+                <span className="flex-shrink-0 w-7 h-7 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-bold shadow-sm">7</span>
+                <div>
+                  <span className="font-semibold text-blue-700">Safety:</span>
+                  <span className="ml-1 text-gray-700">We use NDAs, encryption, and secure payments to protect you.</span>
+                </div>
+              </div>
+              <div className="flex items-start gap-3">
+                <span className="flex-shrink-0 w-7 h-7 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-bold shadow-sm">8</span>
+                <div>
+                  <span className="font-semibold text-blue-700">Termination:</span>
+                  <span className="ml-1 text-gray-700">Accounts violating these terms may be suspended.</span>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div className="mt-6 flex items-center gap-2 text-xs text-gray-500 justify-center">
+            <MessageSquare className="w-4 h-4 text-blue-500" />
+            <span>Questions? <span className="underline text-blue-600">support@yourdomain.com</span></span>
+          </div>
+        </div>
+      ),
+    },
+    Security: {
+      title: "Security",
+      desc: (
+        <>
+          We employ industry-leading security measures, including NDA protection, encrypted communication, and secure payment gateways, ensuring your projects and data are always safe.
+        </>
+      ),
+    },
+    Support: {
+      title: "Support",
+      desc: (
+        <>
+          Need help? Our dedicated support team is here for you 24/7. Reach out via chat, email, or our help center for prompt assistance at every step of your journey.
+          <div className="mt-3 text-sm text-blue-700 flex items-center gap-2">
+            <MessageSquare className="w-4 h-4" />
+            <span>Contact: <a href="tel:8076626273" className="underline">8076626273</a></span>
+          </div>
+        </>
+      ),
+    },
+  };
+
+  // Animated Popup Modal
+  const renderPopup = () => (
+    <Dialog open={popupOpen} onClose={() => setPopupOpen(false)} className="fixed z-[100] inset-0 flex items-center justify-center">
+      <div className="fixed inset-0 bg-black/30 backdrop-blur-sm" aria-hidden="true" />
+      <motion.div
+        initial={{ scale: 0.8, opacity: 0, y: 40 }}
+        animate={{ scale: 1, opacity: 1, y: 0 }}
+        exit={{ scale: 0.8, opacity: 0, y: 40 }}
+        transition={{ type: "spring", stiffness: 300, damping: 25 }}
+        className={
+          "relative bg-white rounded-2xl shadow-2xl w-full mx-4 p-6 " +
+          (popupSection === "Terms" || popupSection === "Privacy"
+            ? "max-w-3xl"
+            : "max-w-lg")
+        }
+        style={{
+          maxHeight: "80vh",
+          overflowY: "auto",
+        }}
+      >
+        <button
+          className="absolute top-3 right-3 text-gray-400 hover:text-blue-600 transition-colors"
+          onClick={() => setPopupOpen(false)}
+          aria-label="Close"
+        >
+          <svg width="24" height="24" fill="none"><path d="M6 6l12 12M6 18L18 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/></svg>
+        </button>
+        <div className="flex items-center gap-3 mb-4">
+          <span className="inline-flex items-center justify-center w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-purple-500 text-white shadow-lg">
+            <Sparkles size={22} />
+          </span>
+          <h2 className="text-2xl font-bold text-gray-900">{sectionContent[popupSection]?.title}</h2>
+        </div>
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.1 }}
+          className="text-gray-700 text-base leading-relaxed"
+        >
+          {sectionContent[popupSection]?.desc}
+        </motion.div>
+      </motion.div>
+    </Dialog>
+  );
 
   return (
     <div className="min-h-screen overflow-x-hidden bg-white">
@@ -868,7 +1158,7 @@ function Landing() {
                     onClick={() => navigate('/company/login')}
                   >
                     <span className="relative z-10 flex items-center justify-center">
-                      <span className="mr-2">{appConfig?.COMPANY_CTA ? appConfig?.COMPANY_CTA : 'Hire Developers'}</span>
+                      <span className="mr-2">{appConfig?.COMPANY_CTA ? appConfig?.COMPANY_CTA : 'Post a Task'}</span>
                       <ArrowRight className="ml-2 group-hover:translate-x-1 transition-transform" size={18} />
                     </span>
                     <motion.div
@@ -886,7 +1176,7 @@ function Landing() {
                     >
                       <span className="relative z-10 flex items-center justify-center">
 
-                        <span className="mr-2">{appConfig?.DEVELOPER_CTA ? appConfig?.DEVELOPER_CTA : 'Join as Developer'}</span>
+                        <span className="mr-2">{appConfig?.DEVELOPER_CTA ? appConfig?.DEVELOPER_CTA : 'Browse Tasks'}</span>
                       </span>
                       <motion.div
                         className="absolute inset-0 bg-gray-50"
@@ -953,17 +1243,18 @@ function Landing() {
                 <h4 className="font-semibold mb-4">Company</h4>
                 <nav className="flex flex-col space-y-3">
                   {['About', 'Services', 'Blog', 'Careers'].map((item, i) => (
-                    <motion.a
+                    <motion.button
                       key={i}
-                      href="#"
-                      className="text-sm text-gray-600 hover:text-blue-600 transition-colors inline-flex items-center group w-fit"
+                      type="button"
+                      className="text-sm text-gray-600 hover:text-blue-600 transition-colors inline-flex items-center group w-fit bg-transparent border-0 p-0"
                       whileHover={{ x: 4 }}
+                      onClick={() => { setPopupSection(item); setPopupOpen(true); }}
                     >
                       <span className="relative">
                         {item}
                         <span className="absolute bottom-0 left-0 w-0 h-px bg-blue-600 group-hover:w-full transition-all"></span>
                       </span>
-                    </motion.a>
+                    </motion.button>
                   ))}
                 </nav>
               </div>
@@ -973,17 +1264,18 @@ function Landing() {
                 <h4 className="font-semibold mb-4">Legal</h4>
                 <nav className="flex flex-col space-y-3">
                   {['Privacy', 'Terms', 'Security', 'Support'].map((item, i) => (
-                    <motion.a
+                    <motion.button
                       key={i}
-                      href="#"
-                      className="text-sm text-gray-600 hover:text-blue-600 transition-colors inline-flex items-center group w-fit"
+                      type="button"
+                      className="text-sm text-gray-600 hover:text-blue-600 transition-colors inline-flex items-center group w-fit bg-transparent border-0 p-0"
                       whileHover={{ x: 4 }}
+                      onClick={() => { setPopupSection(item); setPopupOpen(true); }}
                     >
                       <span className="relative">
                         {item}
                         <span className="absolute bottom-0 left-0 w-0 h-px bg-blue-600 group-hover:w-full transition-all"></span>
                       </span>
-                    </motion.a>
+                    </motion.button>
                   ))}
                 </nav>
               </div>
@@ -1041,6 +1333,10 @@ function Landing() {
             </div>
           </div>
         </div>
+        {/* Popup Modal */}
+        <AnimatePresence>
+          {popupOpen && popupSection && renderPopup()}
+        </AnimatePresence>
       </footer>
 
       {/* Back to top button */}
@@ -1061,6 +1357,18 @@ function Landing() {
     </div>
   );
 }
+
+
+      <motion.div>
+        <button
+          onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+          className="p-3 bg-white shadow-xl rounded-full hover:bg-blue-50 transition-colors text-blue-600 hover:text-blue-700"
+          aria-label="Back to top"
+        >
+          <ArrowUp size={20} />
+        </button>
+      </motion.div>
+    
 
 export default Landing;
 
