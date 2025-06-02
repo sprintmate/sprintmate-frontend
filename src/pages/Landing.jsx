@@ -43,6 +43,8 @@ import {
   Wallet,
   MessageSquare,
   Check,
+  MapPin,
+  Phone,
   ArrowUp
 } from "lucide-react";
 import { motion, useScroll, useTransform, AnimatePresence } from "framer-motion";
@@ -137,6 +139,38 @@ function Landing() {
 
   // Section content
   const sectionContent = {
+    contact: {
+      title: "Contact Us",
+      desc: (
+        <div className="space-y-3 text-sm">
+          {/* Email */}
+          <p className="flex items-center gap-2">
+            <MessageSquare className="w-4 h-4 text-blue-600" />
+            {(appConfig?.EMAIL?.split(',') || []).map((email, index) => (
+              <span key={index} className="text-gray-700">{email.trim()}</span>
+            ))}
+          </p>
+
+          {/* Phone Number */}
+          <p className="flex items-center gap-2">
+            <Phone className="w-4 h-4 text-blue-600" />
+            <span className="text-gray-700">{appConfig?.PHONE_NUMBER || "+91 98765 43210"}</span>
+          </p>
+
+          {/* Address */}
+          <p className="flex items-center gap-2">
+            <MapPin className="w-4 h-4 text-blue-600" />
+            <span className="text-gray-700">{appConfig?.ADDRESS || "Bangalore, India"}</span>
+          </p>
+
+          {/* Working Hours */}
+          <p className="flex items-center gap-2">
+            <Clock className="w-4 h-4 text-blue-600" />
+            <span className="text-gray-700">Mon - Fri: 10:00 AM to 6:00 PM IST</span>
+          </p>
+        </div>
+      ),
+    },
     About: {
       title: "About",
       desc: (
@@ -265,8 +299,8 @@ function Landing() {
             </div>
           </div>
           <div className="mt-6 flex items-center gap-2 text-xs text-gray-500 justify-center">
-            <MessageSquare className="w-4 h-4 text-blue-500" />
-            <span>Questions? <span className="underline text-blue-600">support@yourdomain.com</span></span>
+            {/* <MessageSquare className="w-4 h-4 text-blue-500" /> */}
+            {/* <span>Questions? <span className="underline text-blue-600">support@yourdomain.com</span></span> */}
           </div>
         </div>
       ),
@@ -347,8 +381,8 @@ function Landing() {
             </div>
           </div>
           <div className="mt-6 flex items-center gap-2 text-xs text-gray-500 justify-center">
-            <MessageSquare className="w-4 h-4 text-blue-500" />
-            <span>Questions? <span className="underline text-blue-600">support@yourdomain.com</span></span>
+            {/* <MessageSquare className="w-4 h-4 text-blue-500" /> */}
+            {/* <span>Questions? <span className="underline text-blue-600">support@yourdomain.com</span></span> */}
           </div>
         </div>
       ),
@@ -367,8 +401,26 @@ function Landing() {
         <>
           Need help? Our dedicated support team is here for you 24/7. Reach out via chat, email, or our help center for prompt assistance at every step of your journey.
           <div className="mt-3 text-sm text-blue-700 flex items-center gap-2">
-            <MessageSquare className="w-4 h-4" />
-            <span>Contact: <a href="tel:8076626273" className="underline">8076626273</a></span>
+            {/* <MessageSquare className="w-4 h-4" /> */}
+            {/* <span>Contact: <a href="tel:8076626273" className="underline">8076626273</a></span> */}
+            {/* Phone Number */}
+            {/* Email */}
+            <p className="flex items-center gap-2">
+              <MessageSquare className="w-4 h-4 text-blue-600" />
+              {(appConfig?.EMAIL?.split(',') || []).map((email, index) =>
+                index === 0 ? (
+                  <span key={index} className="text-gray-700">
+                    {email.trim()}
+                  </span>
+                ) : null
+              )}
+            </p>
+
+
+            <p className="flex items-center gap-2">
+              <Phone className="w-4 h-4 text-blue-600" />
+              <span className="text-gray-700">{appConfig?.PHONE_NUMBER || "+91 98765 43210"}</span>
+            </p>
           </div>
         </>
       ),
@@ -400,7 +452,7 @@ function Landing() {
           onClick={() => setPopupOpen(false)}
           aria-label="Close"
         >
-          <svg width="24" height="24" fill="none"><path d="M6 6l12 12M6 18L18 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/></svg>
+          <svg width="24" height="24" fill="none"><path d="M6 6l12 12M6 18L18 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" /></svg>
         </button>
         <div className="flex items-center gap-3 mb-4">
           <span className="inline-flex items-center justify-center w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-purple-500 text-white shadow-lg">
@@ -1242,7 +1294,7 @@ function Landing() {
               <div className="col-span-1 md:col-span-2">
                 <h4 className="font-semibold mb-4">Company</h4>
                 <nav className="flex flex-col space-y-3">
-                  {['About', 'Services', 'Blog', 'Careers'].map((item, i) => (
+                  {['About', 'Services', 'contact'].map((item, i) => (
                     <motion.button
                       key={i}
                       type="button"
@@ -1251,7 +1303,7 @@ function Landing() {
                       onClick={() => { setPopupSection(item); setPopupOpen(true); }}
                     >
                       <span className="relative">
-                        {item}
+                        {sectionContent[item]?.title}
                         <span className="absolute bottom-0 left-0 w-0 h-px bg-blue-600 group-hover:w-full transition-all"></span>
                       </span>
                     </motion.button>
@@ -1359,16 +1411,16 @@ function Landing() {
 }
 
 
-      <motion.div>
-        <button
-          onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-          className="p-3 bg-white shadow-xl rounded-full hover:bg-blue-50 transition-colors text-blue-600 hover:text-blue-700"
-          aria-label="Back to top"
-        >
-          <ArrowUp size={20} />
-        </button>
-      </motion.div>
-    
+<motion.div>
+  <button
+    onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+    className="p-3 bg-white shadow-xl rounded-full hover:bg-blue-50 transition-colors text-blue-600 hover:text-blue-700"
+    aria-label="Back to top"
+  >
+    <ArrowUp size={20} />
+  </button>
+</motion.div>
+
 
 export default Landing;
 
