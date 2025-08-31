@@ -38,9 +38,9 @@ const LoginForm = () => {
       console.log('response generateToken', response)
 
 
-      if (tokenResponse?.token) {
-        console.log('inside if block ', tokenResponse)
-        authUtils.setAuthToken(tokenResponse.token);
+      if (response?.token) {
+        console.log('inside if block ', response)
+        authUtils.setAuthToken(response.token);
       }
 
       if (ENABLE_OTP_VERIFY) {

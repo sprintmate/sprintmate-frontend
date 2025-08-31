@@ -34,6 +34,16 @@ export const getPostLoginRedirectPath = async () => {
   }
 };
 
+
+export const getLoginPage = async (role) => {
+  try {
+    return role === "DEVELOPER" ? "/developer/login" : "/company/login";
+  } catch (error) {
+    console.error("Failed to get user profile for redirection:", error);
+    return '/';
+  }
+};
+
 export const isProfileComplete = (userData) => {
   if (!userData) return false;
 

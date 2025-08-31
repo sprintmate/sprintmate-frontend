@@ -6,6 +6,7 @@ const USER_PROFILE_KEY = 'userProfile';
 const USER_TYPE_KEY = 'userType';
 const OAUTH_ROLE_KEY = 'oauthRole';
 const CONFIG_KEY = 'appConfig';
+const RESET_TOKEN_KEY = 'reset_token';
 
 const ENCRYPTION_SECRET = import.meta.env.VITE_ENCRYPTION_SECRET;
 
@@ -75,12 +76,18 @@ export const authUtils = {
   getOAuthRole: () => getItem(OAUTH_ROLE_KEY),
   removeOAuthRole: () => removeItem(OAUTH_ROLE_KEY),
 
+  // Reset token
+  setResetToken: (token) => setItem(RESET_TOKEN_KEY, token),
+  getResetToken: () => getItem(RESET_TOKEN_KEY),
+  removeResetToken: () => removeItem(RESET_TOKEN_KEY),
+
   // Clear specific auth data
   clearAllAuthData: () => {
     authUtils.removeAuthToken();
     authUtils.removeUserProfile();
     authUtils.removeUserType();
     authUtils.removeOAuthRole();
+    authUtils.removeResetToken();
   },
 
   // Clear everything
@@ -99,7 +106,9 @@ export const authUtils = {
   logout: () => {
     authUtils.removeAuthToken();
     authUtils.removeUserProfile();
+    authUtils.removeUserType();
     authUtils.removeOAuthRole();
+    authUtils.removeResetToken();
     resetTracking();
   }
 };

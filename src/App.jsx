@@ -5,6 +5,10 @@ import './index.css';
 import OAuthCallback from './pages/OAuthCallback';
 import { Toaster } from 'react-hot-toast';
 import Login from './pages/Login';
+import ForgotPassword from './pages/ForgotPassword';
+import ResetPassword from './pages/ResetPassword';
+import LinkExpiredPage from './pages/LinkExpiredPage';
+import ResetPasswordTokenHandler from './components/auth/ResetPasswordTokenHandler';
 import ProtectedRoute from './components/ProtectedRoute';
 import ProfileCompletionChecker from './components/ProfileCompletionChecker';
 import ErrorBoundary from './components/common/ErrorBoundary';
@@ -40,6 +44,14 @@ const App = () => {
               
               {/* Add login route that redirects to developer login by default */}
               <Route path="/login" element={<Navigate to="/developer/login" replace />} />
+              
+              {/* Password reset routes */}
+              <Route path="/forgot-password" element={<ForgotPassword />} />
+              <Route path="/company/forgot-password" element={<ForgotPassword />} />
+              <Route path="/developer/forgot-password" element={<ForgotPassword />} />
+              <Route path="/reset-password" element={<ResetPassword />} />
+              <Route path="/reset-password-token" element={<ResetPasswordTokenHandler />} />
+              <Route path="/link-expired" element={<LinkExpiredPage />} />
               
               {/* Profile registration routes - These should NOT be protected */}
               <Route path="/complete-company-profile/:userId" element={<CompanyProfileRegistration />} />

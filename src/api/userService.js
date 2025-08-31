@@ -13,6 +13,7 @@ export const createUser = async (userData) => {
     }
   };
 
+
   export const updateUser = async (userId,userData) => {
     try {
       const response = await httpInstance.put(`/v1/users/${userId}`, userData);
@@ -27,7 +28,7 @@ export const createUser = async (userData) => {
 
 export const generateToken = async (loginData) => {
     try {
-      const response = await httpInstance.post('/v1/tokens', loginData);
+      const response = await httpInstance.post('/v1/tokens', loginData,{skipAuth : true});
       return response.data;
     } catch (error) {
       console.error('Error generating token:', error);
@@ -41,6 +42,36 @@ export const generateToken = async (loginData) => {
       return response.data;
     } catch (error) {
       console.error('Error fetchUserProfile :', error);
+      throw error;
+    }
+  };
+
+  export const verifyResetPasswordToken = async (token) => {
+    try {
+      console.log('verify token');
+      const response = await httpInstance.get('/v1/tokens/validate-reset-token');
+      return response.data;
+    } catch (error) {
+      console.error('Error verifyResetPasswordToken :', error);
+      throw error;
+    }
+  };
+
+  export const resetPassword = async (password) => {
+    try {
+      const response = await httpInstance.post('/v1/users/reset-password', {newPassword:password});
+      return response.data;
+    } catch (error) {
+      console.error('Error resetPassword :', error);
+      throw error;
+    }
+  };
+
+  export const forgotPassword = async (email) => {
+    try {
+      const response = await httpInstance.post('/v1/users/forgot-password', {email:email} , {skipAuth : true});
+      return response.data;
+    } catch (error) {
       throw error;
     }
   };

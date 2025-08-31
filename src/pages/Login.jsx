@@ -40,6 +40,9 @@ const Login = () => {
   const location = useLocation();
   const userType = location.pathname.includes('company') ? 'company' : 'developer';
   const oauthRole = userType === 'company' ? 'CORPORATE' : 'DEVELOPER';
+  
+  // Check for password reset success message
+  const passwordResetMessage = location.state?.message;
 
   const ENABLE_OTP_VERIFY = import.meta.env.VITE_ENABLE_OTP_VERIFICATION === 'true' ;
 
@@ -294,6 +297,26 @@ const Login = () => {
                   )}
                 </AnimatePresence>
 
+                {/* Password reset success message */}
+                <AnimatePresence>
+                  {passwordResetMessage && (
+                    <motion.div
+                      className="mb-6 p-4 bg-green-50 border border-green-200 rounded-lg"
+                      initial={{ opacity: 0, y: -10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -10 }}
+                    >
+                      <div className="flex items-center text-green-700">
+                        <CheckCircle2 size={20} className="mr-3 flex-shrink-0" />
+                        <div>
+                          <p className="font-medium">Password Reset Successful!</p>
+                          <p className="text-sm mt-1">{passwordResetMessage}</p>
+                        </div>
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+
                 {/* Error message */}
                 <AnimatePresence>
                   {error && (
@@ -400,6 +423,15 @@ const Login = () => {
                         className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600"
                       >
                         {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                      </button>
+                    </div>
+                    <div className="flex justify-end mt-1">
+                      <button
+                        type="button"
+                        onClick={() => navigate(`/${userType}/forgot-password`)}
+                        className="text-xs text-blue-600 hover:text-blue-800 hover:underline transition-colors"
+                      >
+                        Forgot Password?
                       </button>
                     </div>
                   </motion.div>
