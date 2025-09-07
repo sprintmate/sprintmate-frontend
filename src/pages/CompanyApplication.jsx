@@ -103,11 +103,12 @@ const Applications = () => {
 
     const [totalPages, setTotalPages] = useState(0);
     const [totalItems, setTotalItems] = useState(0);
-    const [selectedStatuses, setSelectedStatuses] = useState([TaskApplicationStatus.APPLIED,TaskApplicationStatus.RECOMMENDED]);
-    const [sortBy, setSortBy] = useState('createdAt,desc');
+    const [selectedStatuses, setSelectedStatuses] = useState([TaskApplicationStatus.SUBMITTED,TaskApplicationStatus
+        .IN_PROGRESS , TaskApplicationStatus.APPLIED,TaskApplicationStatus.RECOMMENDED,TaskApplicationStatus.SHORTLISTED,TaskApplicationStatus.ACCEPTED]);
+    const [sortBy, setSortBy] = useState('updatedAt,desc');
     const [appliedFilters, setAppliedFilters] = useState({
         statuses: [],
-        sort: 'createdAt,desc'
+        sort: 'updatedAt,desc'
     });
     const [searchTerm, setSearchTerm] = useState('');
     const pageSize = 7;

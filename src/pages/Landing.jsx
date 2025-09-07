@@ -175,7 +175,7 @@ function Landing() {
       title: "About",
       desc: (
         <>
-          <span className="font-semibold text-blue-600">SprintFlow</span> is a modern freelance platform connecting innovative companies with top-tier developers worldwide. Our mission is to streamline collaboration, ensuring every project is a success story.
+          <span className="font-semibold text-blue-600">CodeForContract</span> is a modern freelance platform connecting innovative companies with top-tier developers worldwide. Our mission is to streamline collaboration, ensuring every project is a success story.
         </>
       ),
     },
@@ -320,7 +320,7 @@ function Landing() {
                 <span className="flex-shrink-0 w-7 h-7 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-bold shadow-sm">1</span>
                 <div>
                   <span className="font-semibold text-blue-700">Eligibility:</span>
-                  <span className="ml-1 text-gray-700">You must be 18+ to use SprintFlow.</span>
+                  <span className="ml-1 text-gray-700">You must be 18+ to use CodeForContract.</span>
                 </div>
               </div>
               <div className="flex items-start gap-3">
@@ -361,7 +361,7 @@ function Landing() {
                 <span className="flex-shrink-0 w-7 h-7 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-bold shadow-sm">6</span>
                 <div>
                   <span className="font-semibold text-blue-700">Ownership:</span>
-                  <span className="ml-1 text-gray-700">You own your work. Platform content and code belong to SprintFlow.</span>
+                  <span className="ml-1 text-gray-700">You own your work. Platform content and code belong to CodeForContract.</span>
                 </div>
               </div>
               <div className="flex items-start gap-3">
@@ -1280,7 +1280,7 @@ function Landing() {
               <div className="col-span-2 md:col-span-4 space-y-6">
                 <div className="flex items-center gap-2">
                   <Code2 className="w-8 h-8 text-blue-600" />
-                  <h3 className="text-xl font-semibold">SprintFlow</h3>
+                  <h3 className="text-xl font-semibold">CodeForContract</h3>
                 </div>
                 <p className="text-sm text-gray-600 leading-relaxed">
                   Transform your development workflow with our elite talent network. Experience seamless collaboration and exceptional results.
@@ -1376,7 +1376,7 @@ function Landing() {
             <div className="mt-12 pt-8 border-t border-gray-100">
               <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
                 <p className="text-sm text-gray-500">
-                  © {new Date().getFullYear()} SprintFlow. All rights reserved.
+                  © {new Date().getFullYear()} CodeForContract. All rights reserved.
                 </p>
                 <div className="text-sm text-gray-500">
                   Made with <span className="text-red-500">♥</span> for developers

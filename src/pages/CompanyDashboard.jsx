@@ -996,7 +996,7 @@ const CompanyDashboard = () => {
                   transition={{ duration: 0.2 }}
                   className="text-xl font-semibold text-gray-900 whitespace-nowrap overflow-hidden"
                 >
-                  SprintFlow
+                  CodeForContract
                 </motion.span>
               )}
             </AnimatePresence>

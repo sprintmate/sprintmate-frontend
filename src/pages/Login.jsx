@@ -199,7 +199,7 @@ const Login = () => {
           <div className="flex justify-between items-center">
             <div className="flex items-center space-x-2 text-xl font-bold text-gray-900">
               <Code size={24} className="text-blue-600" />
-              <span>SprintFlow</span>
+              <span>CodeForContract</span>
             </div>
             <button
               onClick={() => navigate('/')}
@@ -569,7 +569,7 @@ const Login = () => {
 
       {/* Footer */}
       <footer className="py-4 px-6 text-center text-sm text-gray-500">
-        © {new Date().getFullYear()} SprintFlow. All rights reserved.
+        © {new Date().getFullYear()} CodeForContract. All rights reserved.
       </footer>
     </div>
   );
