@@ -1294,20 +1294,33 @@ function Landing() {
               <div className="col-span-1 md:col-span-2">
                 <h4 className="font-semibold mb-4">Company</h4>
                 <nav className="flex flex-col space-y-3">
-                  {['About', 'Services', 'contact'].map((item, i) => (
-                    <motion.button
-                      key={i}
-                      type="button"
-                      className="text-sm text-gray-600 hover:text-blue-600 transition-colors inline-flex items-center group w-fit bg-transparent border-0 p-0"
-                      whileHover={{ x: 4 }}
-                      onClick={() => { setPopupSection(item); setPopupOpen(true); }}
-                    >
-                      <span className="relative">
-                        {sectionContent[item]?.title}
-                        <span className="absolute bottom-0 left-0 w-0 h-px bg-blue-600 group-hover:w-full transition-all"></span>
-                      </span>
-                    </motion.button>
-                  ))}
+                  <Link
+                    to="/about"
+                    className="text-sm text-gray-600 hover:text-blue-600 transition-colors inline-flex items-center group w-fit"
+                  >
+                    <span className="relative">
+                      About Us
+                      <span className="absolute bottom-0 left-0 w-0 h-px bg-blue-600 group-hover:w-full transition-all"></span>
+                    </span>
+                  </Link>
+                  <Link
+                    to="/services"
+                    className="text-sm text-gray-600 hover:text-blue-600 transition-colors inline-flex items-center group w-fit"
+                  >
+                    <span className="relative">
+                      Services
+                      <span className="absolute bottom-0 left-0 w-0 h-px bg-blue-600 group-hover:w-full transition-all"></span>
+                    </span>
+                  </Link>
+                  <Link
+                    to="/contact"
+                    className="text-sm text-gray-600 hover:text-blue-600 transition-colors inline-flex items-center group w-fit"
+                  >
+                    <span className="relative">
+                      Contact Us
+                      <span className="absolute bottom-0 left-0 w-0 h-px bg-blue-600 group-hover:w-full transition-all"></span>
+                    </span>
+                  </Link>
                 </nav>
               </div>
 
@@ -1315,20 +1328,33 @@ function Landing() {
               <div className="col-span-1 md:col-span-2">
                 <h4 className="font-semibold mb-4">Legal</h4>
                 <nav className="flex flex-col space-y-3">
-                  {['Privacy', 'Terms', 'Security', 'Support'].map((item, i) => (
-                    <motion.button
-                      key={i}
-                      type="button"
-                      className="text-sm text-gray-600 hover:text-blue-600 transition-colors inline-flex items-center group w-fit bg-transparent border-0 p-0"
-                      whileHover={{ x: 4 }}
-                      onClick={() => { setPopupSection(item); setPopupOpen(true); }}
-                    >
-                      <span className="relative">
-                        {item}
-                        <span className="absolute bottom-0 left-0 w-0 h-px bg-blue-600 group-hover:w-full transition-all"></span>
-                      </span>
-                    </motion.button>
-                  ))}
+                  <Link
+                    to="/privacy"
+                    className="text-sm text-gray-600 hover:text-blue-600 transition-colors inline-flex items-center group w-fit"
+                  >
+                    <span className="relative">
+                      Privacy Policy
+                      <span className="absolute bottom-0 left-0 w-0 h-px bg-blue-600 group-hover:w-full transition-all"></span>
+                    </span>
+                  </Link>
+                  <Link
+                    to="/terms"
+                    className="text-sm text-gray-600 hover:text-blue-600 transition-colors inline-flex items-center group w-fit"
+                  >
+                    <span className="relative">
+                      Terms & Conditions
+                      <span className="absolute bottom-0 left-0 w-0 h-px bg-blue-600 group-hover:w-full transition-all"></span>
+                    </span>
+                  </Link>
+                  <Link
+                    to="/support"
+                    className="text-sm text-gray-600 hover:text-blue-600 transition-colors inline-flex items-center group w-fit"
+                  >
+                    <span className="relative">
+                      Support
+                      <span className="absolute bottom-0 left-0 w-0 h-px bg-blue-600 group-hover:w-full transition-all"></span>
+                    </span>
+                  </Link>
                 </nav>
               </div>
 
