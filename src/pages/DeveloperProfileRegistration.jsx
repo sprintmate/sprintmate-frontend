@@ -314,9 +314,9 @@ const DeveloperProfileRegistration = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50 py-12 px-4 sm:px-6 lg:px-8 flex items-center justify-center">
       {/* Decorative elements */}
-      <div className="absolute top-40 left-20 w-64 h-64 bg-indigo-400 rounded-full mix-blend-multiply filter blur-3xl opacity-10 animate-blob"></div>
+      {/* <div className="absolute top-40 left-20 w-64 h-64 bg-indigo-400 rounded-full mix-blend-multiply filter blur-3xl opacity-10 animate-blob"></div>
       <div className="absolute top-40 right-20 w-72 h-72 bg-blue-300 rounded-full mix-blend-multiply filter blur-3xl opacity-10 animate-blob animation-delay-2000"></div>
-      <div className="absolute -bottom-8 left-1/2 transform -translate-x-1/2 w-72 h-72 bg-teal-300 rounded-full mix-blend-multiply filter blur-3xl opacity-10 animate-blob animation-delay-4000"></div>
+      <div className="absolute -bottom-8 left-1/2 transform -translate-x-1/2 w-72 h-72 bg-teal-300 rounded-full mix-blend-multiply filter blur-3xl opacity-10 animate-blob animation-delay-4000"></div> */}
 
       <motion.div
         initial={{ opacity: 0, scale: 0.95 }}
@@ -461,7 +461,7 @@ const DeveloperProfileRegistration = () => {
                     {/* Popular skills suggestions */}
                     <div className="mt-2">
                       <p className="text-xs text-gray-500">Popular skills:</p>
-                      <div className="flex flex-wrap gap-1 mt-1">
+                      <div className="flex flex-wrap gap-1 mt-5">
                         {popularSkills.filter(skill => !skills.includes(skill)).slice(0, 10).map((skill, index) => (
                           <Badge
                             key={index}
@@ -480,13 +480,13 @@ const DeveloperProfileRegistration = () => {
                     </div>
                   </motion.div>
 
-                  <motion.div variants={itemVariants} className="space-y-4">
+                  <motion.div variants={itemVariants} className="space-y-8">
                     <div className="space-y-2">
                       <Label className="text-gray-700">
                         <Clock className="inline-block mr-2 h-4 w-4" />
                         Availability
                       </Label>
-                      <RadioGroup value={availability} onValueChange={setAvailability} className="grid grid-cols-2 gap-2">
+                      <RadioGroup value={availability} onValueChange={setAvailability} className="grid grid-cols-2 gap-2 mt-5">
                         {availabilityOptions.map((option) => (
                           <div key={option.value} className="flex items-center space-x-2">
                             <RadioGroupItem value={option.value} id={`availability-${option.value}`} />
@@ -503,7 +503,7 @@ const DeveloperProfileRegistration = () => {
                         <Monitor className="inline-block mr-2 h-4 w-4" />
                         Preferred Work Type
                       </Label>
-                      <RadioGroup value={workType} onValueChange={setWorkType} className="grid grid-cols-3 gap-2">
+                      <RadioGroup value={workType} onValueChange={setWorkType} className="grid grid-cols-3 gap-2 mt-5">
                         {workTypeOptions.map((option) => (
                           <div key={option.value} className="flex items-center space-x-2">
                             <RadioGroupItem value={option.value} id={`workType-${option.value}`} />

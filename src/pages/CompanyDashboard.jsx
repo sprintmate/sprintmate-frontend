@@ -1095,20 +1095,19 @@ const CompanyDashboard = () => {
             {/* User actions */}
             <div className="flex items-center gap-4">
               {/* Search */}
-              <button className="text-gray-500 hover:text-[#4169E1] p-2 rounded-full hover:bg-blue-50">
+              {/* <button className="text-gray-500 hover:text-[#4169E1] p-2 rounded-full hover:bg-blue-50">
                 <Search className="h-5 w-5" />
-              </button>
+              </button> */}
 
               {/* Notifications */}
-              <button className="text-gray-500 hover:text-[#4169E1] p-2 rounded-full hover:bg-blue-50 relative">
-                <Bell className="h-5 w-5" />
+              {/* <button className="text-gray-500 hover:text-[#4169E1] p-2 rounded-full hover:bg-blue-50 relative">
                 <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
-              </button>
+              </button> */}
 
               {/* User menu - mobile only */}
-              <button className="lg:hidden text-gray-500 hover:text-[#4169E1] p-2 rounded-full hover:bg-blue-50">
+              {/* <button className="lg:hidden text-gray-500 hover:text-[#4169E1] p-2 rounded-full hover:bg-blue-50">
                 <User className="h-5 w-5" />
-              </button>
+              </button> */}
             </div>
           </div>
         </header>
