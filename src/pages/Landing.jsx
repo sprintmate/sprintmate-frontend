@@ -902,7 +902,7 @@ function Landing() {
                               <motion.img
                                 src={image9}
                                 alt="Company searching for developers"
-                                className="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-700"
+                                className="w-full h-full object-fill transform group-hover:scale-110 transition-transform duration-700"
                                 initial={{ scale: 1 }}
                                 whileHover={{ scale: 1.02 }}
                               />
@@ -983,7 +983,7 @@ function Landing() {
                               <motion.img
                                 src={image6}
                                 alt="Developer applying for task"
-                                className="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-700"
+                                className="w-full h-full object-contain transform group-hover:scale-110 transition-transform duration-700"
                                 initial={{ scale: 1 }}
                                 whileHover={{ scale: 1.02 }}
                               />
