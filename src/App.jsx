@@ -13,6 +13,7 @@ import ProtectedRoute from './components/ProtectedRoute';
 import ProfileCompletionChecker from './components/ProfileCompletionChecker';
 import ErrorBoundary from './components/common/ErrorBoundary';
 import OtpVerifyPage from './pages/auth/OtpVerifyPage';
+import CookieConsent from './components/CookieConsent';
 
 const Landing = React.lazy(() => import('./pages/Landing'));
 const DeveloperDashboard = React.lazy(() => import('./pages/DeveloperDashboard'));
@@ -21,6 +22,14 @@ const CompanyDashboard = React.lazy(() => import('./pages/CompanyDashboard'));
 const DeveloperProfilePage = React.lazy(() => import('./components/developer/DeveloperProfilePage'));
 const CompanyProfileRegistration = React.lazy(() => import('./pages/CompanyProfileRegistration'));
 const DeveloperProfileRegistration = React.lazy(() => import('./pages/DeveloperProfileRegistration'));
+
+// Compliance pages
+const ContactUs = React.lazy(() => import('./pages/ContactUs'));
+const Services = React.lazy(() => import('./pages/Services'));
+const AboutUs = React.lazy(() => import('./pages/AboutUs'));
+const TermsAndConditions = React.lazy(() => import('./pages/TermsAndConditions'));
+const PrivacyPolicy = React.lazy(() => import('./pages/PrivacyPolicy'));
+const Support = React.lazy(() => import('./pages/Support'));
 
 const App = () => {
   return (
@@ -91,9 +100,18 @@ const App = () => {
                 }
               />
               <Route path="/verify" element={<OtpVerifyPage />} />
+              
+              {/* Compliance Pages */}
+              <Route path="/contact" element={<ContactUs />} />
+              <Route path="/services" element={<Services />} />
+              <Route path="/about" element={<AboutUs />} />
+              <Route path="/terms" element={<TermsAndConditions />} />
+              <Route path="/privacy" element={<PrivacyPolicy />} />
+              <Route path="/support" element={<Support />} />
             </Routes>
           </Suspense>
         </ErrorBoundary>
+        <CookieConsent />
       </div>
     </AuthProvider>
   );
