@@ -17,7 +17,11 @@ import {
   FileText,
   Briefcase,
   Image,
-  User
+  User,
+  Plus,
+  X,
+  ChevronRight,
+  ChevronLeft
 } from 'lucide-react';
 import { FaGithub, FaLinkedin } from 'react-icons/fa';
 import { Button } from '@/components/ui/button';
@@ -34,20 +38,20 @@ import { uploadFile as documentUploadFile } from '../api/documentService';
 
 // Available options for work types (enums from backend)
 const availabilityOptions = [
-  { value: "FULL_TIME", label: "Full Time" },
-  { value: "PART_TIME", label: "Part Time" },
-  { value: "WEEKENDS_ONLY", label: "Weekends Only" },
-  { value: "UNAVAILABLE", label: "Unavailable" }
+  { value: "FULL_TIME", label: "Full Time", icon: "" },
+  { value: "PART_TIME", label: "Part Time", icon: "" },
+  { value: "WEEKENDS_ONLY", label: "Weekends Only", icon: "" },
+  { value: "UNAVAILABLE", label: "Unavailable", icon: "" }
 ];
 
 const workTypeOptions = [
-  { value: "REMOTE", label: "Remote" },
-  { value: "ONSITE", label: "Onsite" },
-  { value: "HYBRID", label: "Hybrid" },
-  { value: "CONTRACT", label: "Contract" },
-  { value: "FREELANCE", label: "Freelance" },
-  { value: "FULL_TIME", label: "Full Time" },
-  { value: "OPEN_TO_ALL", label: "Open to All" }
+  { value: "REMOTE", label: "Remote", icon: "" },
+  { value: "ONSITE", label: "Onsite", icon: "" },
+  { value: "HYBRID", label: "Hybrid", icon: "" },
+  { value: "CONTRACT", label: "Contract", icon: "" },
+  { value: "FREELANCE", label: "Freelance", icon: "" },
+  { value: "FULL_TIME", label: "Full Time", icon: "" },
+  { value: "OPEN_TO_ALL", label: "Open to All", icon: "" }
 ];
 
 // List of popular skills for suggestions
@@ -134,18 +138,6 @@ const DeveloperProfileRegistration = () => {
       const uploadFileType = fileType == 'resume' ? 'LATEST_RESUME' : 'PROFILE_PIC';
       formData.append('file', fileToUpload);
       formData.append('type', uploadFileType);
-
-      // const token = authUtils.getAuthToken();
-      // const response = await axios.post(
-      //   `${import.meta.env.VITE_API_BASE_URL}/v1/documents/upload`,
-      //   formData,
-      //   {
-      //     headers: {
-      //       'Authorization': token,
-      //       'Content-Type': 'multipart/form-data'
-      //     }
-      //   }
-      // );
 
       const response = await documentUploadFile(formData);
 
@@ -310,485 +302,656 @@ const DeveloperProfileRegistration = () => {
   const userName = authUtils.getUserProfile().name;
   const capitalizedUserName = userName.charAt(0).toUpperCase() + userName.slice(1);
 
-
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50 py-12 px-4 sm:px-6 lg:px-8 flex items-center justify-center">
-      {/* Decorative elements */}
-      {/* <div className="absolute top-40 left-20 w-64 h-64 bg-indigo-400 rounded-full mix-blend-multiply filter blur-3xl opacity-10 animate-blob"></div>
-      <div className="absolute top-40 right-20 w-72 h-72 bg-blue-300 rounded-full mix-blend-multiply filter blur-3xl opacity-10 animate-blob animation-delay-2000"></div>
-      <div className="absolute -bottom-8 left-1/2 transform -translate-x-1/2 w-72 h-72 bg-teal-300 rounded-full mix-blend-multiply filter blur-3xl opacity-10 animate-blob animation-delay-4000"></div> */}
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 py-12 px-4 sm:px-6 lg:px-8">
+      {/* Floating Background Elements */}
+      <div className="fixed inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute -top-40 -right-40 w-80 h-80 bg-blue-400/10 rounded-full blur-3xl"></div>
+        <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-indigo-400/10 rounded-full blur-3xl"></div>
+        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-blue-300/5 rounded-full blur-3xl"></div>
+      </div>
 
-      <motion.div
-        initial={{ opacity: 0, scale: 0.95 }}
-        animate={{ opacity: 1, scale: 1 }}
-        transition={{ duration: 0.5 }}
-        className="max-w-3xl w-full"
-      >
-        <div className="text-center mb-8">
-          <motion.div
-            className="inline-block"
-            initial={{ y: -20, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            transition={{ delay: 0.2, duration: 0.5 }}
-          >
-            <div className="bg-indigo-600 text-white p-4 rounded-full inline-flex items-center justify-center mb-4">
-              <Code size={24} />
-            </div>
-          </motion.div>
-          <motion.h1
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.3 }}
-            className="text-3xl font-bold text-gray-900"
-          >
-            Complete Your Developer Profile
-          </motion.h1>
-          <motion.p
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.4 }}
-            className="mt-2 text-gray-600"
-          >
-            Showcase your skills and experience to connect with ideal projects
-          </motion.p>
-        </div>
+      <div className="max-w-4xl mx-auto relative">
+        {/* Header */}
+        <motion.div
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6 }}
+          className="text-center mb-12"
+        >
+          <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-2xl mb-6 shadow-lg">
+            <Code className="w-10 h-10 text-white" />
+          </div>
+          <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-900 to-indigo-900 bg-clip-text text-transparent mb-4">
+            Build Your Developer Profile
+          </h1>
+          <p className="text-lg text-slate-600 max-w-2xl mx-auto">
+            Join our community of talented developers and showcase your expertise to connect with exciting opportunities
+          </p>
+        </motion.div>
 
-        {/* Progress steps */}
-        <div className="mb-8">
-          <div className="flex items-center justify-center">
-            <div className="flex items-center">
-              <motion.div
-                initial={{ scale: 0 }}
-                animate={{ scale: 1 }}
-                transition={{ delay: 0.5, type: "spring" }}
-                className={`w-10 h-10 rounded-full flex items-center justify-center ${currentStep >= 1 ? 'bg-indigo-600 text-white' : 'bg-gray-200 text-gray-600'
-                  }`}
-              >
-                1
-              </motion.div>
-              <div className={`w-20 h-1 ${currentStep >= 2 ? 'bg-indigo-600' : 'bg-gray-200'}`}></div>
-              <motion.div
-                initial={{ scale: 0 }}
-                animate={{ scale: 1 }}
-                transition={{ delay: 0.6, type: "spring" }}
-                className={`w-10 h-10 rounded-full flex items-center justify-center ${currentStep >= 2 ? 'bg-indigo-600 text-white' : 'bg-gray-200 text-gray-600'
-                  }`}
-              >
-                2
-              </motion.div>
-              <div className={`w-20 h-1 ${currentStep >= 3 ? 'bg-indigo-600' : 'bg-gray-200'}`}></div>
-              <motion.div
-                initial={{ scale: 0 }}
-                animate={{ scale: 1 }}
-                transition={{ delay: 0.7, type: "spring" }}
-                className={`w-10 h-10 rounded-full flex items-center justify-center ${currentStep >= 3 ? 'bg-indigo-600 text-white' : 'bg-gray-200 text-gray-600'
-                  }`}
-              >
-                3
-              </motion.div>
+        {/* Progress Indicator */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.2 }}
+          className="mb-12"
+        >
+          <div className="flex items-center justify-center mb-8">
+            <div className="flex items-center space-x-8">
+              {[1, 2, 3].map((step) => (
+                <div key={step} className="flex items-center">
+                  <div className="relative">
+                    <motion.div
+                      initial={{ scale: 0 }}
+                      animate={{ scale: 1 }}
+                      transition={{ delay: step * 0.1, type: "spring" }}
+                      className={`w-12 h-12 rounded-2xl flex items-center justify-center text-sm font-semibold transition-all duration-300 ${
+                        currentStep >= step
+                          ? 'bg-gradient-to-r from-blue-500 to-indigo-600 text-white shadow-lg'
+                          : 'bg-white text-slate-400 border-2 border-slate-200'
+                      }`}
+                    >
+                      {currentStep > step ? (
+                        <CheckCircle className="w-6 h-6" />
+                      ) : (
+                        step
+                      )}
+                    </motion.div>
+                  </div>
+                  {step < 3 && (
+                    <div className={`w-24 h-1 mx-4 rounded-full transition-all duration-300 ${
+                      currentStep > step ? 'bg-gradient-to-r from-blue-500 to-indigo-600' : 'bg-slate-200'
+                    }`}></div>
+                  )}
+                </div>
+              ))}
             </div>
           </div>
-          <div className="flex justify-center mt-2 text-sm">
-            <div className="w-28 text-center">Skills & Availability</div>
-            <div className="w-28 text-center">Resume & Portfolio</div>
-            <div className="w-28 text-center">About You</div>
+          <div className="flex justify-center space-x-32 text-sm font-medium">
+            <span className={currentStep >= 1 ? 'text-blue-600' : 'text-slate-400'}>Skills & Preferences</span>
+            <span className={currentStep >= 2 ? 'text-blue-600' : 'text-slate-400'}>Portfolio & Resume</span>
+            <span className={currentStep >= 3 ? 'text-blue-600' : 'text-slate-400'}>About You</span>
           </div>
-        </div>
+        </motion.div>
 
-        <Card className="shadow-xl border-indigo-100">
-          <CardHeader>
-            <CardTitle>
-              {currentStep === 1 && "Skills & Availability"}
-              {currentStep === 2 && "Resume & Portfolio"}
-              {currentStep === 3 && "About You"}
-            </CardTitle>
-            <CardDescription>
-              {currentStep === 1 && "Add your skills and availability preferences"}
-              {currentStep === 2 && "Upload your resume and add profile details"}
-              {currentStep === 3 && "Tell us more about your experience and expertise"}
-            </CardDescription>
-          </CardHeader>
+        {/* Main Card */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.4 }}
+        >
+          <Card className="backdrop-blur-sm bg-white/80 shadow-2xl border-0 rounded-3xl overflow-hidden p-1">
+            <CardHeader className="bg-gradient-to-r from-blue-50 to-indigo-50 border-b border-blue-100 p-8">
+              <CardTitle className="text-2xl font-bold text-slate-900">
+                {currentStep === 1 && "Skills & Availability"}
+                {currentStep === 2 && "Resume & Portfolio"}
+                {currentStep === 3 && "About You"}
+              </CardTitle>
+              <CardDescription className="text-slate-600 text-lg">
+                {currentStep === 1 && "Tell us about your technical expertise and availability"}
+                {currentStep === 2 && "Upload your resume and showcase your work"}
+                {currentStep === 3 && "Share your story and complete your profile"}
+              </CardDescription>
+            </CardHeader>
 
-          <CardContent>
-            <form onSubmit={handleSubmit}>
-              {/* Step 1: Skills & Availability */}
-              {currentStep === 1 && (
-                <motion.div
-                  variants={containerVariants}
-                  initial="hidden"
-                  animate="visible"
-                  className="space-y-6"
-                >
-                  <motion.div variants={itemVariants} className="space-y-2">
-                    <Label htmlFor="skills" className="text-gray-700">
-                      <Code className="inline-block mr-2 h-4 w-4" />
-                      Skills (press Enter, Tab or comma to add)
-                    </Label>
-                    <div className="flex">
-                      <Input
-                        id="skills"
-                        type="text"
-                        placeholder="Add your technical skills..."
-                        value={currentSkill}
-                        onChange={(e) => setCurrentSkill(e.target.value)}
-                        onKeyDown={handleSkillKeyDown}
-                        className="border-gray-300 focus:ring-indigo-500 focus:border-indigo-500"
-                      />
-                      <Button
-                        type="button"
-                        onClick={handleAddSkill}
-                        className="ml-2 bg-indigo-600 hover:bg-indigo-700"
-                      >
-                        Add
-                      </Button>
-                    </div>
-
-                    {/* Skills tags */}
-                    <div className="flex flex-wrap gap-2 mt-3">
-                      {skills.map((skill, index) => (
-                        <Badge
-                          key={index}
-                          variant="secondary"
-                          className="bg-indigo-100 text-indigo-800 hover:bg-indigo-200 cursor-pointer"
-                          onClick={() => removeSkill(skill)}
-                        >
-                          {skill}
-                          <span className="ml-1 text-xs">×</span>
-                        </Badge>
-                      ))}
-                    </div>
-
-                    {/* Popular skills suggestions */}
-                    <div className="mt-2">
-                      <p className="text-xs text-gray-500">Popular skills:</p>
-                      <div className="flex flex-wrap gap-1 mt-5">
-                        {popularSkills.filter(skill => !skills.includes(skill)).slice(0, 10).map((skill, index) => (
-                          <Badge
-                            key={index}
-                            variant="outline"
-                            className="cursor-pointer hover:bg-indigo-50"
-                            onClick={() => {
-                              if (!skills.includes(skill)) {
-                                setSkills([...skills, skill]);
-                              }
-                            }}
+            <CardContent className="p-8">
+              <form onSubmit={handleSubmit}>
+                {/* Step 1: Skills & Availability */}
+                {currentStep === 1 && (
+                  <motion.div
+                    variants={containerVariants}
+                    initial="hidden"
+                    animate="visible"
+                    className="space-y-8"
+                  >
+                    {/* Skills Section */}
+                    <motion.div variants={itemVariants} className="space-y-4 mt-5">
+                      <Label className="text-lg font-semibold text-slate-900 flex items-center">
+                        <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center mr-3">
+                          <Code className="w-4 h-4 text-blue-600" />
+                        </div>
+                        Technical Skills
+                      </Label>
+                      
+                      <div className="bg-slate-50 rounded-2xl p-6 border border-slate-200">
+                        <div className="flex space-x-3 mb-4">
+                          <div className="flex-1">
+                            <Input
+                              type="text"
+                              placeholder="Add a skill (e.g., React, Python, AWS)..."
+                              value={currentSkill}
+                              onChange={(e) => setCurrentSkill(e.target.value)}
+                              onKeyDown={handleSkillKeyDown}
+                              className="h-12 border-0 bg-white shadow-sm rounded-xl text-lg focus:ring-2 focus:ring-blue-500"
+                            />
+                          </div>
+                          <Button
+                            type="button"
+                            onClick={handleAddSkill}
+                            className="h-12 px-6 bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 rounded-xl font-semibold"
                           >
-                            + {skill}
-                          </Badge>
-                        ))}
-                      </div>
-                    </div>
-                  </motion.div>
+                            <Plus className="w-5 h-5" />
+                          </Button>
+                        </div>
 
-                  <motion.div variants={itemVariants} className="space-y-8">
-                    <div className="space-y-2">
-                      <Label className="text-gray-700">
-                        <Clock className="inline-block mr-2 h-4 w-4" />
+                        {/* Added Skills */}
+                        {skills.length > 0 && (
+                          <div className="space-y-3">
+                            <h4 className="font-medium text-slate-700">Your Skills ({skills.length})</h4>
+                            <div className="flex flex-wrap gap-2">
+                              {skills.map((skill, index) => (
+                                <motion.div
+                                  key={index}
+                                  initial={{ scale: 0 }}
+                                  animate={{ scale: 1 }}
+                                  exit={{ scale: 0 }}
+                                  className="group"
+                                >
+                                  <Badge
+                                    className="bg-gradient-to-r from-blue-500 to-indigo-600 text-white px-4 py-2 text-sm rounded-lg hover:from-blue-600 hover:to-indigo-700 cursor-pointer transition-all duration-200 transform hover:scale-105"
+                                    onClick={() => removeSkill(skill)}
+                                  >
+                                    {skill}
+                                    <X className="w-3 h-3 ml-2 opacity-60 group-hover:opacity-100" />
+                                  </Badge>
+                                </motion.div>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Popular Skills */}
+                        <div className="mt-6">
+                          <h4 className="font-medium text-slate-700 mb-3">Popular Skills</h4>
+                          <div className="flex flex-wrap gap-2">
+                            {popularSkills.filter(skill => !skills.includes(skill)).slice(0, 12).map((skill, index) => (
+                              <Badge
+                                key={index}
+                                variant="outline"
+                                className="cursor-pointer hover:bg-blue-50 hover:border-blue-300 hover:text-blue-700 transition-all duration-200 px-3 py-1 rounded-lg border-slate-300"
+                                onClick={() => {
+                                  if (!skills.includes(skill)) {
+                                    setSkills([...skills, skill]);
+                                  }
+                                }}
+                              >
+                                + {skill}
+                              </Badge>
+                            ))}
+                          </div>
+                        </div>
+                      </div>
+                    </motion.div>
+
+                    {/* Availability Section */}
+                    <motion.div variants={itemVariants} className="space-y-4">
+                      <Label className="text-lg font-semibold text-slate-900 flex items-center">
+                        <div className="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center mr-3">
+                          <Clock className="w-4 h-4 text-green-600" />
+                        </div>
                         Availability
                       </Label>
-                      <RadioGroup value={availability} onValueChange={setAvailability} className="grid grid-cols-2 gap-2 mt-5">
+                      
+                      <div className="grid grid-cols-2 gap-4">
                         {availabilityOptions.map((option) => (
-                          <div key={option.value} className="flex items-center space-x-2">
-                            <RadioGroupItem value={option.value} id={`availability-${option.value}`} />
-                            <Label htmlFor={`availability-${option.value}`} className="cursor-pointer">
-                              {option.label}
-                            </Label>
-                          </div>
+                          <motion.div
+                            key={option.value}
+                            whileHover={{ scale: 1.02 }}
+                            whileTap={{ scale: 0.98 }}
+                            className={`relative cursor-pointer rounded-2xl border-2 p-6 transition-all duration-200 ${
+                              availability === option.value
+                                ? 'border-blue-500 bg-blue-50'
+                                : 'border-slate-200 bg-white hover:border-blue-300 hover:bg-blue-50/50'
+                            }`}
+                            onClick={() => setAvailability(option.value)}
+                          >
+                            <div className="flex items-center space-x-3">
+                              <div className="text-2xl">{option.icon}</div>
+                              <div>
+                                <div className="font-semibold text-slate-900">{option.label}</div>
+                              </div>
+                            </div>
+                            <div className={`absolute top-4 right-4 w-5 h-5 rounded-full border-2 transition-all duration-200 ${
+                              availability === option.value
+                                ? 'border-blue-500 bg-blue-500'
+                                : 'border-slate-300'
+                            }`}>
+                              {availability === option.value && (
+                                <div className="w-2 h-2 bg-white rounded-full absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2"></div>
+                              )}
+                            </div>
+                          </motion.div>
                         ))}
-                      </RadioGroup>
-                    </div>
+                      </div>
+                    </motion.div>
 
-                    <div className="space-y-2">
-                      <Label className="text-gray-700">
-                        <Monitor className="inline-block mr-2 h-4 w-4" />
+                    {/* Work Type Section */}
+                    <motion.div variants={itemVariants} className="space-y-4">
+                      <Label className="text-lg font-semibold text-slate-900 flex items-center">
+                        <div className="w-8 h-8 bg-purple-100 rounded-lg flex items-center justify-center mr-3">
+                          <Monitor className="w-4 h-4 text-purple-600" />
+                        </div>
                         Preferred Work Type
                       </Label>
-                      <RadioGroup value={workType} onValueChange={setWorkType} className="grid grid-cols-3 gap-2 mt-5">
+                      
+                      <div className="grid grid-cols-2 lg:grid-cols-3 gap-4">
                         {workTypeOptions.map((option) => (
-                          <div key={option.value} className="flex items-center space-x-2">
-                            <RadioGroupItem value={option.value} id={`workType-${option.value}`} />
-                            <Label htmlFor={`workType-${option.value}`} className="cursor-pointer">
-                              {option.label}
-                            </Label>
-                          </div>
+                          <motion.div
+                            key={option.value}
+                            whileHover={{ scale: 1.02 }}
+                            whileTap={{ scale: 0.98 }}
+                            className={`relative cursor-pointer rounded-2xl border-2 p-4 transition-all duration-200 ${
+                              workType === option.value
+                                ? 'border-blue-500 bg-blue-50'
+                                : 'border-slate-200 bg-white hover:border-blue-300 hover:bg-blue-50/50'
+                            }`}
+                            onClick={() => setWorkType(option.value)}
+                          >
+                            <div className="flex items-center space-x-3">
+                              <div className="text-xl">{option.icon}</div>
+                              <div className="font-medium text-slate-900 text-sm">{option.label}</div>
+                            </div>
+                            <div className={`absolute top-3 right-3 w-4 h-4 rounded-full border-2 transition-all duration-200 ${
+                              workType === option.value
+                                ? 'border-blue-500 bg-blue-500'
+                                : 'border-slate-300'
+                            }`}>
+                              {workType === option.value && (
+                                <div className="w-1.5 h-1.5 bg-white rounded-full absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2"></div>
+                              )}
+                            </div>
+                          </motion.div>
                         ))}
-                      </RadioGroup>
-                    </div>
-                  </motion.div>
-
-                  <motion.div variants={itemVariants} className="bg-indigo-50 p-4 rounded-lg border border-indigo-100">
-                    <div className="flex items-start">
-                      <div className="flex-shrink-0">
-                        <Info className="h-5 w-5 text-indigo-600" />
                       </div>
-                      <div className="ml-3">
-                        <h3 className="text-sm font-medium text-indigo-800">Pro tip: Be specific with your skills</h3>
-                        <p className="text-sm text-indigo-700">
-                          List specific technologies (e.g., "React", "Node.js") rather than general areas (e.g., "Frontend"). This helps match you with the most relevant projects.
-                        </p>
-                      </div>
-                    </div>
-                  </motion.div>
-                </motion.div>
-              )}
+                    </motion.div>
 
-              {/* Step 2: Resume & Portfolio Links */}
-              {currentStep === 2 && (
-                <motion.div
-                  variants={containerVariants}
-                  initial="hidden"
-                  animate="visible"
-                  className="space-y-6"
-                >
-                  <motion.div variants={itemVariants}>
-                    <Label className="text-gray-700 mb-2 block">
-                      <FileText className="inline-block mr-2 h-4 w-4" />
-                      Upload Resume
-                    </Label>
-
-                    <div
-                      className="flex flex-col items-center justify-center border-2 border-dashed border-gray-300 rounded-lg p-6 bg-gray-50 hover:bg-gray-100 transition-colors cursor-pointer"
-                      onClick={() => resumeInputRef.current.click()}
-                    >
-                      {resumeFileName ? (
-                        <div className="flex items-center text-sm">
-                          <FileText className="h-5 w-5 text-indigo-600 mr-2" />
-                          <span className="text-gray-900 font-medium">{resumeFileName}</span>
-                          {resumeFileId && (
-                            <CheckCircle className="h-4 w-4 text-green-600 ml-2" />
-                          )}
+                    {/* Info Card */}
+                    <motion.div variants={itemVariants} className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-2xl p-6 border border-blue-200">
+                      <div className="flex items-start space-x-4">
+                        <div className="flex-shrink-0">
+                          <div className="w-10 h-10 bg-blue-100 rounded-xl flex items-center justify-center">
+                            <Sparkles className="w-5 h-5 text-blue-600" />
+                          </div>
                         </div>
-                      ) : (
-                        <>
-                          <Upload className="h-10 w-10 text-gray-400 mb-2" />
-                          <p className="text-sm font-medium text-indigo-600">
-                            Click to upload your resume
+                        <div>
+                          <h3 className="font-semibold text-blue-900 mb-2">Pro Tip</h3>
+                          <p className="text-blue-800 leading-relaxed">
+                            Be specific with your skills! Instead of "Frontend Development", list specific technologies like "React", "Vue.js", "TypeScript". This helps us match you with the most relevant opportunities.
                           </p>
-                          <p className="text-xs text-gray-500 mt-1">
-                            PDF, DOC or DOCX up to 5MB
-                          </p>
-                        </>
-                      )}
-
-                      <input
-                        type="file"
-                        ref={resumeInputRef}
-                        onChange={handleResumeChange}
-                        accept=".pdf,.doc,.docx"
-                        className="hidden"
-                      />
-                    </div>
+                        </div>
+                      </div>
+                    </motion.div>
                   </motion.div>
+                )}
 
-                  <motion.div variants={itemVariants}>
-                    <Label className="text-gray-700 mb-2 block">
-                      <Image className="inline-block mr-2 h-4 w-4" />
-                      Profile Picture (Optional)
-                    </Label>
-
-                    <div
-                      className="flex flex-col items-center justify-center border-2 border-dashed border-gray-300 rounded-lg p-6 bg-gray-50 hover:bg-gray-100 transition-colors cursor-pointer"
-                      onClick={() => profilePicInputRef.current.click()}
-                    >
-                      {profilePicPreview ? (
-                        <div className="relative w-32 h-32 mb-2 rounded-full overflow-hidden">
-                          <img
-                            src={profilePicPreview}
-                            alt="Profile preview"
-                            className="w-full h-full object-cover"
-                          />
+                {/* Step 2: Resume & Portfolio */}
+                {currentStep === 2 && (
+                  <motion.div
+                    variants={containerVariants}
+                    initial="hidden"
+                    animate="visible"
+                    className="space-y-8"
+                  >
+                    {/* Resume Upload */}
+                    <motion.div variants={itemVariants} className="space-y-4 mt-5">
+                      <Label className="text-lg font-semibold text-slate-900 flex items-center">
+                        <div className="w-8 h-8 bg-orange-100 rounded-lg flex items-center justify-center mr-3">
+                          <FileText className="w-4 h-4 text-orange-600" />
                         </div>
-                      ) : (
-                        <div className="w-24 h-24 rounded-full bg-indigo-100 flex items-center justify-center mb-2">
-                          <User className="h-12 w-12 text-indigo-400" />
-                        </div>
-                      )}
-
-                      <p className="text-sm font-medium text-indigo-600">
-                        {profilePicPreview ? 'Change picture' : 'Upload profile picture'}
-                      </p>
-
-                      <input
-                        type="file"
-                        ref={profilePicInputRef}
-                        onChange={handleProfilePicChange}
-                        accept="image/*"
-                        className="hidden"
-                      />
-
-                      {profilePicFileId && (
-                        <div className="flex items-center mt-2 text-sm text-green-600">
-                          <CheckCircle className="h-4 w-4 mr-1" />
-                          Picture uploaded successfully
-                        </div>
-                      )}
-                    </div>
-                  </motion.div>
-
-                  <motion.div variants={itemVariants} className="space-y-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="github" className="text-gray-700">
-                        <FaGithub className="inline-block mr-2 h-4 w-4" />
-                        GitHub URL (Optional)
+                        Resume Upload
                       </Label>
-                      <Input
-                        id="github"
-                        type="url"
-                        placeholder="https://github.com/yourusername"
-                        value={githubUrl}
-                        onChange={(e) => setGithubUrl(e.target.value)}
-                        className="border-gray-300 focus:ring-indigo-500 focus:border-indigo-500"
-                      />
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label htmlFor="linkedin" className="text-gray-700">
-                        <FaLinkedin className="inline-block mr-2 h-4 w-4" />
-                        LinkedIn URL (Optional)
-                      </Label>
-                      <Input
-                        id="linkedin"
-                        type="url"
-                        placeholder="https://linkedin.com/in/yourusername"
-                        value={linkedinUrl}
-                        onChange={(e) => setLinkedinUrl(e.target.value)}
-                        className="border-gray-300 focus:ring-indigo-500 focus:border-indigo-500"
-                      />
-                    </div>
-                  </motion.div>
-
-                  <motion.div variants={itemVariants} className="bg-blue-50 p-4 rounded-lg border border-blue-100">
-                    <div className="flex items-start">
-                      <div className="flex-shrink-0">
-                        <Sparkles className="h-5 w-5 text-blue-600" />
-                      </div>
-                      <div className="ml-3">
-                        <h3 className="text-sm font-medium text-blue-800">Show your best work</h3>
-                        <p className="text-sm text-blue-700">
-                          Developers with complete profiles including a profile picture and portfolio links are 3x more likely to be selected for projects.
-                        </p>
-                      </div>
-                    </div>
-                  </motion.div>
-                </motion.div>
-              )}
-
-              {/* Step 3: About Section */}
-              {currentStep === 3 && (
-                <motion.div
-                  variants={containerVariants}
-                  initial="hidden"
-                  animate="visible"
-                  className="space-y-6"
-                >
-                  <motion.div variants={itemVariants} className="space-y-2">
-                    <Label htmlFor="about" className="text-gray-700">
-                      <AlignLeft className="inline-block mr-2 h-4 w-4" />
-                      About You
-                    </Label>
-                    <Textarea
-                      id="about"
-                      placeholder="Tell employers about your experience, expertise, and what makes you stand out..."
-                      value={about}
-                      onChange={(e) => setAbout(e.target.value)}
-                      className="h-40 border-gray-300 focus:ring-indigo-500 focus:border-indigo-500"
-                      required
-                    />
-                  </motion.div>
-
-                  <motion.div variants={itemVariants} className="bg-teal-50 p-4 rounded-lg border border-teal-100">
-                    <div className="flex items-start">
-                      <div className="flex-shrink-0">
-                        <Briefcase className="h-5 w-5 text-teal-600" />
-                      </div>
-                      <div className="ml-3">
-                        <h3 className="text-sm font-medium text-teal-800">Tips for a great developer bio</h3>
-                        <ul className="mt-2 text-sm text-teal-700 list-disc list-inside space-y-1">
-                          <li>Highlight your years of experience and specialties</li>
-                          <li>Mention significant projects or accomplishments</li>
-                          <li>Describe your problem-solving approach</li>
-                          <li>Note your industries of interest or expertise</li>
-                        </ul>
-                      </div>
-                    </div>
-                  </motion.div>
-
-                  <motion.div variants={itemVariants}>
-                    <div className="border border-indigo-100 rounded-lg p-4">
-                      <h3 className="text-sm font-medium text-gray-900 mb-3">Profile Preview</h3>
-
-                      <div className="flex gap-4">
-                        <div className="w-16 h-16 rounded-full overflow-hidden bg-indigo-100 flex-shrink-0">
-                          {profilePicPreview ? (
-                            <img src={profilePicPreview} alt="Profile" className="w-full h-full object-cover" />
+                      
+                      <motion.div
+                        whileHover={{ scale: 1.01 }}
+                        className={`relative overflow-hidden rounded-2xl border-2 border-dashed transition-all duration-300 cursor-pointer ${
+                          resumeFileName
+                            ? 'border-green-300 bg-green-50'
+                            : 'border-blue-300 bg-blue-50/50 hover:bg-blue-50'
+                        }`}
+                        onClick={() => resumeInputRef.current.click()}
+                      >
+                        <div className="p-12 text-center">
+                          {resumeFileName ? (
+                            <div className="space-y-4">
+                              <div className="w-16 h-16 bg-green-100 rounded-2xl flex items-center justify-center mx-auto">
+                                <FileText className="w-8 h-8 text-green-600" />
+                              </div>
+                              <div>
+                                <p className="font-semibold text-slate-900">{resumeFileName}</p>
+                                <div className="flex items-center justify-center mt-2">
+                                  {resumeFileId && <CheckCircle className="w-5 h-5 text-green-600 mr-2" />}
+                                  <span className="text-sm text-green-700">
+                                    {resumeFileId ? 'Upload successful' : 'Processing...'}
+                                  </span>
+                                </div>
+                              </div>
+                            </div>
                           ) : (
-                            <div className="w-full h-full flex items-center justify-center">
-                              <User className="h-8 w-8 text-indigo-400" />
+                            <div className="space-y-4">
+                              <div className="w-16 h-16 bg-blue-100 rounded-2xl flex items-center justify-center mx-auto">
+                                <Upload className="w-8 h-8 text-blue-600" />
+                              </div>
+                              <div>
+                                <p className="text-xl font-semibold text-slate-900 mb-2">Upload Your Resume</p>
+                                <p className="text-slate-600">Drag and drop or click to browse</p>
+                                <p className="text-sm text-slate-500 mt-1">PDF, DOC, DOCX up to 5MB</p>
+                              </div>
                             </div>
                           )}
                         </div>
+                        <input
+                          type="file"
+                          ref={resumeInputRef}
+                          onChange={handleResumeChange}
+                          accept=".pdf,.doc,.docx"
+                          className="hidden"
+                        />
+                      </motion.div>
+                    </motion.div>
 
+                    {/* Profile Picture */}
+                    <motion.div variants={itemVariants} className="space-y-4">
+                      <Label className="text-lg font-semibold text-slate-900 flex items-center">
+                        <div className="w-8 h-8 bg-pink-100 rounded-lg flex items-center justify-center mr-3">
+                          <Image className="w-4 h-4 text-pink-600" />
+                        </div>
+                        Profile Picture <span className="text-sm font-normal text-slate-500 ml-2">(Optional)</span>
+                      </Label>
+                      
+                      <motion.div
+                        whileHover={{ scale: 1.01 }}
+                        className="rounded-2xl border-2 border-dashed border-slate-300 bg-slate-50 hover:bg-slate-100 transition-all duration-300 cursor-pointer"
+                        onClick={() => profilePicInputRef.current.click()}
+                      >
+                        <div className="p-8 text-center">
+                          {profilePicPreview ? (
+                            <div className="space-y-4">
+                              <div className="relative w-24 h-24 mx-auto">
+                                <img
+                                  src={profilePicPreview}
+                                  alt="Profile preview"
+                                  className="w-full h-full object-cover rounded-2xl"
+                                />
+                                <div className="absolute inset-0 bg-black/20 rounded-2xl flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity duration-200">
+                                  <Upload className="w-6 h-6 text-white" />
+                                </div>
+                              </div>
+                              <div>
+                                <p className="font-semibold text-slate-900">Change Picture</p>
+                                {profilePicFileId && (
+                                  <div className="flex items-center justify-center mt-2">
+                                    <CheckCircle className="w-4 h-4 text-green-600 mr-1" />
+                                    <span className="text-sm text-green-700">Upload successful</span>
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                          ) : (
+                            <div className="space-y-4">
+                              <div className="w-16 h-16 bg-slate-200 rounded-2xl flex items-center justify-center mx-auto">
+                                <User className="w-8 h-8 text-slate-400" />
+                              </div>
+                              <div>
+                                <p className="font-semibold text-slate-900">Add Profile Picture</p>
+                                <p className="text-sm text-slate-500">JPG, PNG up to 2MB</p>
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                        <input
+                          type="file"
+                          ref={profilePicInputRef}
+                          onChange={handleProfilePicChange}
+                          accept="image/*"
+                          className="hidden"
+                        />
+                      </motion.div>
+                    </motion.div>
+
+                    {/* Social Links */}
+                    <motion.div variants={itemVariants} className="space-y-6">
+                      <Label className="text-lg font-semibold text-slate-900 flex items-center">
+                        <div className="w-8 h-8 bg-indigo-100 rounded-lg flex items-center justify-center mr-3">
+                          <Globe className="w-4 h-4 text-indigo-600" />
+                        </div>
+                        Portfolio Links <span className="text-sm font-normal text-slate-500 ml-2">(Optional)</span>
+                      </Label>
+                      
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div className="space-y-3">
+                          <div className="flex items-center space-x-3">
+                            <div className="w-10 h-10 bg-gray-900 rounded-xl flex items-center justify-center">
+                              <FaGithub className="w-5 h-5 text-white" />
+                            </div>
+                            <Label className="font-medium text-slate-900">GitHub Profile</Label>
+                          </div>
+                          <Input
+                            type="url"
+                            placeholder="https://github.com/yourusername"
+                            value={githubUrl}
+                            onChange={(e) => setGithubUrl(e.target.value)}
+                            className="h-12 border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                          />
+                        </div>
+
+                        <div className="space-y-3">
+                          <div className="flex items-center space-x-3">
+                            <div className="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center">
+                              <FaLinkedin className="w-5 h-5 text-white" />
+                            </div>
+                            <Label className="font-medium text-slate-900">LinkedIn Profile</Label>
+                          </div>
+                          <Input
+                            type="url"
+                            placeholder="https://linkedin.com/in/yourusername"
+                            value={linkedinUrl}
+                            onChange={(e) => setLinkedinUrl(e.target.value)}
+                            className="h-12 border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                          />
+                        </div>
+                      </div>
+                    </motion.div>
+
+                    {/* Info Card */}
+                    <motion.div variants={itemVariants} className="bg-gradient-to-r from-emerald-50 to-teal-50 rounded-2xl p-6 border border-emerald-200">
+                      <div className="flex items-start space-x-4">
+                        <div className="flex-shrink-0">
+                          <div className="w-10 h-10 bg-emerald-100 rounded-xl flex items-center justify-center">
+                            <Briefcase className="w-5 h-5 text-emerald-600" />
+                          </div>
+                        </div>
+                        <div>
+                          <h3 className="font-semibold text-emerald-900 mb-2">Stand Out From The Crowd</h3>
+                          <p className="text-emerald-800 leading-relaxed">
+                            Developers with complete profiles including portfolio links are 3x more likely to be selected for projects. Show off your best work!
+                          </p>
+                        </div>
+                      </div>
+                    </motion.div>
+                  </motion.div>
+                )}
+
+                {/* Step 3: About Section */}
+                {currentStep === 3 && (
+                  <motion.div
+                    variants={containerVariants}
+                    initial="hidden"
+                    animate="visible"
+                    className="space-y-8"
+                  >
+                    {/* About Textarea */}
+                    <motion.div variants={itemVariants} className="space-y-4 mt-5">
+                      <Label className="text-lg font-semibold text-slate-900 flex items-center">
+                        <div className="w-8 h-8 bg-purple-100 rounded-lg flex items-center justify-center mr-3">
+                          <AlignLeft className="w-4 h-4 text-purple-600" />
+                        </div>
+                        Tell Us About Yourself
+                      </Label>
+                      
+                      <div className="relative">
+                        <Textarea
+                          placeholder="Share your journey, expertise, and what makes you unique as a developer. What projects are you passionate about? What's your development philosophy?"
+                          value={about}
+                          onChange={(e) => setAbout(e.target.value)}
+                          className="min-h-[200px] border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-lg leading-relaxed p-6"
+                          required
+                        />
+                        <div className="absolute bottom-4 right-4 text-sm text-slate-400">
+                          {about.length}/1000
+                        </div>
+                      </div>
+                    </motion.div>
+
+                    {/* Writing Tips */}
+                    <motion.div variants={itemVariants} className="bg-gradient-to-r from-amber-50 to-orange-50 rounded-2xl p-6 border border-amber-200">
+                      <div className="flex items-start space-x-4">
+                        <div className="flex-shrink-0">
+                          <div className="w-10 h-10 bg-amber-100 rounded-xl flex items-center justify-center">
+                            <Sparkles className="w-5 h-5 text-amber-600" />
+                          </div>
+                        </div>
                         <div className="flex-1">
-                          <div className="font-medium text-gray-900">{capitalizedUserName}</div>
-                          <div className="text-sm text-gray-600 mt-1 flex flex-wrap gap-1">
-                            {skills.slice(0, 5).map((skill, i) => (
-                              <Badge key={i} className="bg-indigo-100 text-indigo-800">
-                                {skill}
-                              </Badge>
-                            ))}
-                            {skills.length > 5 && (
-                              <Badge className="bg-gray-100 text-gray-600">
-                                +{skills.length - 5}
-                              </Badge>
+                          <h3 className="font-semibold text-amber-900 mb-3">Tips for a Compelling Profile</h3>
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-amber-800">
+                            <div className="flex items-start space-x-2">
+                              <div className="w-1.5 h-1.5 bg-amber-600 rounded-full mt-2 flex-shrink-0"></div>
+                              <span>Highlight your years of experience and key specialties</span>
+                            </div>
+                            <div className="flex items-start space-x-2">
+                              <div className="w-1.5 h-1.5 bg-amber-600 rounded-full mt-2 flex-shrink-0"></div>
+                              <span>Mention notable projects or achievements</span>
+                            </div>
+                            <div className="flex items-start space-x-2">
+                              <div className="w-1.5 h-1.5 bg-amber-600 rounded-full mt-2 flex-shrink-0"></div>
+                              <span>Describe your problem-solving approach</span>
+                            </div>
+                            <div className="flex items-start space-x-2">
+                              <div className="w-1.5 h-1.5 bg-amber-600 rounded-full mt-2 flex-shrink-0"></div>
+                              <span>Share your passion and what drives you</span>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </motion.div>
+
+                    {/* Profile Preview */}
+                    <motion.div variants={itemVariants} className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm">
+                      <h3 className="font-semibold text-slate-900 mb-6 flex items-center">
+                        <div className="w-8 h-8 bg-blue-100 rounded-xl flex items-center justify-center mr-3">
+                          <User className="w-4 h-4 text-blue-600" />
+                        </div>
+                        Profile Preview
+                      </h3>
+
+                      <div className="flex items-start space-x-6">
+                        <div className="flex-shrink-0">
+                          <div className="w-20 h-20 rounded-2xl overflow-hidden bg-gradient-to-br from-blue-100 to-indigo-100">
+                            {profilePicPreview ? (
+                              <img src={profilePicPreview} alt="Profile" className="w-full h-full object-cover" />
+                            ) : (
+                              <div className="w-full h-full flex items-center justify-center">
+                                <User className="w-10 h-10 text-blue-400" />
+                              </div>
                             )}
                           </div>
-                          <div className="text-sm text-gray-500 mt-2">
+                        </div>
+
+                        <div className="flex-1 min-w-0">
+                          <h4 className="text-xl font-bold text-slate-900 mb-2">{capitalizedUserName}</h4>
+                          
+                          {skills.length > 0 && (
+                            <div className="flex flex-wrap gap-2 mb-4">
+                              {skills.slice(0, 6).map((skill, i) => (
+                                <Badge key={i} className="bg-blue-100 text-blue-800 rounded-lg px-3 py-1">
+                                  {skill}
+                                </Badge>
+                              ))}
+                              {skills.length > 6 && (
+                                <Badge className="bg-slate-100 text-slate-600 rounded-lg px-3 py-1">
+                                  +{skills.length - 6} more
+                                </Badge>
+                              )}
+                            </div>
+                          )}
+
+                          <div className="flex items-center space-x-4 mb-4 text-sm text-slate-600">
+                            {availability && (
+                              <div className="flex items-center space-x-1">
+                                <Clock className="w-4 h-4" />
+                                <span>{availabilityOptions.find(opt => opt.value === availability)?.label}</span>
+                              </div>
+                            )}
+                            {workType && (
+                              <div className="flex items-center space-x-1">
+                                <Monitor className="w-4 h-4" />
+                                <span>{workTypeOptions.find(opt => opt.value === workType)?.label}</span>
+                              </div>
+                            )}
+                          </div>
+
+                          <div className="text-slate-700 leading-relaxed">
                             {about ? (
-                              <span>{about.substring(0, 100)}...</span>
+                              <p className="line-clamp-3">{about}</p>
                             ) : (
-                              <span className="italic text-gray-400">Your bio will appear here</span>
+                              <p className="italic text-slate-400">Your professional story will appear here...</p>
                             )}
                           </div>
                         </div>
                       </div>
-                    </div>
+                    </motion.div>
                   </motion.div>
-                </motion.div>
-              )}
-            </form>
-          </CardContent>
+                )}
+              </form>
+            </CardContent>
 
-          <CardFooter className="flex justify-between">
-            <Button
-              type="button"
-              variant="outline"
-              disabled={currentStep === 1}
-              onClick={goToPreviousStep}
-            >
-              Back
-            </Button>
+            <CardFooter className="bg-slate-50 border-t border-slate-200 p-8">
+              <div className="flex justify-between w-full mt-5">
+                <Button
+                  type="button"
+                  variant="outline"
+                  disabled={currentStep === 1}
+                  onClick={goToPreviousStep}
+                  className="h-12 px-8 rounded-xl border-slate-300 hover:bg-slate-100 disabled:opacity-50"
+                >
+                  <ChevronLeft className="w-4 h-4 mr-2" />
+                  Back
+                </Button>
 
-            {currentStep < 3 ? (
-              <Button
-                type="button"
-                onClick={goToNextStep}
-                className="bg-indigo-600 hover:bg-indigo-700 text-white"
-              >
-                Continue
-              </Button>
-            ) : (
-              <Button
-                type="submit"
-                disabled={isLoading}
-                className="bg-indigo-600 hover:bg-indigo-700 text-white"
-                onClick={handleSubmit}
-              >
-                {isLoading ? 'Creating Profile...' : 'Complete Registration'}
-              </Button>
-            )}
-          </CardFooter>
-        </Card>
-      </motion.div>
+                {currentStep < 3 ? (
+                  <Button
+                    type="button"
+                    onClick={goToNextStep}
+                    className="h-12 px-8 bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 rounded-xl font-semibold shadow-lg shadow-blue-500/25"
+                  >
+                    Continue
+                    <ChevronRight className="w-4 h-4 ml-2" />
+                  </Button>
+                ) : (
+                  <Button
+                    type="submit"
+                    disabled={isLoading}
+                    className="h-12 px-8 bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 rounded-xl font-semibold shadow-lg shadow-green-500/25 disabled:opacity-50"
+                    onClick={handleSubmit}
+                  >
+                    {isLoading ? (
+                      <>
+                        <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
+                        Creating Profile...
+                      </>
+                    ) : (
+                      <>
+                        Complete Registration
+                        <CheckCircle className="w-5 h-5 ml-2" />
+                      </>
+                    )}
+                  </Button>
+                )}
+              </div>
+            </CardFooter>
+          </Card>
+        </motion.div>
+      </div>
     </div>
   );
 };
