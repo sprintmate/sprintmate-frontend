@@ -1,0 +1,31 @@
+User-agent: *
+Allow: /
+
+# Disallow admin and private areas
+Disallow: /admin/
+Disallow: /api/
+Disallow: /developer/dashboard/
+Disallow: /company/dashboard/
+Disallow: /verify/
+Disallow: /reset-password/
+Disallow: /reset-password-token/
+Disallow: /link-expired/
+Disallow: /oauth/callback/
+Disallow: /auth/callback/
+
+# Allow important pages
+Allow: /
+Allow: /about
+Allow: /services
+Allow: /contact
+Allow: /terms
+Allow: /privacy
+Allow: /support
+Allow: /blog
+Allow: /blog/*
+
+# Sitemap location
+Sitemap: https://codeforcontract.com/sitemap.xml
+
+# Crawl delay (optional)
+Crawl-delay: 1

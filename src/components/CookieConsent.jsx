@@ -14,24 +14,57 @@ const CookieConsent = () => {
 
   useEffect(() => {
     // Check if user has already made a choice
-    const consent = localStorage.getItem('cookieConsent');
-    if (!consent) {
-      setShowBanner(true);
-    } else {
-      // Parse the stored consent to check if it's valid
+    const checkConsent = () => {
       try {
+        const consent = localStorage.getItem('cookieConsent');
+        if (!consent) {
+          setShowBanner(true);
+          return;
+        }
+        
         const parsedConsent = JSON.parse(consent);
-        if (parsedConsent && typeof parsedConsent === 'object') {
-          setShowBanner(false);
+        if (parsedConsent && typeof parsedConsent === 'object' && parsedConsent.timestamp) {
+          // Check if consent is not too old (optional: you can set an expiry)
+          const consentDate = new Date(parsedConsent.timestamp);
+          const now = new Date();
+          const daysDiff = (now - consentDate) / (1000 * 60 * 60 * 24);
+          
+          // Consent is valid for 1 year (optional)
+          if (daysDiff < 365) {
+            setShowBanner(false);
+            // Initialize tracking based on stored preferences
+            initializeTracking(parsedConsent);
+          } else {
+            // Consent expired, show banner again
+            localStorage.removeItem('cookieConsent');
+            setShowBanner(true);
+          }
         } else {
+          // Invalid consent data, show banner
+          localStorage.removeItem('cookieConsent');
           setShowBanner(true);
         }
       } catch (error) {
-        // If parsing fails, show the banner
+        console.error('Error checking cookie consent:', error);
+        // If parsing fails, clear invalid data and show the banner
+        localStorage.removeItem('cookieConsent');
         setShowBanner(true);
       }
-    }
+    };
+
+    // Add a small delay to ensure localStorage is available
+    const timer = setTimeout(checkConsent, 100);
+    return () => clearTimeout(timer);
   }, []);
+
+  const saveConsentToStorage = (consentData) => {
+    try {
+      localStorage.setItem('cookieConsent', JSON.stringify(consentData));
+      console.log('Cookie consent saved:', consentData);
+    } catch (error) {
+      console.error('Error saving cookie consent:', error);
+    }
+  };
 
   const handleAcceptAll = () => {
     const allAccepted = {
@@ -39,9 +72,10 @@ const CookieConsent = () => {
       analytics: true,
       marketing: true,
       functional: true,
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
+      version: '1.0'
     };
-    localStorage.setItem('cookieConsent', JSON.stringify(allAccepted));
+    saveConsentToStorage(allAccepted);
     setShowBanner(false);
     // Here you would typically initialize analytics and other tracking
     initializeTracking(allAccepted);
@@ -53,9 +87,10 @@ const CookieConsent = () => {
       analytics: false,
       marketing: false,
       functional: false,
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
+      version: '1.0'
     };
-    localStorage.setItem('cookieConsent', JSON.stringify(onlyNecessary));
+    saveConsentToStorage(onlyNecessary);
     setShowBanner(false);
     // Only initialize necessary cookies
     initializeTracking(onlyNecessary);
@@ -64,9 +99,10 @@ const CookieConsent = () => {
   const handleSavePreferences = () => {
     const preferences = {
       ...cookiePreferences,
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
+      version: '1.0'
     };
-    localStorage.setItem('cookieConsent', JSON.stringify(preferences));
+    saveConsentToStorage(preferences);
     setShowBanner(false);
     setShowSettings(false);
     initializeTracking(preferences);

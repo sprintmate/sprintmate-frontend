@@ -14,6 +14,10 @@ import ProfileCompletionChecker from './components/ProfileCompletionChecker';
 import ErrorBoundary from './components/common/ErrorBoundary';
 import OtpVerifyPage from './pages/auth/OtpVerifyPage';
 import CookieConsent from './components/CookieConsent';
+import GoogleAnalytics from './components/GoogleAnalytics';
+import GoogleAnalyticsLoader from './components/GoogleAnalyticsLoader';
+import SEOAnalytics from './components/SEOAnalytics';
+import { ANALYTICS_CONFIG } from './config/analytics';
 
 const Landing = React.lazy(() => import('./pages/Landing'));
 const DeveloperDashboard = React.lazy(() => import('./pages/DeveloperDashboard'));
@@ -30,6 +34,10 @@ const AboutUs = React.lazy(() => import('./pages/AboutUs'));
 const TermsAndConditions = React.lazy(() => import('./pages/TermsAndConditions'));
 const PrivacyPolicy = React.lazy(() => import('./pages/PrivacyPolicy'));
 const Support = React.lazy(() => import('./pages/Support'));
+
+// Blog pages
+const Blog = React.lazy(() => import('./pages/Blog'));
+const BlogPost = React.lazy(() => import('./pages/BlogPost'));
 
 const App = () => {
   return (
@@ -108,10 +116,17 @@ const App = () => {
               <Route path="/terms" element={<TermsAndConditions />} />
               <Route path="/privacy" element={<PrivacyPolicy />} />
               <Route path="/support" element={<Support />} />
+              
+              {/* Blog Pages */}
+              <Route path="/blog" element={<Blog />} />
+              <Route path="/blog/:slug" element={<BlogPost />} />
             </Routes>
           </Suspense>
         </ErrorBoundary>
         <CookieConsent />
+        <GoogleAnalytics trackingId={ANALYTICS_CONFIG.GA4_MEASUREMENT_ID} />
+        <GoogleAnalyticsLoader />
+        <SEOAnalytics />
       </div>
     </AuthProvider>
   );

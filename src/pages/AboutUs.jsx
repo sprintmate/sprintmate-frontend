@@ -3,6 +3,8 @@ import { motion } from 'framer-motion';
 import { ArrowLeft, Users, Target, Award, Globe, Heart, TrendingUp, Shield } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { fetchAppConfigWithCache } from '../api/configService';
+import SEOHead from '../components/SEOHead';
+import Breadcrumb from '../components/Breadcrumb';
 
 const AboutUs = () => {
   const [appConfig, setAppConfig] = useState(null);
@@ -57,8 +59,35 @@ const AboutUs = () => {
   ];
 
 
+  // Breadcrumb Schema
+  const breadcrumbSchema = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    "itemListElement": [
+      {
+        "@type": "ListItem",
+        "position": 1,
+        "name": "Home",
+        "item": "https://codeforcontract.com"
+      },
+      {
+        "@type": "ListItem",
+        "position": 2,
+        "name": "About Us",
+        "item": "https://codeforcontract.com/about"
+      }
+    ]
+  };
+
   return (
     <div className="min-h-screen bg-gray-50">
+      <SEOHead
+        title="About CodeForContract - Leading Freelance Software Engineers Marketplace"
+        description="Learn about CodeForContract, the premier platform connecting companies with top-tier freelance software engineers and developers. Discover our mission, values, and commitment to quality."
+        keywords="about codeforcontract, freelance marketplace, software engineers, company story, mission, values, quality developers"
+        canonical="/about"
+        structuredData={breadcrumbSchema}
+      />
       {/* Header */}
       <div className="bg-white shadow-sm">
         <div className="container mx-auto px-4 py-6">
@@ -77,6 +106,7 @@ const AboutUs = () => {
 
       <div className="container mx-auto px-4 py-12">
         <div className="max-w-6xl mx-auto">
+          <Breadcrumb items={[{ name: 'About Us', path: '/about' }]} />
           {/* Hero Section */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}

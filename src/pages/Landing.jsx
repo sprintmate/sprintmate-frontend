@@ -2,6 +2,7 @@ import React, { useRef, useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { Button } from "@/components/ui/button";
 import { Link } from 'react-router-dom';
+import SEOHead from '../components/SEOHead';
 import {
   Card,
   CardContent,
@@ -25,6 +26,8 @@ import {
   Code,
   Star,
   Users,
+  User,
+  Calendar,
   ArrowRight,
   ArrowUpRight,
   Sparkles,
@@ -45,7 +48,8 @@ import {
   Check,
   MapPin,
   Phone,
-  ArrowUp
+  ArrowUp,
+  ChevronDown
 } from "lucide-react";
 import { motion, useScroll, useTransform, AnimatePresence } from "framer-motion";
 import {
@@ -472,8 +476,82 @@ function Landing() {
     </Dialog>
   );
 
+  // FAQ data
+  const faqData = [
+    {
+      question: "How do I hire a developer on CodeForContract?",
+      answer: "Simply post your project requirements, set your budget and timeline, and our AI-powered matching system will connect you with pre-vetted developers who match your needs. You can review profiles, chat with candidates, and hire the best fit for your project."
+    },
+    {
+      question: "What types of projects can I outsource?",
+      answer: "You can outsource a wide range of software development projects including web applications, mobile apps, API development, database design, UI/UX design, DevOps tasks, and more. Our platform supports both short-term tasks and long-term projects."
+    },
+    {
+      question: "How does the payment system work?",
+      answer: "We use a secure escrow payment system. You fund the project upfront, and payments are released to developers only after milestone completion and your approval. This ensures both parties are protected throughout the project lifecycle."
+    },
+    {
+      question: "Are developers verified and skilled?",
+      answer: "Yes, all developers on our platform go through a rigorous verification process including skills assessment, portfolio review, and background checks. We ensure only top-tier talent with proven expertise joins our network."
+    },
+    {
+      question: "What if I'm not satisfied with the work?",
+      answer: "We have a comprehensive dispute resolution process. If you're not satisfied with the delivered work, you can request revisions or raise a dispute within 14 days. Our support team will help resolve any issues fairly."
+    },
+    {
+      question: "How quickly can I get started?",
+      answer: "You can get started immediately! Post your project in minutes, and you'll start receiving applications from qualified developers within hours. Our streamlined process ensures you can begin working with your chosen developer the same day."
+    }
+  ];
+
+  // Organization Schema
+  const organizationSchema = {
+    "@context": "https://schema.org",
+    "@type": "Organization",
+    "name": "CodeForContract",
+    "description": "Freelance marketplace connecting companies with top-tier software engineers and developers",
+    "url": "https://codeforcontract.com",
+    "logo": "https://codeforcontract.com/logo.png",
+    "sameAs": [
+      "https://twitter.com/codeforcontract",
+      "https://linkedin.com/company/codeforcontract"
+    ],
+    "contactPoint": {
+      "@type": "ContactPoint",
+      "telephone": "+91-98765-43210",
+      "contactType": "customer service",
+      "availableLanguage": "English"
+    },
+    "address": {
+      "@type": "PostalAddress",
+      "addressLocality": "Bangalore",
+      "addressCountry": "India"
+    }
+  };
+
+  // FAQ Schema
+  const faqSchema = {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "mainEntity": faqData.map(faq => ({
+      "@type": "Question",
+      "name": faq.question,
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": faq.answer
+      }
+    }))
+  };
+
   return (
     <div className="min-h-screen overflow-x-hidden bg-white">
+      <SEOHead
+        title="CodeForContract - Hire Top Freelance Software Engineers & Developers"
+        description="Connect with verified freelance software engineers and developers. Post projects, find talent, and collaborate securely with our AI-powered matching platform. Start your project today!"
+        keywords="hire freelance developers, software engineers, project outsourcing, remote development, freelance marketplace, web development, mobile app development"
+        canonical="/"
+        structuredData={[organizationSchema, faqSchema]}
+      />
       {/* {!isMobile && <CustomCursor />} */}
       {false && <CustomCursor />}
 
@@ -587,9 +665,11 @@ function Landing() {
                   <div className="relative z-20 w-full h-full">
                     <img
                       src={image4}
-                      alt="Developer working"
+                      alt="Professional software developer working on modern development project with multiple screens and code"
                       className="w-full h-full object-contain object-center"
                       loading="eager"
+                      width="400"
+                      height="400"
                     />
                   </div>
 
@@ -901,10 +981,13 @@ function Landing() {
                             <div className="aspect-video rounded-lg overflow-hidden">
                               <motion.img
                                 src={image9}
-                                alt="Company searching for developers"
+                                alt="Business team collaborating and searching for skilled software developers for their project"
                                 className="w-full h-full object-fill transform group-hover:scale-110 transition-transform duration-700"
                                 initial={{ scale: 1 }}
                                 whileHover={{ scale: 1.02 }}
+                                loading="lazy"
+                                width="400"
+                                height="225"
                               />
                             </div>
                           </div>
@@ -982,10 +1065,13 @@ function Landing() {
                             <div className="aspect-video rounded-lg overflow-hidden">
                               <motion.img
                                 src={image6}
-                                alt="Developer applying for task"
+                                alt="Skilled software developer reviewing and applying for freelance development projects"
                                 className="w-full h-full object-contain transform group-hover:scale-110 transition-transform duration-700"
                                 initial={{ scale: 1 }}
                                 whileHover={{ scale: 1.02 }}
+                                loading="lazy"
+                                width="400"
+                                height="225"
                               />
                             </div>
                           </div>
@@ -1058,10 +1144,13 @@ function Landing() {
                             <div className="aspect-video rounded-lg overflow-hidden">
                               <motion.img
                                 src={image2}
-                                alt="Developer working"
+                                alt="Professional developer actively coding and building software solutions with modern development tools"
                                 className="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-700"
                                 initial={{ scale: 1 }}
                                 whileHover={{ scale: 1.02 }}
+                                loading="lazy"
+                                width="400"
+                                height="225"
                               />
                             </div>
                           </div>
@@ -1134,10 +1223,13 @@ function Landing() {
                             <div className="aspect-video rounded-lg overflow-hidden">
                               <motion.img
                                 src={image1}
-                                alt="Project completion"
+                                alt="Successful project completion and delivery with satisfied client and developer celebrating milestone achievement"
                                 className="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-700"
                                 initial={{ scale: 1 }}
                                 whileHover={{ scale: 1.02 }}
+                                loading="lazy"
+                                width="400"
+                                height="225"
                               />
                             </div>
                           </div>
@@ -1245,6 +1337,241 @@ function Landing() {
         </section>
       </ScrollTrigger>
 
+      {/* FAQ Section */}
+      <section className="py-24 bg-gradient-to-br from-gray-50 via-white to-blue-50">
+        <div className="container mx-auto px-4">
+          <div className="max-w-5xl mx-auto">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.6 }}
+              className="text-center mb-20"
+            >
+              <div className="inline-flex items-center gap-2 px-4 py-2 bg-blue-100 text-blue-800 rounded-full text-sm font-medium mb-6">
+                <MessageSquare className="w-4 h-4" />
+                Help Center
+              </div>
+              <h2 className="text-4xl sm:text-5xl font-bold text-gray-900 mb-6">
+                Frequently Asked Questions
+              </h2>
+              <p className="text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
+                Everything you need to know about hiring developers and working with CodeForContract
+              </p>
+            </motion.div>
+
+            <div className="grid lg:grid-cols-2 gap-8">
+              {faqData.map((faq, index) => (
+                <motion.div
+                  key={index}
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ duration: 0.6, delay: index * 0.1 }}
+                  className="group"
+                >
+                  <div className="bg-white rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 border border-gray-100 overflow-hidden group-hover:border-blue-200">
+                    <button
+                      className="w-full px-8 py-6 text-left flex justify-between items-start hover:bg-gradient-to-r hover:from-blue-50 hover:to-transparent transition-all duration-300"
+                    onClick={() => {
+                      const content = document.getElementById(`faq-content-${index}`);
+                      const icon = document.getElementById(`faq-icon-${index}`);
+                      if (content && icon) {
+                        content.classList.toggle('hidden');
+                        icon.classList.toggle('rotate-180');
+                      }
+                    }}
+                  >
+                    <div className="flex-1 pr-4">
+                      <div className="flex items-center gap-3 mb-2">
+                        <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                          <span className="text-blue-600 font-bold text-sm">{index + 1}</span>
+                        </div>
+                        <h3 className="text-lg font-semibold text-gray-900 group-hover:text-blue-700 transition-colors leading-tight">
+                          {faq.question}
+                        </h3>
+                      </div>
+                    </div>
+                    <ChevronDown
+                      id={`faq-icon-${index}`}
+                      className="w-5 h-5 text-gray-400 group-hover:text-blue-600 transition-all duration-300 flex-shrink-0 mt-1"
+                    />
+                    </button>
+                    <div
+                      id={`faq-content-${index}`}
+                      className="hidden px-8 pb-6"
+                    >
+                      <div className="pl-11">
+                        <div className="w-px h-4 bg-blue-200 mb-4"></div>
+                        <p className="text-gray-600 leading-relaxed text-base">
+                          {faq.answer}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </motion.div>
+              ))}
+            </div>
+
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.6, delay: 0.8 }}
+              className="text-center mt-16"
+            >
+              <p className="text-gray-600 mb-8 text-lg">
+                Still have questions? We're here to help!
+              </p>
+              <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                <Link to="/contact">
+                  <Button variant="primary" size="lg">
+                    Contact Support
+                  </Button>
+                </Link>
+                <Link to="/support">
+                  <Button variant="secondary" size="lg">
+                    Help Center
+                  </Button>
+                </Link>
+              </div>
+            </motion.div>
+          </div>
+        </div>
+      </section>
+
+      {/* Blog Preview Section */}
+      <section className="py-24 bg-white">
+        <div className="container mx-auto px-4">
+          <div className="max-w-6xl mx-auto">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.6 }}
+              className="text-center mb-16"
+            >
+              <div className="inline-flex items-center gap-2 px-4 py-2 bg-green-100 text-green-800 rounded-full text-sm font-medium mb-6">
+                <Code className="w-4 h-4" />
+                Latest Insights
+              </div>
+              <h2 className="text-4xl sm:text-5xl font-bold text-gray-900 mb-6">
+                From Our Blog
+              </h2>
+              <p className="text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
+                Stay updated with the latest trends, tips, and insights from the world of freelance development
+              </p>
+            </motion.div>
+
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 mb-12">
+                {[
+                  {
+                    id: 'top-10-freelance-software-engineer-skills-2025',
+                    title: 'Top 10 Freelance Software Engineering Skills in 2025: A Complete Guide',
+                    excerpt: 'Discover the most in-demand skills that freelance software engineers need to master in 2025 to stay competitive and command premium rates in the evolving tech landscape.',
+                    author: 'CodeForContract Team',
+                    date: '2025-01-20',
+                    readTime: '12 min read',
+                    category: 'Career Development',
+                    image: '🎯'
+                  },
+                  {
+                    id: 'how-to-outsource-sprint-spillovers-without-delays',
+                    title: 'How to Outsource Sprint Spillovers Without Delays: A Complete Guide',
+                    excerpt: 'Learn proven strategies for managing sprint spillovers by leveraging freelance developers to maintain project momentum, meet deadlines, and deliver quality results without compromising your timeline.',
+                    author: 'CodeForContract Team',
+                    date: '2025-01-18',
+                    readTime: '10 min read',
+                    category: 'Project Management',
+                    image: '⚡'
+                  },
+                  {
+                    id: 'why-startups-choose-freelance-developers-fast-growth',
+                    title: 'Why Startups Choose Freelance Developers for Fast Growth: The Complete Strategic Guide',
+                    excerpt: 'Discover how successful startups leverage freelance developers to accelerate growth, reduce costs, and access specialized talent while maintaining flexibility in today\'s competitive market.',
+                    author: 'CodeForContract Team',
+                    date: '2025-01-15',
+                    readTime: '14 min read',
+                    category: 'Startup Insights',
+                    image: '🚀'
+                  }
+                ].map((post, index) => (
+                <motion.article
+                  key={post.id}
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ duration: 0.6, delay: index * 0.1 }}
+                  className="group bg-white rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 border border-gray-100 overflow-hidden hover:border-blue-200"
+                >
+                  <div className="aspect-video bg-gradient-to-br from-blue-500 via-purple-500 to-pink-500 flex items-center justify-center relative overflow-hidden">
+                    <div className="absolute inset-0 bg-black/20"></div>
+                    <div className="text-6xl relative z-10 filter drop-shadow-lg">
+                      {post.image}
+                    </div>
+                    <div className="absolute top-4 left-4">
+                      <span className="px-3 py-1 bg-white/90 backdrop-blur-sm text-gray-800 text-xs font-medium rounded-full">
+                        {post.category}
+                      </span>
+                    </div>
+                  </div>
+                  
+                  <div className="p-8">
+                    <h3 className="text-xl font-bold text-gray-900 mb-4 group-hover:text-blue-700 transition-colors leading-tight line-clamp-2">
+                      {post.title}
+                    </h3>
+                    
+                    <p className="text-gray-600 mb-6 leading-relaxed line-clamp-3">
+                      {post.excerpt}
+                    </p>
+                    
+                    <div className="flex items-center justify-between text-sm text-gray-500 mb-6">
+                      <div className="flex items-center gap-4">
+                        <div className="flex items-center gap-1">
+                          <User className="w-4 h-4" />
+                          <span>{post.author}</span>
+                        </div>
+                        <div className="flex items-center gap-1">
+                          <Calendar className="w-4 h-4" />
+                          <span>{new Date(post.date).toLocaleDateString()}</span>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <Clock className="w-4 h-4" />
+                        <span>{post.readTime}</span>
+                      </div>
+                    </div>
+                    
+                    <Link
+                      to={`/blog/${post.id}`}
+                      className="inline-flex items-center gap-2 text-blue-600 hover:text-blue-700 font-semibold transition-colors group-hover:gap-3"
+                    >
+                      Read Article
+                      <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
+                    </Link>
+                  </div>
+                </motion.article>
+              ))}
+            </div>
+
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.6, delay: 0.4 }}
+              className="text-center"
+            >
+              <Link to="/blog">
+                <Button variant="primary" size="lg" className="group">
+                  <span className="mr-2">View All Articles</span>
+                  <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                </Button>
+              </Link>
+            </motion.div>
+          </div>
+        </div>
+      </section>
+
       {/* Motion shapes */}
       {[...Array(5)].map((_, i) => (
         <motion.div
@@ -1318,6 +1645,15 @@ function Landing() {
                   >
                     <span className="relative">
                       Contact Us
+                      <span className="absolute bottom-0 left-0 w-0 h-px bg-blue-600 group-hover:w-full transition-all"></span>
+                    </span>
+                  </Link>
+                  <Link
+                    to="/blog"
+                    className="text-sm text-gray-600 hover:text-blue-600 transition-colors inline-flex items-center group w-fit"
+                  >
+                    <span className="relative">
+                      Blog
                       <span className="absolute bottom-0 left-0 w-0 h-px bg-blue-600 group-hover:w-full transition-all"></span>
                     </span>
                   </Link>

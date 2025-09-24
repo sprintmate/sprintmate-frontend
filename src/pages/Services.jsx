@@ -3,6 +3,8 @@ import { motion } from 'framer-motion';
 import { ArrowLeft, Code, Users, Shield, Zap, Globe, Award, CheckCircle } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { fetchAppConfigWithCache } from '../api/configService';
+import SEOHead from '../components/SEOHead';
+import Breadcrumb from '../components/Breadcrumb';
 
 const Services = () => {
   const [appConfig, setAppConfig] = useState(null);
@@ -141,8 +143,35 @@ const Services = () => {
     }
   ];
 
+  // Breadcrumb Schema
+  const breadcrumbSchema = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    "itemListElement": [
+      {
+        "@type": "ListItem",
+        "position": 1,
+        "name": "Home",
+        "item": "https://codeforcontract.com"
+      },
+      {
+        "@type": "ListItem",
+        "position": 2,
+        "name": "Services",
+        "item": "https://codeforcontract.com/services"
+      }
+    ]
+  };
+
   return (
     <div className="min-h-screen bg-gray-50">
+      <SEOHead
+        title="Our Services - Comprehensive Development Solutions | CodeForContract"
+        description="Explore CodeForContract's comprehensive development services including developer matching, project management, secure payments, and quality assurance. Connect with top-tier talent today."
+        keywords="development services, developer matching, project management, secure payments, quality assurance, freelance development, software outsourcing"
+        canonical="/services"
+        structuredData={breadcrumbSchema}
+      />
       {/* Header */}
       <div className="bg-white shadow-sm">
         <div className="container mx-auto px-4 py-6">
@@ -161,6 +190,7 @@ const Services = () => {
 
       <div className="container mx-auto px-4 py-12">
         <div className="max-w-6xl mx-auto">
+          <Breadcrumb items={[{ name: 'Services', path: '/services' }]} />
           {/* Hero Section */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}

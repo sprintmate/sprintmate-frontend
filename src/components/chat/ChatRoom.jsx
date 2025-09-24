@@ -9,7 +9,7 @@ import axios from "axios";
 import { authUtils } from "../../utils/authUtils";
 import useWebSocket from "../../services/websocketService";
 
-import music from '../../../public/notification.mp3';
+import music from '/notification.mp3';
 
 const PAGE_SIZE = 300; // ✅ Configurable initial fetch count
 
@@ -23,9 +23,38 @@ const ChatRoom = ({ room, onClose }) => {
   const isInitialFetchDone = useRef(false);
   const prevMessagesLength = useRef(0);
   const audioRef = useRef(null);
+  const [audioInitialized, setAudioInitialized] = useState(false);
 
   // Get current user ID
   const CURRENT_USER_ID = authUtils.getUserProfile().userId;
+
+  // Initialize audio on first user interaction
+  const initializeAudio = useCallback(() => {
+    if (audioRef.current && !audioInitialized) {
+      // Set volume to a reasonable level
+      audioRef.current.volume = 0.7;
+      
+      // Try to play and immediately pause to initialize audio context
+      const playPromise = audioRef.current.play();
+      if (playPromise !== undefined) {
+        playPromise
+          .then(() => {
+            audioRef.current.pause();
+            audioRef.current.currentTime = 0;
+            setAudioInitialized(true);
+            console.log('Audio initialized successfully');
+          })
+          .catch((error) => {
+            console.log('Audio initialization failed:', error);
+            // Try alternative approach - just set the flag if audio element exists
+            if (audioRef.current) {
+              setAudioInitialized(true);
+              console.log('Audio marked as initialized despite play failure');
+            }
+          });
+      }
+    }
+  }, [audioInitialized]);
 
   const fetchMessages = useCallback(async () => {
     if (!room) return;
@@ -61,23 +90,26 @@ const ChatRoom = ({ room, onClose }) => {
       // ✅ Only play sound if:
       // 1. Not initial fetch
       // 2. Message is NOT from current user (sender)
-      // 3. Audio element exists
+      // 3. Audio element exists and is initialized
       const isMessageFromCurrentUser = message.senderId === CURRENT_USER_ID;
       
-      if (isInitialFetchDone.current && !isMessageFromCurrentUser && audioRef.current) {
-        // Try to play sound, handle browser restrictions
+      if (isInitialFetchDone.current && !isMessageFromCurrentUser && audioRef.current && audioInitialized) {
+        console.log('Playing notification sound for new message');
+        // Try to play sound
         const playPromise = audioRef.current.play();
         if (playPromise !== undefined) {
-          playPromise.catch((err) => {
-            console.log("Autoplay blocked, will play on user interaction");
-            // If autoplay is blocked, try to resume on user interaction
-            const resumeAudio = () => {
-              audioRef.current.play();
-              document.removeEventListener("click", resumeAudio);
-            };
-            document.addEventListener("click", resumeAudio);
-          });
+          playPromise
+            .then(() => {
+              console.log('Notification sound played successfully');
+            })
+            .catch((error) => {
+              console.log('Failed to play notification sound:', error);
+              // Reset audio to beginning for next attempt
+              audioRef.current.currentTime = 0;
+            });
         }
+      } else if (isInitialFetchDone.current && !isMessageFromCurrentUser && !audioInitialized) {
+        console.log('Audio not initialized, cannot play notification sound');
       }
       
       const updated = [...prev, message];
@@ -85,7 +117,7 @@ const ChatRoom = ({ room, onClose }) => {
         (a, b) => new Date(a.createdAt) - new Date(b.createdAt)
       );
     });
-  }, [CURRENT_USER_ID]); // ✅ Added CURRENT_USER_ID to dependencies
+  }, [CURRENT_USER_ID, audioInitialized]); // ✅ Added audioInitialized to dependencies
 
   const scrollToBottom = () => {
     scrollToBottomRef.current?.scrollIntoView({
@@ -144,13 +176,30 @@ const ChatRoom = ({ room, onClose }) => {
     return format(date, "MMMM d, yyyy");
   };
 
-  // Prevent background scroll when chat is open
+  // Prevent background scroll when chat is open and initialize audio on user interaction
   useEffect(() => {
     document.body.style.overflow = "hidden";
+    
+    // Add event listeners for audio initialization on user interaction
+    const handleUserInteraction = () => {
+      initializeAudio();
+      // Remove listeners after first interaction
+      document.removeEventListener('click', handleUserInteraction);
+      document.removeEventListener('keydown', handleUserInteraction);
+      document.removeEventListener('touchstart', handleUserInteraction);
+    };
+    
+    document.addEventListener('click', handleUserInteraction);
+    document.addEventListener('keydown', handleUserInteraction);
+    document.addEventListener('touchstart', handleUserInteraction);
+    
     return () => {
       document.body.style.overflow = "";
+      document.removeEventListener('click', handleUserInteraction);
+      document.removeEventListener('keydown', handleUserInteraction);
+      document.removeEventListener('touchstart', handleUserInteraction);
     };
-  }, []);
+  }, [initializeAudio]);
 
   return (
     <div className="fixed inset-0 z-50 flex flex-col bg-gradient-to-br from-blue-50 via-white to-indigo-50 shadow-2xl">
@@ -159,7 +208,18 @@ const ChatRoom = ({ room, onClose }) => {
         ref={audioRef}
         src={music}
         preload="auto"
+        loop={false}
+        volume={0.7}
         style={{ display: "none" }}
+        onError={(e) => {
+          console.error('Audio loading error:', e);
+        }}
+        onLoadStart={() => {
+          console.log('Audio loading started');
+        }}
+        onCanPlay={() => {
+          console.log('Audio can play');
+        }}
       />
 
       {/* Header */}
@@ -174,9 +234,39 @@ const ChatRoom = ({ room, onClose }) => {
         </Button>
         <div className="flex-1">
           <h2 className="font-semibold text-gray-900 text-lg">{room?.name}</h2>
-          <p className="text-sm text-gray-500">
-            {isConnected ? "Connected" : "Connecting..."}
-          </p>
+          <div className="flex items-center gap-2">
+            <p className="text-sm text-gray-500">
+              {isConnected ? "Connected" : "Connecting..."}
+            </p>
+            {!audioInitialized && (
+              <button
+                onClick={initializeAudio}
+                className="text-xs bg-yellow-100 text-yellow-800 px-2 py-1 rounded-full hover:bg-yellow-200 transition-colors"
+                title="Click to enable notification sounds"
+              >
+                🔇 Enable Sounds
+              </button>
+            )}
+            {audioInitialized && (
+              <div className="flex items-center gap-1">
+                <span className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded-full">
+                  🔊 Sounds On
+                </span>
+                <button
+                  onClick={() => {
+                    if (audioRef.current) {
+                      audioRef.current.currentTime = 0;
+                      audioRef.current.play().catch(console.error);
+                    }
+                  }}
+                  className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded-full hover:bg-blue-200 transition-colors"
+                  title="Test notification sound"
+                >
+                  🔔 Test
+                </button>
+              </div>
+            )}
+          </div>
         </div>
       </div>
 
